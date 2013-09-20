@@ -32,10 +32,12 @@ class L1TkTrack
     GlobalVector                              theMomentum;
     GlobalPoint                               theVertex;
     double                                    theRInv;
+    short int                                 theCharge; 
     unsigned int                              theSector;
     unsigned int                              theWedge;
     double                                    theChi2;
     edm::Ptr< SimTrack >                      theSimTrack;
+    int                                       theSimTrackId;
 
   public:
     /// Constructors
@@ -54,8 +56,10 @@ class L1TkTrack
     void         setMomentum( GlobalVector aMomentum );
 
     /// Track parameters
-    double getRInv() const;
-    void   setRInv( double aRInv );
+    double    getRInv() const;
+    void      setRInv( double aRInv );
+    int short getCharge() const;
+    void      setCharge( short int aCharge ); 
 
     /// Vertex
     GlobalPoint getVertex() const;
@@ -79,6 +83,9 @@ class L1TkTrack
     bool                 isUnknown() const;
     int                  findType() const;
     unsigned int         findSimTrackId() const;
+
+    int                  getSimTrackId() const;
+    void                 setSimTrackId( int aSimTrackId );
 
     /// Superstrip
     /// Here to prepare inclusion of AM L1 Track finding
@@ -115,10 +122,12 @@ L1TkTrack< T >::L1TkTrack()
   theStubPtrs.clear();
   theMomentum = GlobalVector(0.0,0.0,0.0);
   theRInv     = 0;
+  theCharge   = 0;
   theVertex   = GlobalPoint(0.0,0.0,0.0);
   theSector   = 0;
   theWedge    = 0;
   theChi2     = 0;
+  theSimTrackId = 0;
 }
 
 /// Another Constructor
@@ -129,9 +138,11 @@ L1TkTrack< T >::L1TkTrack( std::vector< edm::Ptr< L1TkStub< T > > > aStubs )
   theMomentum = GlobalVector(0.0,0.0,0.0);
   theVertex   = GlobalPoint(0.0,0.0,0.0);
   theRInv     = 0;
+  theCharge   = 0;
   theSector   = 0;
   theWedge    = 0;
   theChi2     = 0;
+  theSimTrackId = 0;
 }
 
 /// Destructor
@@ -156,6 +167,16 @@ template< typename T >
 void L1TkTrack< T >::setMomentum( GlobalVector aMomentum )
 {
   theMomentum = aMomentum;
+}
+
+/// Fit Charge
+template< typename T >
+short int L1TkTrack< T >::getCharge() const { return theCharge; }
+
+template< typename T >
+void L1TkTrack< T >::setCharge( short int aCharge )
+{
+  theCharge = aCharge;
 }
 
 /// Vertex
@@ -229,6 +250,15 @@ unsigned int L1TkTrack< T >::findSimTrackId() const
     return 0;
   return theSimTrack->trackId();
 }
+
+template< typename T >
+int L1TkTrack< T >::getSimTrackId() const { return theSimTrackId; }
+
+template< typename T >
+void L1TkTrack< T >::setSimTrackId( int aSimTrackId ) {
+  theSimTrackId = aSimTrackId;
+}
+
 
 /// ////////////// ///
 /// HELPER METHODS ///
