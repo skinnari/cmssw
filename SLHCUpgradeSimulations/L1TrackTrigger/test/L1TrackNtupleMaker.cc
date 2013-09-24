@@ -411,7 +411,9 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     float tmp_trk_phi = iterL1Track->getMomentum().phi();
     float tmp_trk_z0  = iterL1Track->getVertex().z();
     float tmp_trk_chi2   = iterL1Track->getChi2();
-    float tmp_trk_charge = iterL1Track->getCharge();
+    float tmp_trk_charge = 0;
+    if (iterL1Track->getRInv() > 0) tmp_trk_charge = 1.0;
+    else if (iterL1Track->getRInv() < 0) tmp_trk_charge = -1.0;
 
     if (tmp_trk_pt < 2.0) continue;
 
@@ -421,26 +423,6 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     m_trk_z0 ->push_back(tmp_trk_z0);
     m_trk_chi2  ->push_back(tmp_trk_chi2);
     m_trk_charge->push_back(tmp_trk_charge);
-
-    /*
-    // ----------------------------------------------------------------------------------------------
-    // find matching sim track
-    unsigned int simtrackid = iterL1Track->getSimTrackId();
-
-    SimTrackContainer::const_iterator iterSimTracks;
-    for (iterSimTracks = simTrackHandle->begin(); iterSimTracks != simTrackHandle->end(); ++iterSimTracks) {  
-      
-      float tmp_simtrk_pt  = iterSimTracks->momentum().pt();
-      float tmp_simtrk_eta = iterSimTracks->momentum().eta();
-      float tmp_simtrk_phi = iterSimTracks->momentum().phi();
-      unsigned int tmp_simtrk_id = iterSimTracks->trackId();
-
-      if (tmp_simtrk_id == simtrackid) { 
-	// this is a match...!!
-      }
-
-    }//end simtrk loop
-    */
 
 
     // ----------------------------------------------------------------------------------------------
@@ -534,8 +516,14 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       float tmp_trk_phi = iterL1Track->getMomentum().phi();
       float tmp_trk_z0  = iterL1Track->getVertex().z();
       float tmp_trk_chi2   = iterL1Track->getChi2();
-      float tmp_trk_charge = iterL1Track->getCharge();
-      unsigned int tmp_trk_simtrackid = iterL1Track->getSimTrackId();
+
+      float tmp_trk_charge = 0;
+      if (iterL1Track->getRInv() > 0) tmp_trk_charge = 1.0;
+      else if (iterL1Track->getRInv() < 0) tmp_trk_charge = -1.0;
+
+      unsigned int tmp_trk_simtrackid = 0;
+      edm::Ptr< SimTrack > simTrackPtr = iterL1Track->getSimTrackPtr();
+      tmp_trk_simtrackid = simTrackPtr->trackId();
       
       if (tmp_trk_pt < 2.0) continue;
       
