@@ -516,14 +516,11 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       float tmp_trk_phi = iterL1Track->getMomentum().phi();
       float tmp_trk_z0  = iterL1Track->getVertex().z();
       float tmp_trk_chi2   = iterL1Track->getChi2();
-
+      unsigned int tmp_trk_simtrackid = iterL1Track->getSimTrackId();
+ 
       float tmp_trk_charge = 0;
       if (iterL1Track->getRInv() > 0) tmp_trk_charge = 1.0;
       else if (iterL1Track->getRInv() < 0) tmp_trk_charge = -1.0;
-
-      unsigned int tmp_trk_simtrackid = 0;
-      edm::Ptr< SimTrack > simTrackPtr = iterL1Track->getSimTrackPtr();
-      tmp_trk_simtrackid = simTrackPtr->trackId();
       
       if (tmp_trk_pt < 2.0) continue;
       

@@ -630,8 +630,8 @@ void L1TrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     //L1TkTrackType TkTrack(TkStubs, aSeedTracklet);
     L1TkTrackType TkTrack(TkStubs);
-    //double frac;
-    //TkTrack.setSimTrackId(track.simtrackid(frac)); 
+    double frac;
+    TkTrack.setSimTrackId(track.simtrackid(frac)); 
     GlobalPoint bsPosition(0.0,0.0,track.z0()); //store the L1 track vertex position 
     TkTrack.setVertex(bsPosition);  
     TkTrack.setChi2(track.chisq());
@@ -639,8 +639,8 @@ void L1TrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     //if (track.pt(mMagneticFieldStrength)<0.0) charge=-1;
     //TkTrack.setCharge(charge);
 
-    // set simtrack ID (??)
-    if (iEvent.isRealData() == false) TkTrack.checkSimTrack();
+    // set simtrack ID (??) **this doesn't work, re-introduced get/set simtrack ID methods**
+    //if (iEvent.isRealData() == false) TkTrack.checkSimTrack();
 
     TkTrack.setMomentum( GlobalVector ( GlobalVector::Cylindrical(fabs(track.pt(mMagneticFieldStrength)), 
 								  track.phi0(), 
