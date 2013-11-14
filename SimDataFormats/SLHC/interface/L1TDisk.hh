@@ -281,9 +281,9 @@ public:
             double deltaz=z-zproj;
 
 	    if (fabs(rdeltaphi)>0.1) continue;
-	    if (fabs(deltaz)>0.5) continue;
+	    if (fabs(deltaz)>5.0) continue; //LS modified from 0.5 to 5.0
 
-	    double dist=hypot(rdeltaphi/0.1,deltaz/0.5);
+	    double dist=hypot(rdeltaphi/0.1,deltaz/5.0); //LS modified from 0.5 to 5.0
 
 	    if (dist<bestdist) {
 	      bestdist=dist;

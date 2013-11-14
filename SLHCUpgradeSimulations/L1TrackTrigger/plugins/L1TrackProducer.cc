@@ -638,6 +638,7 @@ void L1TrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     //short int charge=1;
     //if (track.pt(mMagneticFieldStrength)<0.0) charge=-1;
     //TkTrack.setCharge(charge);
+    TkTrack.setRInv(track.rinv());
 
     // set simtrack ID (??) **this doesn't work, re-introduced get/set simtrack ID methods**
     //if (iEvent.isRealData() == false) TkTrack.checkSimTrack();
