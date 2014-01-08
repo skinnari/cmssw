@@ -1041,7 +1041,7 @@ public:
       if (fabs(stubs_[i].x()-stub.x())<0.2&&
 	  fabs(stubs_[i].y()-stub.y())<0.2&&
 	  fabs(stubs_[i].z()-stub.z())<2.0) {
-	//foundclose=true;
+	foundclose=true;
       }
     }
 
@@ -1623,11 +1623,39 @@ public:
       return -1;
     }
 
+    // ---------------------------------------------------------
+    // use majority logic instead
+    // ---------------------------------------------------------
+
+    /*
     for (unsigned int i=1;i<simtrackids.size();i++){
       if (simtrackids[i]!=simtrackids[0]) return -1;
     }
 
     return simtrackids[0];
+    */
+
+    std::sort(simtrackids.begin(),simtrackids.end());
+
+    int n_max = 0;
+    int value_max = 0;
+    int n_tmp = 1;
+    int value_tmp = simtrackids[0];
+    for (unsigned int i=1; i<simtrackids.size();i++) {
+      if (simtrackids[i] == value_tmp) n_tmp++;
+      else {
+	if (n_tmp > n_max) {
+	  n_max = n_tmp;
+	  value_max = value_tmp;
+	}
+	n_tmp = 1;
+	value_tmp = simtrackids[i];
+      }
+    }
+    
+    if (n_tmp > n_max) value_max = value_tmp;
+
+    return value_max;
 
   }
 

@@ -21,13 +21,14 @@ process.load('Configuration.StandardSequences.L1TrackTrigger_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
+
 ############################################################
 # input source
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
-Source_Files = cms.untracked.vstring('root://eoscms//store/mc/UpgFall13d/SingleMuMinusFlatPt0p2To100/GEN-SIM-DIGI-RAW/PU140bx25_POSTLS261_V3-v1/20000/D217598A-0539-E311-8A7E-00261894388D.root')
+Source_Files = cms.untracked.vstring('root://eoscms//store/group/comm_trigger/L1TrackTrigger/BE5D_612_SLHC6_patch1/singleEle/SingleEle_NoPU.root') 
 process.source = cms.Source("PoolSource", fileNames = Source_Files)
 
 
@@ -44,7 +45,7 @@ process.L1Tracks.geometry = cms.untracked.string('BE5D')
 # output definition
 ############################################################
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('SingleMuMinus_BE5D_TrkPerf.root'), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string('SingleEl_noPU_BE5D_TrkPerf.root'), closeFileFast = cms.untracked.bool(True))
 
 
 ############################################################
@@ -59,11 +60,21 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgradePLS3', '')
 # Path definitions & schedule
 ############################################################
 
+# Remake stubs (running with zMatching=False)
+process.L1TrackTrigger_step = cms.Path(process.L1TrackTrigger)
+
 process.BeamSpotFromSim = cms.EDProducer("BeamSpotFromSimProducer")
 process.TT_step = cms.Path(process.BeamSpotFromSim*process.L1Tracks)
 
-process.L1TrackNtuple = cms.EDAnalyzer('L1TrackNtupleMaker')
+
+# Define the track ntuple process, MyProcess is the (unsigned) PDGID corresponding to the process which is run
+# e.g. single electron/positron = 11
+#      single pion+/pion- = 211
+#      single muon+/muon- = 13 
+process.L1TrackNtuple = cms.EDAnalyzer('L1TrackNtupleMaker',
+                                       MyProcess = cms.int32(11)
+                                       )
 process.ana = cms.Path(process.L1TrackNtuple)
 
-process.schedule = cms.Schedule(process.TT_step,process.ana)
+process.schedule = cms.Schedule(process.L1TrackTrigger_step,process.TT_step,process.ana)
 

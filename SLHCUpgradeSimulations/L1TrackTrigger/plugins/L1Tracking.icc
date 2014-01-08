@@ -93,7 +93,7 @@
 
 
 
-    cout << "looping over stubs: "<<ev.nstubs()<<endl;
+    //cout << "looping over stubs: "<<ev.nstubs()<<endl;
       
     for (int j=0;j<ev.nstubs();j++){
 
@@ -659,8 +659,8 @@
 
     if (1){	 
       L[0]->findTracklets(L[1]);
-      L[0]->findTracklets(B[0]);
-      L[0]->findTracklets(F[0]);
+      L[0]->findTracklets(B[0],50.0);
+      L[0]->findTracklets(F[0],50.0);
       L[0]->findMatches(L[2],0.075,0.5);
       L[0]->findMatches(L[3],0.12,3.0);
       L[0]->findMatches(L[4],0.15,3.0);
@@ -682,8 +682,8 @@
     
     if(1){
       L[1]->findTracklets(L[2]);
-      L[1]->findTracklets(B[0]);
-      L[1]->findTracklets(F[0]);
+      L[1]->findTracklets(B[0],70.0);
+      L[1]->findTracklets(F[0],70.0);
       L[1]->findMatches(L[0],0.04,0.5);
       L[1]->findMatches(L[3],0.075,3.0);
       L[1]->findMatches(L[4],0.1,3.0);

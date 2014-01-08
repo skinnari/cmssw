@@ -114,8 +114,8 @@ public:
 	    double pt1=stubs_[iSector][i].pt();
 	    double pt2=L->stubs_[jSector][j].pt();
 	    double pttracklet=0.3*3.8/(rinv*100);
-	    bool pass1=fabs(1.0/pt1-1.0/pttracklet)<0.25;
-	    bool pass2=fabs(1.0/pt2-1.0/pttracklet)<0.25;
+	    bool pass1=fabs(1.0/pt1-1.0/pttracklet)<0.5;
+	    bool pass2=fabs(1.0/pt2-1.0/pttracklet)<0.5;
 	    bool pass=pass1&&pass2;
 
 	    if (0) {
@@ -152,7 +152,7 @@ public:
     }
   }
 
-  void findTracklets(L1TDisk* D){
+  void findTracklets(L1TDisk* D, double rmax=120.0){
 
     //return;
 
@@ -171,6 +171,8 @@ public:
 	    double r2=D->stubs_[jSector][j].r();
 	    double z2=D->stubs_[jSector][j].z();
 	    double phi2=D->stubs_[jSector][j].phi();
+
+	    if (r2>rmax) continue;
 
 	    if (r2>80.0) continue;
 
