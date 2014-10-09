@@ -1,0 +1,183 @@
+******************************************************************************
+*                                                                            *
+* Hands-on exercise:  L1 tracklet simulation in CMSSW                        *
+*                                                                            *
+* Tracklet Workshop @ Cornell, October 9-10, 2014                            *
+*                                                                            *
+******************************************************************************
+
+
+Goal of exercise
+- Running tracklet code to create L1 tracks
+- Using existing tools for producing track performance plots 
+- Learn where to start for modifying actual tracking code
+
+General description of exercise  
+- INTRODUCTION:  General code structure and setting up the CMSSW software. 
+- PART ONE: 
+- PART TWO:  
+
+
+
+******************************************************************************
+*** INTRODUCTION:  Setup software ***
+******************************************************************************
+
+Note: Need to ideally do this on lxplus to allow running on samples available there. 
+
+# setup release
+SCRAM_ARCH=slc5_amd64_gcc472
+export SCRAM_ARCH 
+cmsrel CMSSW_6_2_0_SLHC12_patch1
+cd CMSSW_6_2_0_SLHC12_patch1/src
+cmsenv
+
+# checkout code
+git cms-addpkg SLHCUpgradeSimulations/L1TrackTrigger
+git cms-merge-topic skinnari:TrackletWorkshop
+git checkout -b TrackletWorkshop
+
+# compile code
+scramv1 b -j 8
+
+
+
+******************************************************************************
+*** PART ONE:  Track-stub pt consistency ***
+******************************************************************************
+
+
+We want to define a track-stub pt consistency variable which can be used as a track quality variable in addition to the chi2. 
+For simplicity, we will here add this to the L1 track ntuple maker, rather than as a method used when running the actual tracking. 
+
+
+
+******************************************************************************
+
+(1) Extract RMS of 1/pt_stub for different detector regions using provided sample:
+
+~/public/TrackletWorkshop/SingleMuon_noPU_stubInfo.root
+
+This ntuple was created by running on single muons (PU=0), and saving truth information for generated single-gun 
+particle ("tracking particle") and stub information for stubs associated with these tracks. 
+
+
+
+******************************************************************************
+
+(2) Define chi2-like track-stub pt consistency variable, adding it as an additional variable for "all tracks" in the ntuple maker:
+
+SLHCUpgradeSimulations/L1TrackTrigger/test/L1TrackNtupleMaker.cc
+
+This will be useful: 
+https://twiki.cern.ch/twiki/bin/viewauth/CMS/SLHCTrackerTriggerSWTools#HOWTO_Use_the_dedicated_geom_AN1
+
+*** Hint - you will need the StackedTrackerGeometry to access stub position information: 
+
+  // geometry handles
+  edm::ESHandle< StackedTrackerGeometry >         StackedGeometryHandle;
+  const StackedTrackerGeometry*                   theStackedGeometry;
+  iSetup.get< StackedTrackerGeometryRecord >().get(StackedGeometryHandle);
+  theStackedGeometry = StackedGeometryHandle.product();
+
+*** Hint - you will need the magnetic field to use the method for getting the stub pt:
+
+  // magnetic field
+  edm::ESHandle< MagneticField > magneticFieldHandle;
+  iSetup.get< IdealMagneticFieldRecord >().get(magneticFieldHandle);
+  const MagneticField* theMagneticField = magneticFieldHandle.product();
+  double mMagneticFieldStrength = theMagneticField->inTesla(GlobalPoint(0,0,0)).z();
+
+
+*** More detailed hints - follow these steps:
+
+- define stub 1/pt RMS for different regions 
+- get charged track pt
+- loop over stubs on track, for each stub
+   - figure out stub position
+   - read stub invPt RMS
+   - read signed stub pt
+   - calculate contribution to variable
+- fill variable
+
+
+
+******************************************************************************
+
+(3) Run the modified ntuple maker on a small sample of single muons in high PU (PU=140) environment. 
+
+Can use out of the box this configuration file: 
+
+SLHCUpgradeSimulations/L1TrackTrigger/test/L1TrackNtupleMaker_cfg.py
+
+Running interactively on 1000 events takes ~15 minutes. While it runs, proceed to step (3). 
+
+
+******************************************************************************
+(4) Make some plots! 
+
+- pt consistency (default vs your own version) for all tracks 
+- pt consistency / dof 
+- pt consistency for tracks with == 4 stubs vs >= 5 stubs
+
+
+
+******************************************************************************
+*** EXERCISE 2:  Look at projection residuals ***
+******************************************************************************
+
+This requires digging into the actual tracking simulation code a bit. 
+
+(1) Find the function which finds matching stubs projecting to barrel layers / endcap disks. 
+
+(2) Look for the printouts of residuals and enable them. 
+
+(3) Run the tracking on single muons (PU=0) to create these text files.
+
+(4) Make residual plots for barrel using provided script: 
+
+matchbarrel.C
+
+
+
+******************************************************************************
+*** The relevant packages ***
+******************************************************************************
+
+SLHCUpgradeSimulations/L1TrackTrigger
+SimDataFormats/SLHC
+DataFormats/L1TrackTrigger
+
+
+*** The L1 tracklet track producer lives in here: 
+
+SLHCUpgradeSimulations/L1TrackTrigger/plugins/L1TrackProducer.cc
+SLHCUpgradeSimulations/L1TrackTrigger/plugins/L1Tracking.icc
+
+*** The tracking largely uses these functions to do the tracklet seeding and projection:
+
+SimDataFormats/SLHC/interface/L1TBarrel.hh 
+SimDataFormats/SLHC/interface/L1TDisk.hh 
+
+*** The track fit part lives within L1TTrack.hh: 
+
+SimDataFormats/SLHC/interface/L1TTrack.hh 
+
+*** The duplicate removal part lives within L1TTracks.hh
+
+SimDataFormats/SLHC/interface/L1TTracks.hh 
+
+
+
+******************************************************************************
+*** Useful references ***
+******************************************************************************
+
+* Track-trigger data formats / objects
+This twiki page describes the various data formats used for L1 track trigger objects: 
+   clusters (TTCluster), stubs (TTStub), and tracks (TTTrack). 
+It also describes how to get the corresponding MC truth information. 
+
+https://twiki.cern.ch/twiki/bin/viewauth/CMS/SLHCTrackerTriggerSWTools
+
+
