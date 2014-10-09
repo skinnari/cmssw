@@ -14,8 +14,8 @@ Goal of exercise
 
 General description of exercise  
 - INTRODUCTION:  General code structure and setting up the CMSSW software. 
-- PART ONE: 
-- PART TWO:  
+- PART ONE:  Track-stub pt consistency
+- PART TWO:  Projection residuals
 
 
 
@@ -24,10 +24,8 @@ General description of exercise
 ******************************************************************************
 
 Note: Need to ideally do this on lxplus to allow running on samples available there. 
-
+ 
 # setup release
-SCRAM_ARCH=slc5_amd64_gcc472
-export SCRAM_ARCH 
 cmsrel CMSSW_6_2_0_SLHC12_patch1
 cd CMSSW_6_2_0_SLHC12_patch1/src
 cmsenv
@@ -138,6 +136,8 @@ This requires digging into the actual tracking simulation code a bit.
 
 matchbarrel.C
 
+(There is also a script in this directory for running residuals for the disks, matchdisk.C)
+
 
 
 ******************************************************************************
@@ -181,3 +181,9 @@ It also describes how to get the corresponding MC truth information.
 https://twiki.cern.ch/twiki/bin/viewauth/CMS/SLHCTrackerTriggerSWTools
 
 
+* As part of the SLHCUpgradeSimulations/L1TrackTrigger package there is also a plotting script 
+which can be run on ntuples produced by L1TrackNtupleMaker.cc:
+
+SLHCUpgradeSimulations/L1TrackTrigger/test/L1TrackNtuplePlot.C
+
+It makes different histograms for efficiency, residuals, chi2 distributions, etc. 
