@@ -10,12 +10,16 @@
 //static string geomext="D3D4";  //Use only detector region 3+4
 //static string geomext="D5D6";  //Use forward disks
 //static string geomext="D3D6";  //Half sector (D3-D6)
+//static string geomext="D4D6";  //Half sector (D4-D6)
 static string geomext="full";  //Use full
 
 //What TMUX? This is primarily for producing input files with padding for firmware inputs
 static int TMUX = 6;
 
 static string fitpatternfile="fitpattern.txt";
+
+//Allow you to trace what objects are produced in printout
+static bool debug1=false;
 
 //If this string is non-empty we will write ascii file with
 //processed events
@@ -52,7 +56,7 @@ static bool writeME=false;
 static bool writeMatchCalculator=false;
 static bool writeProjectionTransceiver=false;
 static bool writeMatchTransceiver=false;
-static bool writeFitTrack=false;
+//static bool writeFitTrack=false;
 static bool writeNMatches=false;
 static bool writez0andrinv=false;
 static bool writeDiskMatch1=false;
@@ -61,8 +65,6 @@ static bool writeDiskMatch1=false;
 static bool writeHitPattern=false;
 static bool writeTrackletParsOverlap=false;
 static bool writeTrackletParsDisk=false;
-
-
 
 
 
@@ -93,12 +95,13 @@ static bool doB1B2=true;
 static bool doB3B4=true;
 
 static bool doL1F1=true;
-static bool doL2F1=true;
-
 static bool doL1B1=true;
-static bool doL2B1=true;
 
-static bool doMEMatch=false;
+//These are not used
+//static bool doL2F1=false;
+//static bool doL2B1=false;
+
+static bool doMEMatch=true;
 
 //static bool allSector=false; //if true duplicate stubs in all sectors
 
@@ -177,8 +180,7 @@ static double teptconsistencyoverlap=0.6;
 static bool   enstubbend = false; 
 static double two_pi=8.0*atan(1.0);
 
-//static double ptcut=2.0; //Minimum pt
-static double ptcut=2.1; //Minimum pt
+static double ptcut=3.0; //Minimum pt
 static double rinvcut=0.01*0.3*3.8/ptcut; //0.01 to convert to cm-1
 static double z0cut=15.0;
 static double z0cutL1=15.0;
@@ -191,6 +193,10 @@ static double kalpha=alphamax/(1<<(nbitsalpha-1));
 static int alphaBitsTable=1; //For number of bits in track derivative table
 
 static unsigned int NSector=28;
+// Restrict the sectors to run over and match the firmware
+static unsigned int first_sector = 0;
+static unsigned int last_sector = NSector;
+
 static int Nphibits=2;         //Number of bits required to label the phi VM
 static int L1Nphi=(1<<Nphibits)-1; //Number of odd layer VMs
 static int Nzbits=3;         //Number of bits required to label the z VM
@@ -207,31 +213,21 @@ static int L1Nr=4;   //Bad name! Number of r VM
 //static int NMAXstub  = 250;
 //static int NMAXroute = 250;
 
-static unsigned int MAXSTUBSLINK = 10000; //Max stubs per link
-static unsigned int MAXLAYERROUTER = 10000; //Max stubs handled by layer router
-static unsigned int MAXDISKROUTER = 10000; //Max stubs handled by disk router
-static unsigned int MAXVMROUTER = 10000; //Max stubs handled by VM router
-static unsigned int MAXTE = 10000; //Maximum number of stub pairs to try in TE 
-static unsigned int MAXTC = 10000; //Maximum number of tracklet parameter calculations
-static unsigned int MAXPROJECTIONTRANSCEIVER = 10000; //Maximum number of projections to neighbor
-static unsigned int MAXPROJROUTER = 10000; //Maximum number of projections to route
-static unsigned int MAXME = 10000; //Maximum number of stub-projection matches to try
-static unsigned int MAXMC = 10000; //Maximum number of match calculations
-static unsigned int MAXFIT = 10000; //Maximum number of track fits
 
-/*
-static unsigned int MAXSTUBSLINK = 36; //Max stubs per link
-static unsigned int MAXLAYERROUTER = 33; //Max stubs handled by layer router
-static unsigned int MAXDISKROUTER = 10000; //Max stubs handled by disk router
-static unsigned int MAXVMROUTER = 31; //Max stubs handled by VM router
-static unsigned int MAXTE = 34; //Maximum number of stub pairs to try in TE 
-static unsigned int MAXTC = 36; //Maximum number of tracklet parameter calculations
-static unsigned int MAXPROJECTIONTRANSCEIVER = 10000; //Maximum number of projections to neighbor
-static unsigned int MAXPROJROUTER = 10000; //Maximum number of projections to route
-static unsigned int MAXME = 31; //Maximum number of stub-projection matches to try
-static unsigned int MAXMC = 35; //Maximum number of match calculations
-static unsigned int MAXFIT = 10000; //Maximum number of track fits
-*/
+//static unsigned int MAXOFFSET=10000; //set to 0 for regular truncation
+static unsigned int MAXOFFSET=0;
+
+static unsigned int MAXSTUBSLINK = MAXOFFSET + 36; //Max stubs per link
+static unsigned int MAXLAYERROUTER = MAXOFFSET + 33; //Max stubs handled by layer router
+static unsigned int MAXDISKROUTER = MAXOFFSET + 10000; //Max stubs handled by disk router
+static unsigned int MAXVMROUTER = MAXOFFSET + 31; //Max stubs handled by VM router
+static unsigned int MAXTE = MAXOFFSET + 34; //Maximum number of stub pairs to try in TE 
+static unsigned int MAXTC = MAXOFFSET + 36; //Maximum number of tracklet parameter calculations
+static unsigned int MAXPROJECTIONTRANSCEIVER = MAXOFFSET + 36; //Maximum number of projections to neighbor
+static unsigned int MAXPROJROUTER = MAXOFFSET + 36; //Maximum number of projections to route
+static unsigned int MAXME = MAXOFFSET + 34; //Maximum number of stub-projection matches to try
+static unsigned int MAXMC = MAXOFFSET + 30; //Maximum number of match calculations
+static unsigned int MAXFIT = MAXOFFSET + 10000; //Maximum number of track fits
 
 
 static double dphisector=two_pi/NSector;

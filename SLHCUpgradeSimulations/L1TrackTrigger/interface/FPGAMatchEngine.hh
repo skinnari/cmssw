@@ -79,12 +79,16 @@ public:
     unsigned int countall=0;
     unsigned int countpass=0;
 
-    
     for(unsigned int j=0;j<vmprojs_->nTracklets();j++){
 
       FPGATracklet* proj=vmprojs_->getFPGATracklet(j);
       for(unsigned int i=0;i<vmstubs_->nStubs();i++){
 	std::pair<FPGAStub*,L1TStub*> stub=vmstubs_->getStub(i);
+	if (layer_>0){
+	  //cout << "Stub: layer = "<<layer_<<" "<<stub.first->phivm().value()<<" "
+	  //	     <<stub.first->zvm().value()<<endl;
+	}
+	if (countall>=MAXME) break;
 	countall++;
 	if (layer_>0){
 	  //cout << "Stub: layer = "<<layer_<<" "<<stub.first->phivm().value()<<" "
@@ -113,13 +117,13 @@ public:
 	  //cout << "FPGAMatchEngine::execute found candidate match in disk :"
 	  //     <<disk_<<endl;
 	}
-	//cout << "FPGAMatchEngine "<<getName()<<" stub.r "
-	//     <<stub.second->r()<<" "<<vmstubs_->getName()<<endl;
+	if (debug1) {
+	  cout << "FPGAMatchEngine "<<getName()<<" stub.r "
+	       <<stub.second->r()<<" "<<vmstubs_->getName()<<endl;
+	}
 	candmatches_->addMatch(proj,stub);
 	countpass++;
-	if (countall>=MAXME) break;
       }
-      if (countall>=MAXME) break;
     }
 
     if (writeME) {

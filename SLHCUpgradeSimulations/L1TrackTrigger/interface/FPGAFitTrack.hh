@@ -1168,11 +1168,78 @@ public:
   }
 
 
+  std::vector<FPGATracklet*> orderedMatches(vector<FPGAFullMatch*>& fullmatch) {
+
+    std::vector<FPGATracklet*> tmp;
+
+
+    std::vector<unsigned int> indexArray;
+    for (unsigned int i=0;i<fullmatch.size();i++) {
+      indexArray.push_back(0);
+      //cout << "FPGAFitTrack::orderedMatches "<<iSector_
+      //   <<" "<<fullmatch[i]->getName()<<" "<<fullmatch[i]->nMatches();
+      for (unsigned int j=0;j<fullmatch[i]->nMatches();j++){
+	assert(iSector_==fullmatch[i]->getFPGATracklet(j)->homeSector());
+	//cout <<" "<<fullmatch[i]->getFPGATracklet(j)->TCID()
+	//   <<" "<<fullmatch[i]->getFPGATracklet(j)->TCIDName()
+	//   <<"("<<fullmatch[i]->getFPGATracklet(j)->homeSector()<<")";
+      }
+      //cout<<endl;
+    }
+
+    
+
+    int bestIndex=-1;
+    do {
+      int bestTCID=(1<<16);
+      bestIndex=-1;
+      for (unsigned int i=0;i<fullmatch.size();i++) {
+	if (indexArray[i]>=fullmatch[i]->nMatches()) {
+	  //skip as we were at the end
+	  continue;
+	}
+	int TCID=fullmatch[i]->getFPGATracklet(indexArray[i])->TCID();
+	if (TCID<bestTCID) {
+	  bestTCID=TCID;
+	bestIndex=i;
+	}
+      }
+      if (bestIndex!=-1) {
+	tmp.push_back(fullmatch[bestIndex]->getFPGATracklet(indexArray[bestIndex]));
+	indexArray[bestIndex]++;
+      }
+    } while (bestIndex!=-1);
+
+    //cout << "In FPGAFitTrack::orderedMatches : "<<tmp.size()<<endl;
+    for (unsigned int i=0;i<tmp.size();i++) {
+      //cout <<" "<<tmp[i]->TCID()<<endl;
+      if (i>0) {
+	//This allows for equal TCIDs. This means that we can e.g. have a track seeded
+	//in L1L2 that projects to both L3 and D4. The algorithm will pick up the first hit and
+	//drop the second
+	assert(tmp[i-1]->TCID()<=tmp[i]->TCID());
+      }
+    }
+    //cout << endl;
+
+    return tmp;
+    
+  }
+  
+
 
   void execute(std::vector<FPGATrack*>& tracks) {
 
     //cout << "Fit track in "<<getName()<<endl;
 
+    //New input matching that should match what is done in the hardware
+    
+    std::vector<FPGATracklet*> matches1=orderedMatches(fullmatch1_);
+    std::vector<FPGATracklet*> matches2=orderedMatches(fullmatch2_);
+    std::vector<FPGATracklet*> matches3=orderedMatches(fullmatch3_);
+    std::vector<FPGATracklet*> matches4=orderedMatches(fullmatch4_);
+    
+    //Old input processing that did not match what is done in hardware
 
     //Again taking a bit of a short cut in order to reuse old code
     map<FPGATracklet*,int> counts;
@@ -1302,6 +1369,149 @@ public:
     }
 
 
+    /*
+    cout << "matches1 ";
+    for (unsigned int i=0;i<matches1.size();i++){
+      cout <<matches1[i]<<"("<<matches1[i]->TCID()/64<<" "<<matches1[i]->layer()<<" "<<matches1[i]->disk()<<") ";
+    }
+    cout << endl;
+
+    cout << "matches2 ";
+    for (unsigned int i=0;i<matches2.size();i++){
+      cout <<matches2[i]<<"("<<matches2[i]->TCID()/64<<" "<<matches2[i]->layer()<<" "<<matches2[i]->disk()<<") ";
+    }
+    cout << endl;
+
+    cout << "matches3 ";
+    for (unsigned int i=0;i<matches3.size();i++){
+      cout <<matches3[i]<<"("<<matches3[i]->TCID()/64<<" "<<matches3[i]->layer()<<" "<<matches3[i]->disk()<<") ";
+    }
+    cout << endl;
+
+    cout << "matches4 ";
+    for (unsigned int i=0;i<matches4.size();i++){
+      cout <<matches4[i]<<"("<<matches4[i]->TCID()/64<<" "<<matches4[i]->layer()<<" "<<matches4[i]->disk()<<") ";
+    }
+    cout << endl;
+    
+
+    for (std::map<FPGATracklet*,int>::iterator it=counts.begin(); it!=counts.end(); ++it){
+      FPGATracklet* tracklet=it->first;
+      int nmatch=tracklet->nMatches();
+      int nmatchdisk=tracklet->nMatchesDisk();
+      cout << "From count "<<tracklet<<" "<<nmatch<<" "<<nmatchdisk<<endl;
+    }
+
+    */
+    
+    //New trackfit
+    unsigned int indexArray[4];
+    for (unsigned int i=0;i<4;i++) {
+      indexArray[i]=0;
+    }
+
+
+    
+    int countAll=0;
+
+    FPGATracklet* bestTracklet=0;
+    do {
+      countAll++;
+      bestTracklet=0;
+      if (indexArray[0]<matches1.size()) {
+	if (bestTracklet==0) {
+	  bestTracklet=matches1[indexArray[0]];
+	} else {
+	  if (matches1[indexArray[0]]->TCID()<bestTracklet->TCID()){
+	    bestTracklet=matches1[indexArray[0]];
+	  }
+	}
+      }
+
+      if (indexArray[1]<matches2.size()) {
+	if (bestTracklet==0) {
+	  bestTracklet=matches2[indexArray[1]];
+	} else {
+	  if (matches2[indexArray[1]]->TCID()<bestTracklet->TCID()){
+	    bestTracklet=matches2[indexArray[1]];
+	  }
+	}
+      }
+      
+      if (indexArray[2]<matches3.size()) {
+	if (bestTracklet==0) {
+	  bestTracklet=matches3[indexArray[2]];
+	} else {
+	  if (matches3[indexArray[2]]->TCID()<bestTracklet->TCID()){
+	    bestTracklet=matches3[indexArray[2]];
+	  }
+	}
+      }
+      
+      if (indexArray[3]<matches4.size()) {
+	if (bestTracklet==0) {
+	  bestTracklet=matches4[indexArray[3]];
+	} else {
+	  if (matches4[indexArray[3]]->TCID()<bestTracklet->TCID()){
+	    bestTracklet=matches4[indexArray[3]];
+	  }
+	}
+      }
+
+      if (bestTracklet==0) break;
+
+      int nMatches=0;
+      
+      if (indexArray[0]<matches1.size()) {
+	if (matches1[indexArray[0]]==bestTracklet) {
+	  indexArray[0]++;
+	  nMatches++;
+	}
+      }
+      if (indexArray[1]<matches2.size()) {
+	if (matches2[indexArray[1]]==bestTracklet) {
+	  indexArray[1]++;
+	  nMatches++;
+	}
+      }
+      if (indexArray[2]<matches3.size()) {
+	if (matches3[indexArray[2]]==bestTracklet) {
+	  indexArray[2]++;
+	  nMatches++;
+	}
+      }
+      if (indexArray[3]<matches4.size()) {
+	if (matches4[indexArray[3]]==bestTracklet) {
+	  indexArray[3]++;
+	  nMatches++;
+	}
+      }
+
+      
+      //int nmatch=bestTracklet->nMatches();
+      //int nmatchdisk=bestTracklet->nMatchesDisk();
+
+      //cout << "Matches : "<<getName()<<" "<<countAll<<" "<<iSector_<<" "<<nMatches<<" "<<nmatch<<" "<<nmatchdisk
+      //	   <<"    "<<indexArray[0]<<" "<<indexArray[1]<<" "<<indexArray[2]<<" "<<indexArray[3]<<" "<<endl;
+
+      if (nMatches>=2) {
+	trackFitNew(bestTracklet);
+	if (bestTracklet->fit()){
+	  //cout << "Performed track fit in "<<getName()<<endl;
+	  assert(trackfit_!=0);
+	  trackfit_->addTrack(bestTracklet);
+	  //cout << "Adding track to tracks"<<endl;
+	  tracks.push_back(bestTracklet->getTrack());
+	}
+	//cout << "Fit done" << endl;
+      }
+	
+	
+    } while (bestTracklet!=0);
+
+    
+    
+    /*
 
     if (writeFitTrack) {
       int matches[4]={0,0,0,0};  
@@ -1375,6 +1585,7 @@ public:
 
     }
     
+    */
 
 
   }

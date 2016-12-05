@@ -109,6 +109,21 @@ public:
       FPGAFullMatch* tmp=dynamic_cast<FPGAFullMatch*>(memory);
       assert(tmp!=0);
       inputmatches_.push_back(tmp);
+
+      string basename=tmp->getName().substr(0,10);
+      int add=0;
+      for (unsigned int i=0;i<inputmatchesgroup_.size();i++){
+	if (inputmatchesgroup_[i][0]->getName().substr(0,10)==basename) {
+	  add++;
+	  inputmatchesgroup_[i].push_back(tmp);
+	}
+      }
+      assert(add<=1);
+      if (add==0) {
+	vector<FPGAFullMatch*> tmp1;
+	tmp1.push_back(tmp);
+	inputmatchesgroup_.push_back(tmp1);
+      }
       return;
     }
     
@@ -116,37 +131,108 @@ public:
     assert(0);
   }
 
+
+  std::vector<std::pair<FPGATracklet*,std::pair<FPGAStub*,L1TStub*> > > orderedMatches(vector<FPGAFullMatch*>& fullmatch) {
+    
+    std::vector<std::pair<FPGATracklet*,std::pair<FPGAStub*,L1TStub*> > > tmp;
+
+
+    std::vector<unsigned int> indexArray;
+    for (unsigned int i=0;i<fullmatch.size();i++) {
+      indexArray.push_back(0);
+      //cout << "FPGAMatchTransceiver::orderedMatches "<<iSector_
+      //   <<" "<<fullmatch[i]->getName()<<" "<<fullmatch[i]->nMatches();
+      //for (unsigned int j=0;j<fullmatch[i]->nMatches();j++){
+	//cout <<" "<<fullmatch[i]->getFPGATracklet(j)->TCID()
+	//     <<" "<<fullmatch[i]->getFPGATracklet(j)->TCIDName()
+	//     <<"("<<fullmatch[i]->getFPGATracklet(j)->homeSector()<<")";
+	//}
+      //cout<<endl;
+    }
+
+    
+
+    int bestIndex=-1;
+    do {
+      int bestTCID=(1<<16);
+      bestIndex=-1;
+      for (unsigned int i=0;i<fullmatch.size();i++) {
+	if (indexArray[i]>=fullmatch[i]->nMatches()) {
+	  //skip as we were at the end
+	  continue;
+	}
+	int TCID=fullmatch[i]->getFPGATracklet(indexArray[i])->TCID();
+	if (TCID<bestTCID) {
+	  bestTCID=TCID;
+	bestIndex=i;
+	}
+      }
+      if (bestIndex!=-1) {
+	tmp.push_back(fullmatch[bestIndex]->getMatch(indexArray[bestIndex]));
+	indexArray[bestIndex]++;
+      }
+    } while (bestIndex!=-1);
+
+    //cout << "In FPGAMatchTransceiver::orderedMatches : "<<tmp.size()<<endl;
+    for (unsigned int i=0;i<tmp.size();i++) {
+      //cout <<" "<<tmp[i].first->TCID()<<endl;
+      if (i>0) {
+	//This allows for equal TCIDs. This means that we can e.g. have a track seeded
+	//in L1L2 that projects to both L3 and D4. The algorithm will pick up the first hit and
+	//drop the second
+	assert(tmp[i-1].first->TCID()<=tmp[i].first->TCID());
+      }
+    }
+    //cout << endl;
+
+    return tmp;
+    
+  }
+  
+
+  
+  
   //this->inputmatches_ to other->outputmatches_ 
   void execute(FPGAMatchTransceiver* other){
-    bool write=false; 
-    if (write) cout << "MT name = "<<getName()<<endl;
     int count=0;
-    for(unsigned int i=0;i<inputmatches_.size();i++){
-      string basename=inputmatches_[i]->getName().substr(0,10);
-      if (write) cout << "input : "<<inputmatches_[i]->getName()
-      		      << " "<<basename<<" #matches = "
-		      <<inputmatches_[i]->nMatches()<<endl;
-      bool wrote=false;
-      for(unsigned int j=0;j<other->outputmatches_.size();j++){
-	if (write) cout << "output  : "<<other->outputmatches_[j]->getName()<<endl;
-	std::size_t found = other->outputmatches_[j]->getName().find(basename);
-	if (found!=std::string::npos){
-	  if (write) cout << "Will write to "
-			  <<other->outputmatches_[j]->getName()<<endl;
-	  wrote=true;
-	  for(unsigned int l=0;l<inputmatches_[i]->nMatches();l++){
-	    //cout << getName()<<" from = "<<inputmatches_[i]->getName()
-	    //	 << " to = "<<other->outputmatches_[j]->getName()
-	    // 	 << " "<<iSector_
-	    // 	 << " "<<inputmatches_[i]->getMatch(l).first<<endl;
-	    other->outputmatches_[j]->addMatch(inputmatches_[i]->getMatch(l));
+    for(unsigned int i=0;i<inputmatchesgroup_.size();i++){
+      string basename=inputmatchesgroup_[i][0]->getName().substr(0,10);
+      std::vector<std::pair<FPGATracklet*,std::pair<FPGAStub*,L1TStub*> > > inputmatchesordered=orderedMatches(inputmatchesgroup_[i]);
+      for(unsigned int l=0;l<inputmatchesordered.size();l++){
+	int layer=inputmatchesordered[l].first->layer();
+	int disk=inputmatchesordered[l].first->disk();
+	string seed="";
+	if (layer==1&&disk==0) seed="L1L2";
+	if (layer==3&&disk==0) seed="L3L4";
+	if (layer==5&&disk==0) seed="L5L6";
+	if (layer==1&&disk==1) seed="F1L1";
+	if (layer==1&&disk==-1) seed="B1L1";
+	if (layer==0&&disk==1) seed="F1F2";
+	if (layer==0&&disk==3) seed="F3F4";
+	if (layer==0&&disk==-1) seed="B1B2";
+	if (layer==0&&disk==-3) seed="B3B4";
+	assert(seed!="");
+	seed+=basename.substr(7,10);
+	//cout << getName()<<" basename seed "<<basename<<" "<<seed<<endl;
+	int nAdd=0;
+	for(unsigned int j=0;j<other->outputmatches_.size();j++){
+	  std::size_t found = other->outputmatches_[j]->getName().find(seed);
+	  if (found!=std::string::npos){
+	    if (debug1) {
+	      cout << getName()<<" layer = "<<layer<<" disk = "<<disk<<" "<<seed<< " to = "
+		   <<other->outputmatches_[j]->getName()<<" "<<j
+		   << " "<<iSector_
+		   << " "<<inputmatchesordered[l].first<<endl;
+	    }      
+	    nAdd++;
+	    other->outputmatches_[j]->addMatch(inputmatchesordered[l]);
 	  }
-	  count+=inputmatches_[i]->nMatches();
-	  //continue;
-	}	
+	}
+	//cout << "nAdd = "<<nAdd<<endl;
+	assert(nAdd==1);
       }
-      assert(wrote);
-    }
+      count+=inputmatchesordered.size();
+     }
     if (writeMatchTransceiver) {
       static ofstream out("matchtransceiver.txt");
       out << getName() << " " 
@@ -154,10 +240,11 @@ public:
     }
   }
   
-
+  
 private:
 
   vector<FPGAFullMatch*> inputmatches_;
+  vector<vector<FPGAFullMatch*> > inputmatchesgroup_;
 
   vector<FPGAFullMatch*> outputmatches_;
 

@@ -195,6 +195,8 @@ public:
 
     unsigned int count=0;
 
+    FPGATracklet* oldTracklet=0;
+    
     if (layer_!=0) {
       for (unsigned int j=0;j<inputproj_.size();j++){
 	//cout << "Inputproj : "<<inputproj_[j]->getName()<<" "
@@ -203,6 +205,19 @@ public:
 	  count++;
 	  if (count>MAXPROJROUTER) continue;
 	  //cout << "Doing projection"<<endl;
+
+	  if (oldTracklet!=0) {
+	    //cout << getName() << " "<<iSector_<<" "<<oldTracklet->homeSector()<<" "
+	    //	 <<inputproj_[j]->getFPGATracklet(i)->homeSector()<<endl;
+	    //cout << oldTracklet->TCID()<<" "<<inputproj_[j]->getFPGATracklet(i)->TCID()<<endl;
+	    //cout << oldTracklet->TCID()/64<<" "<<inputproj_[j]->getFPGATracklet(i)->TCID()/64<<endl;
+	    //cout << oldTracklet->TCIDName()<<" "<<inputproj_[j]->getFPGATracklet(i)->TCIDName()<<endl;
+	    if (iSector_==oldTracklet->homeSector()&&
+		iSector_==inputproj_[j]->getFPGATracklet(i)->homeSector()) {
+	      assert(oldTracklet->TCID()<inputproj_[j]->getFPGATracklet(i)->TCID());
+	    }
+	  }
+	  oldTracklet=inputproj_[j]->getFPGATracklet(i);
 	  
 	  FPGAWord fpgaphi=inputproj_[j]->getFPGATracklet(i)->fpgaphiproj(layer_);
 	  FPGAWord fpgaz=inputproj_[j]->getFPGATracklet(i)->fpgazproj(layer_);
@@ -248,30 +263,54 @@ public:
 	  allproj_->addTracklet(inputproj_[j]->getFPGATracklet(i));
 	  
 	  if (iphi==0&&iz==0) {
+	    if (debug1){
+	      cout << "Adding projection to "<<vmprojPHI1Z1_->getName()<<endl;
+	    }
 	    vmprojPHI1Z1_->addTracklet(inputproj_[j]->getFPGATracklet(i),index);
 	  }
 	  if (iphi==0&&iz==1) {
+	    if (debug1){
+	      cout << "Adding projection to "<<vmprojPHI1Z2_->getName()<<endl;
+	    }
 	    vmprojPHI1Z2_->addTracklet(inputproj_[j]->getFPGATracklet(i),index);
 	  }
 	  
 	  if (iphi==1&&iz==0) {
+	    if (debug1){
+	      cout << "Adding projection to "<<vmprojPHI2Z1_->getName()<<endl;
+	    }
 	    vmprojPHI2Z1_->addTracklet(inputproj_[j]->getFPGATracklet(i),index);
 	  }
 	  if (iphi==1&&iz==1) {
+	    if (debug1){
+	      cout << "Adding projection to "<<vmprojPHI2Z2_->getName()<<endl;
+	    }
 	    vmprojPHI2Z2_->addTracklet(inputproj_[j]->getFPGATracklet(i),index);
 	  }
 	  
 	  if (iphi==2&&iz==0) {
+	    if (debug1){
+	      cout << "Adding projection to "<<vmprojPHI3Z1_->getName()<<endl;
+	    }
 	    vmprojPHI3Z1_->addTracklet(inputproj_[j]->getFPGATracklet(i),index);
 	  }
 	  if (iphi==2&&iz==1) {
+	    if (debug1){
+	      cout << "Adding projection to "<<vmprojPHI3Z2_->getName()<<endl;
+	    }
 	    vmprojPHI3Z2_->addTracklet(inputproj_[j]->getFPGATracklet(i),index);
 	  }
 	
 	  if (iphi==3&&iz==0) {
+	    if (debug1){
+	      cout << "Adding projection to "<<vmprojPHI4Z1_->getName()<<endl;
+	    }
 	    vmprojPHI4Z1_->addTracklet(inputproj_[j]->getFPGATracklet(i),index);
 	  }
 	  if (iphi==3&&iz==1) {
+	    if (debug1){
+	      cout << "Adding projection to "<<vmprojPHI4Z2_->getName()<<endl;
+	    }
 	    vmprojPHI4Z2_->addTracklet(inputproj_[j]->getFPGATracklet(i),index);
 	  }
 	}
@@ -284,6 +323,20 @@ public:
 	  count++;
 	  if (count>MAXPROJROUTER) continue;
 
+	  if (oldTracklet!=0) {
+	    //cout << getName() << " "<<iSector_<<" "<<oldTracklet->homeSector()<<" "
+	    //	 <<inputproj_[j]->getFPGATracklet(i)->homeSector()<<endl;
+	    //cout << oldTracklet->TCID()<<" "<<inputproj_[j]->getFPGATracklet(i)->TCID()<<endl;
+	    //cout << oldTracklet->TCID()/64<<" "<<inputproj_[j]->getFPGATracklet(i)->TCID()/64<<endl;
+	    //cout << oldTracklet->TCIDName()<<" "<<inputproj_[j]->getFPGATracklet(i)->TCIDName()<<endl;
+	    if (iSector_==oldTracklet->homeSector()&&
+		iSector_==inputproj_[j]->getFPGATracklet(i)->homeSector()) {
+	      assert(oldTracklet->TCID()<inputproj_[j]->getFPGATracklet(i)->TCID());
+	    }
+	  }
+	  oldTracklet=inputproj_[j]->getFPGATracklet(i);
+
+	  
 	  FPGAWord fpgaphi=inputproj_[j]->getFPGATracklet(i)->fpgaphiprojdisk(disk_);
 	  FPGAWord fpgar=inputproj_[j]->getFPGATracklet(i)->fpgarprojdisk(disk_);
 
@@ -318,38 +371,54 @@ public:
 	  allproj_->addTracklet(inputproj_[j]->getFPGATracklet(i));
 	  
 	  if (iphi==0&&ir==0) {
-	    //cout << "Adding projection to "<<vmprojPHI1R1_->getName()<<endl;
+	    if (debug1){
+	      cout << "Adding projection to "<<vmprojPHI1R1_->getName()<<endl;
+	    }
 	    vmprojPHI1R1_->addTracklet(inputproj_[j]->getFPGATracklet(i),index);
 	  }
 	  if (iphi==0&&ir==1) {
-	    //cout << "Adding projection to "<<vmprojPHI1R2_->getName()<<endl;
+	    if (debug1){
+	      cout << "Adding projection to "<<vmprojPHI1R2_->getName()<<endl;
+	    }
 	    vmprojPHI1R2_->addTracklet(inputproj_[j]->getFPGATracklet(i),index);
 	  }
 	  
 	  if (iphi==1&&ir==0) {
-	    //cout << "Adding projection to "<<vmprojPHI2R1_->getName()<<endl;
+	    if (debug1){
+	      cout << "Adding projection to "<<vmprojPHI2R1_->getName()<<endl;
+	    }
 	    vmprojPHI2R1_->addTracklet(inputproj_[j]->getFPGATracklet(i),index);
 	  }
 	  if (iphi==1&&ir==1) {
-	    //cout << "Adding projection to "<<vmprojPHI2R2_->getName()<<endl;
+	    if (debug1){
+	      cout << "Adding projection to "<<vmprojPHI2R2_->getName()<<endl;
+	    }
 	    vmprojPHI2R2_->addTracklet(inputproj_[j]->getFPGATracklet(i),index);
 	  }
 	  
 	  if (iphi==2&&ir==0) {
-	    //cout << "Adding projection to "<<vmprojPHI3R1_->getName()<<endl;
+	    if (debug1){
+	      cout << "Adding projection to "<<vmprojPHI3R1_->getName()<<endl;
+	    }
 	    vmprojPHI3R1_->addTracklet(inputproj_[j]->getFPGATracklet(i),index);
 	  }
 	  if (iphi==2&&ir==1) {
-	    //cout << "Adding projection to "<<vmprojPHI3R2_->getName()<<endl;
+	    if (debug1){
+	      cout << "Adding projection to "<<vmprojPHI3R2_->getName()<<endl;
+	    }
 	    vmprojPHI3R2_->addTracklet(inputproj_[j]->getFPGATracklet(i),index);
 	  }
 	
 	  if (iphi==3&&ir==0&&vmprojPHI4R1_!=0) {
-	    //cout << "Adding projection to "<<vmprojPHI4R1_->getName()<<endl;
+	    if (debug1){
+	      cout << "Adding projection to "<<vmprojPHI4R1_->getName()<<endl;
+	    }
 	    vmprojPHI4R1_->addTracklet(inputproj_[j]->getFPGATracklet(i),index);
 	  }
 	  if (iphi==3&&ir==1&&vmprojPHI4R2_!=0) {
-	    //cout << "Adding projection to "<<vmprojPHI4R2_->getName()<<endl;
+	    if (debug1){
+	      cout << "Adding projection to "<<vmprojPHI4R2_->getName()<<endl;
+	    }
 	    vmprojPHI4R2_->addTracklet(inputproj_[j]->getFPGATracklet(i),index);
 	  }
 	}

@@ -375,9 +375,10 @@ public:
 	  (doB1B2&&(disk1_==-1)&&(disk2_==-2))||
 	  (doB3B4&&(disk1_==-3)&&(disk2_==-4))||
 	  (doL1F1&&(disk1_==1)&&(layer2_==1))||
-	  (doL2F1&&(disk1_==1)&&(layer2_==2))||
-	  (doL1B1&&(disk1_==-1)&&(layer2_==1))||
-	  (doL2B1&&(disk1_==-1)&&(layer2_==2)))) return;
+	  //(doL2F1&&(disk1_==1)&&(layer2_==2))||
+	  (doL1B1&&(disk1_==-1)&&(layer2_==1))
+	  //(doL2B1&&(disk1_==-1)&&(layer2_==2))
+	  )) return;
 
     
 
@@ -411,6 +412,11 @@ public:
 	if (layer1_!=0 && layer2_!=0) {
 	  assert(table_!=0);
 
+	  if (debug1) {
+	    cout << "In FPGATrackletEngine::execute : "<<getName()
+		 <<" has stub pair in barrel seeding"<<endl;
+	  }
+	    
 	  int istubpt1=innerstub.first->stubpt().value();
 	  int iphivm1=innerstub.first->phivm().value();
 	  FPGAWord iphi1=innerstub.first->phi();
@@ -449,10 +455,12 @@ public:
 	  bool zmatch=table_->zcheck(zaddress);
 
 
-	  //cout <<getName()<<" layer matches "<<layer1_<<"  "
-	  //     <<phimatch<<" (0x"<<hex<<address<<dec<<")  "
-	  //     <<zmatch<<" (0x"<<hex<<zaddress<<dec<<")"
-	  //     <<endl;
+	  if (debug1) {
+	    cout <<getName()<<" layer matches "<<layer1_<<"  "
+		 <<phimatch<<" (0x"<<hex<<address<<dec<<")  "
+		 <<zmatch<<" (0x"<<hex<<zaddress<<dec<<")"
+		 <<endl;
+	  }
 
 	  if (!(phimatch&&zmatch)) {
 	    //cout << "Failed TE table "<<phimatch<<" "<<zmatch<<endl;

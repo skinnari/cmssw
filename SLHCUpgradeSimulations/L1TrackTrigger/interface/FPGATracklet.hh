@@ -17,9 +17,10 @@ class FPGATracklet{
 
 public:
 
-  FPGATracklet(L1TStub* innerStub, L1TStub* outerStub,
+  FPGATracklet(L1TStub* innerStub, L1TStub* outerStub,	       
 	       FPGAStub* innerFPGAStub, FPGAStub* outerFPGAStub,
 	       double phioffset,
+	       int homeSector,
 	       double rinv, double phi0, double z0, double t,
 	       double rinvapprox, double phi0approx, 
 	       double z0approx, double tapprox,
@@ -53,9 +54,12 @@ public:
     assert(!(disk&&overlap));
     barrel_=(!disk)&&(!overlap);
 
+    homeSector_=homeSector;
+    
     trackletIndex_=-1;
-    TCIndex_=-1;
-
+    
+    setTCIndex(innerFPGAStub->fedregion(), outerFPGAStub->fedregion(),innerStub->layer()+1);
+    
     fpgatrack_=0;
 
     phioffset_=phioffset;
@@ -506,9 +510,11 @@ public:
     std::ostringstream oss;
     int count=0; 
     int numproj=3;          // disk seeding can go to 3 disks
-    if (overlap_) numproj=4;// hybrid seeding can go to 4 disks
+    if (overlap_) numproj=5;// hybrid seeding can go to 4 disks???
     if (barrel_) numproj=5; // barrel seeding can go to 5 disks
+    //cout << overlap_ << " " << barrel_ << " " << numproj <<endl;
     for (int i=0;i<numproj;i++) {
+      //cout << "projdisk_ : "<<projdisk_[i]<<" "<<disk<<endl;
       if (projdisk_[i]==disk) {
 	count++;
 	FPGAWord index;
@@ -1414,7 +1420,10 @@ public:
   std::string fullmatchstrdisk(int disk) {
     std::ostringstream oss;
     int count=0;
-    for (int i=0;i<3;i++) {
+    int numproj=3;          // disk seeding can go to 3 disks
+    if (overlap_) numproj=4;// hybrid seeding can go to 4 disks
+    if (barrel_) numproj=5; // barrel seeding can go to 5 disks
+    for (int i=0;i<numproj;i++) {
       if (projdisk_[i]==disk) {
 	count++;
 	FPGAWord tmp;
@@ -1757,8 +1766,14 @@ public:
     z0fitexact_=z0fitexact;
     chisqfitexact_=chisqfitexact;
     
-    if (irinvfit>(1<<14)) irinvfit=(1<<14);
-    if (irinvfit<=-(1<<14)) irinvfit=-(1<<14)+1;
+    if (irinvfit>(1<<14)) {
+      irinvfit=(1<<14);
+      cout << "WARNING: truncating irinvfit"<<endl;
+    }
+    if (irinvfit<=-(1<<14)) {
+      irinvfit=-(1<<14)+1;
+      cout << "WARNING: truncating irinvfit"<<endl;
+    }
     irinvfit_.set(irinvfit,15,false,__LINE__,__FILE__);
     iphi0fit_.set(iphi0fit,19,false,__LINE__,__FILE__);
     itfit_.set(itfit,14,false,__LINE__,__FILE__);
@@ -1912,11 +1927,80 @@ public:
 
   void setTrackletIndex(int index) {trackletIndex_=index;}
 
+
+  void setTCIndex(int innerFEDregion, int outerFEDregion, int layer){
+    assert(innerFEDregion>0);
+    assert(innerFEDregion<=7);
+    assert(outerFEDregion>0);
+    assert(outerFEDregion<=7);
+    int index=-1;
+
+    if (layer==1) {
+      if (innerFEDregion==3&&outerFEDregion==3) index=0;
+      if (innerFEDregion==3&&outerFEDregion==4) index=1;
+      if (innerFEDregion==4&&outerFEDregion==4) index=2;
+      if (innerFEDregion==2&&outerFEDregion==2) index=8;
+      if (innerFEDregion==2&&outerFEDregion==1) index=9;
+      if (innerFEDregion==1&&outerFEDregion==1) index=10;
+      if (innerFEDregion==2&&outerFEDregion==3) index=16; // Need to use a more compact
+      if (innerFEDregion==3&&outerFEDregion==2) index=17; // numbering scheme to use 4 bits
+    } else {
+      if (innerFEDregion==3&&outerFEDregion==3) index=3;
+      if (innerFEDregion==3&&outerFEDregion==4) index=4;
+      if (innerFEDregion==4&&outerFEDregion==4) index=5;
+      if (innerFEDregion==2&&outerFEDregion==2) index=11;
+      if (innerFEDregion==2&&outerFEDregion==1) index=12;
+      if (innerFEDregion==1&&outerFEDregion==1) index=13;
+      if (innerFEDregion==2&&outerFEDregion==3) index=18; // Need to use a more compact
+      if (innerFEDregion==3&&outerFEDregion==2) index=19; // numbering scheme to use 4 bits
+    }
+      
+    if (innerFEDregion==5&&outerFEDregion==4) index=6;
+    if (innerFEDregion==5&&outerFEDregion==5) index=7;
+    if (innerFEDregion==7&&outerFEDregion==1) index=14;
+    if (innerFEDregion==7&&outerFEDregion==7) index=15;
+
+
+    if (index==-1) {
+      cout << "FPGATracklet::setTCIndex "<<innerFEDregion<<" "<<outerFEDregion<<endl;
+    }
+    assert(index!=-1);
+    //cout << "Created tracklet with TCIndex "<<index<<endl;
+    TCIndex_=index;
+  }
+
   int trackletIndex() const {return trackletIndex_;}
 
-  void setTCIndex(int index) {TCIndex_=index;}
+  int TCID() const {return TCIndex_*(1<<6)+trackletIndex_;}
 
-  int TCIndex() const {return TCIndex_;}
+  string TCIDName() const {
+    if (TCIndex_==0) return "L1D3L2D3"; 
+    if (TCIndex_==1) return "L1D3L2D4"; 
+    if (TCIndex_==2) return "L1D4L2D4"; 
+    if (TCIndex_==3) return "L3D3L4D3"; 
+    if (TCIndex_==4) return "L3D3L4D4"; 
+    if (TCIndex_==5) return "L3D4L4D4"; 
+    if (TCIndex_==6) return "F1D5L1D4"; 
+    if (TCIndex_==7) return "F1D5F2D5"; 
+    if (TCIndex_==8) return "L1D2L2D2"; 
+    if (TCIndex_==9) return "L1D2L2D1"; 
+    if (TCIndex_==10) return "L1D1L2D1"; 
+    if (TCIndex_==11) return "L3D2L4D2"; 
+    if (TCIndex_==12) return "L3D2L4D1"; 
+    if (TCIndex_==13) return "L3D1L4D1"; 
+    if (TCIndex_==14) return "B1D7L1D1"; 
+    if (TCIndex_==15) return "B1D7B2D7"; 
+    if (TCIndex_==16) return "L1D2L2D3"; 
+    if (TCIndex_==17) return "L1D3L2D2"; 
+    if (TCIndex_==18) return "L3D2L4D3"; 
+    if (TCIndex_==19) return "L3D3L4D2"; 
+    cout << "FPGATracklet::TCIDName : "<<TCIndex_<<endl;
+    assert(0);
+    return "";
+  }
+  
+  unsigned int homeSector() const {return homeSector_;}
+   
 
 private:
 
@@ -1926,7 +2010,8 @@ private:
   bool overlap_;
 
   double phioffset_;
-
+  int homeSector_;
+  
   FPGAStub* innerFPGAStub_;
   FPGAStub* outerFPGAStub_;
 

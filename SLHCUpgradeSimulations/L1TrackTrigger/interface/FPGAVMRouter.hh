@@ -293,14 +293,20 @@ public:
 	  if (iphi==0&&iz==0) {
 	    for (unsigned int l=0;l<vmstubsPHI1Z1_.size();l++){
 	      vmstubsPHI1Z1_[l]->addStub(stub);
-	      //cout << "Adding stub in " << vmstubsPHI1Z1_[l]->getName() << endl;
+	      if (debug1&&l==0) {
+		cout << "Adding stub in " << vmstubsPHI1Z1_[l]->getName() 
+		     << " sector = "<<iSector_<<endl;
+	      }
 	      insert=true;
 	    }
 	  }
 	  if (iphi==0&&iz==1) {
 	    for (unsigned int l=0;l<vmstubsPHI1Z2_.size();l++){
 	      vmstubsPHI1Z2_[l]->addStub(stub);
-	      //cout << "Adding stub in " << vmstubsPHI1Z2_[l]->getName() << endl;
+	      if (debug1&&l==0) {
+		cout << "Adding stub in " << vmstubsPHI1Z2_[l]->getName()
+		     << " sector = "<<iSector_<<endl;
+	      }
 	      insert=true;
 	    }
 	  }
@@ -308,14 +314,20 @@ public:
 	  if (iphi==1&&iz==0) {
 	    for (unsigned int l=0;l<vmstubsPHI2Z1_.size();l++){
 	      vmstubsPHI2Z1_[l]->addStub(stub);
-	      //cout << "Adding stub in " << vmstubsPHI2Z1_[l]->getName() << endl;
+	      if (debug1&&l==0) {
+		cout << "Adding stub in " << vmstubsPHI2Z1_[l]->getName() 
+		     << " sector = "<<iSector_<<endl;
+	      }
 	      insert=true;
 	    }
 	  }
 	  if (iphi==1&&iz==1) {
 	    for (unsigned int l=0;l<vmstubsPHI2Z2_.size();l++){
 	      vmstubsPHI2Z2_[l]->addStub(stub);
-	      //cout << "Adding stub in " << vmstubsPHI2Z2_[l]->getName() << endl;
+	      if (debug1&&l==0) {
+		cout << "Adding stub in " << vmstubsPHI2Z2_[l]->getName() 
+		     << " sector = "<<iSector_<<endl;
+	      }
 	      insert=true;
 	    }
 	  }
@@ -323,14 +335,20 @@ public:
 	  if (iphi==2&&iz==0) {
 	    for (unsigned int l=0;l<vmstubsPHI3Z1_.size();l++){
 	      vmstubsPHI3Z1_[l]->addStub(stub);
-	      //cout << "Adding stub in " << vmstubsPHI3Z1_[l]->getName() << endl;
+	      if (debug1&&l==0) {
+		cout << "Adding stub in " << vmstubsPHI3Z1_[l]->getName() 
+		     << " sector = "<<iSector_<<endl;
+	      }
 	      insert=true;
 	    }
 	  }
 	  if (iphi==2&&iz==1) {
 	    for (unsigned int l=0;l<vmstubsPHI3Z2_.size();l++){
 	      vmstubsPHI3Z2_[l]->addStub(stub);
-	      //cout << "Adding stub in " << vmstubsPHI3Z2_[l]->getName() << endl;
+	      if (debug1&&l==0) {
+		cout << "Adding stub in " << vmstubsPHI3Z2_[l]->getName() 
+		     << " sector = "<<iSector_<<endl;
+	      }
 	      insert=true;
 	    }
 	  }
@@ -338,14 +356,20 @@ public:
 	  if (iphi==3&&iz==0) {
 	    for (unsigned int l=0;l<vmstubsPHI4Z1_.size();l++){
 	      vmstubsPHI4Z1_[l]->addStub(stub);
-	      //cout << "Adding stub in " << vmstubsPHI4Z1_[l]->getName() << endl;
+	      if (debug1&&l==0) {
+		cout << "Adding stub in " << vmstubsPHI4Z1_[l]->getName() 
+		     << " sector = "<<iSector_<<endl;
+	      }
 	      insert=true;
 	    }
 	  }
 	  if (iphi==3&&iz==1) {
 	    for (unsigned int l=0;l<vmstubsPHI4Z2_.size();l++){
 	      vmstubsPHI4Z2_[l]->addStub(stub);
-	      //cout << "Adding stub in " << vmstubsPHI4Z2_[l]->getName() << endl;
+	      if (debug1&&l==0) {
+		cout << "Adding stub in " << vmstubsPHI4Z2_[l]->getName() 
+		     << " sector = "<<iSector_<<endl;
+	      }
 	      insert=true;
 	    }
 	  }
@@ -404,61 +428,85 @@ public:
 	  
 	  if (iphi==0&&ir==0) {
 	    for (unsigned int l=0;l<vmstubsPHI1R1_.size();l++){
+	      if (debug1&&l==0) {
+		cout << "Adding stub in " << vmstubsPHI1R1_[l]->getName()
+		     << " sector = "<<iSector_<<endl;
+	      }
 	      vmstubsPHI1R1_[l]->addStub(stub);
-	      //cout << "Adding stub in " << vmstubsPHI1R1_[l]->getName() << endl;
 	      insert=true;
 	    }
 	  }
 	  if (iphi==0&&ir==1) {
 	    for (unsigned int l=0;l<vmstubsPHI1R2_.size();l++){
+	      if (debug1&&l==0) {
+		cout << "Adding stub in " << vmstubsPHI1R2_[l]->getName()
+		     << " sector = "<<iSector_<<endl;
+	      }
 	      vmstubsPHI1R2_[l]->addStub(stub);
-	      //cout << "Adding stub in " << vmstubsPHI1R2_[l]->getName() << endl;
 	      insert=true;
 	    }
 	  }
 	  
 	  if (iphi==1&&ir==0) {
 	    for (unsigned int l=0;l<vmstubsPHI2R1_.size();l++){
+	      if (debug1&&l==0) {
+		cout << "Adding stub in " << vmstubsPHI2R1_[l]->getName()
+		     << " sector = "<<iSector_<<endl;
+	      }
 	      vmstubsPHI2R1_[l]->addStub(stub);
-	      //cout << "Adding stub in " << vmstubsPHI2R1_[l]->getName() << endl;
 	      insert=true;
 	    }
 	  }
 	  if (iphi==1&&ir==1) {
 	    for (unsigned int l=0;l<vmstubsPHI2R2_.size();l++){
+	      if (debug1&&l==0) {
+		cout << "Adding stub in " << vmstubsPHI2R2_[l]->getName()
+		     << " sector = "<<iSector_<<endl;
+	      }
 	      vmstubsPHI2R2_[l]->addStub(stub);
-	      //cout << "Adding stub in " << vmstubsPHI2R2_[l]->getName() << endl;	      
 	      insert=true;
 	    }
 	  }
 	  
 	  if (iphi==2&&ir==0) {
 	    for (unsigned int l=0;l<vmstubsPHI3R1_.size();l++){
+	      if (debug1&&l==0) {
+		cout << "Adding stub in " << vmstubsPHI3R1_[l]->getName()
+		     << " sector = "<<iSector_<<endl;
+	      }
 	      vmstubsPHI3R1_[l]->addStub(stub);
-	      //cout << "Adding stub in " << vmstubsPHI3R1_[l]->getName() << endl;
 	      insert=true;
 
 	    }
 	  }
 	  if (iphi==2&&ir==1) {
 	    for (unsigned int l=0;l<vmstubsPHI3R2_.size();l++){
+	      if (debug1&&l==0) {
+		cout << "Adding stub in " << vmstubsPHI3R2_[l]->getName()
+		     << " sector = "<<iSector_<<endl;
+	      }
 	      vmstubsPHI3R2_[l]->addStub(stub);
-	      //cout << "Adding stub in " << vmstubsPHI3R2_[l]->getName() << endl;
 	      insert=true;
 	    }
 	  }
 	  
 	  if (iphi==3&&ir==0) {
 	    for (unsigned int l=0;l<vmstubsPHI4R1_.size();l++){
+	      if (debug1&&l==0) {
+		cout << "Adding stub in " << vmstubsPHI4R1_[l]->getName()
+		     << " sector = "<<iSector_<<endl;
+	      }
 	      vmstubsPHI4R1_[l]->addStub(stub);
-	      //cout << "Adding stub in " << vmstubsPHI4R1_[l]->getName() << endl;	   
 	      insert=true; 
 	    }
 	  }
 	  if (iphi==3&&ir==1) {
 	    for (unsigned int l=0;l<vmstubsPHI4R2_.size();l++){
+	      if (debug1&&l==0) {
+		cout << "Adding stub in " << vmstubsPHI4R2_[l]->getName()
+		     << " sector = "<<iSector_<<endl;
+	      }
 	      vmstubsPHI4R2_[l]->addStub(stub);
-	      //cout << "Adding stub in " << vmstubsPHI4R1_[l]->getName() << endl;	 
 	      insert=true;
 	    }
 	  }

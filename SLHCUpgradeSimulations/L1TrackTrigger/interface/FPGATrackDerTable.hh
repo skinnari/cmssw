@@ -125,6 +125,7 @@ public:
     int diskcode=DiskMem_[diskmask];
 
     assert(layercode>=0);
+    //cout << "layercode : "<<layercode<<endl;
     assert(layercode<(1<<LayerMemBits_));
     assert(diskcode>=0);
     assert(diskcode<(1<<DiskMemBits_));

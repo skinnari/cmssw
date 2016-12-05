@@ -18,17 +18,20 @@ class FPGAStub{
 public:
 
   FPGAStub() {
-  
+    //cout << "Default const"<<endl;
   }
   
 
   FPGAStub(const L1TStub& stub,double phiminsec, double phimaxsec) {
 
     double r=stub.r();
+    //cout << "stub.r = "<<r<<endl;
     double z=stub.z();
     double ptinv=1.0/stub.pt();
     double sbend = stub.bend();
 
+    ilink_=-1;
+    
     //HACK!!! seems like stubs in negative disk has wrong sign!
     if (z<-120.0) ptinv=-ptinv;
     //cout << "z stub.pt() : "<<z<<" "<<stub.pt()<<endl;
@@ -162,11 +165,19 @@ public:
 
       //cout << "phi phimin phimax : "<<stubphi_<<" "<<phiminsec
       //	   <<" "<<phimaxsec<<endl;
+
+
+      double dphi=stubphi_-phiminsec;
+
+      if (dphi<-0.5*two_pi) dphi+=two_pi;
+      if (dphi>0.5*two_pi) dphi-=two_pi;
+
+      assert(fabs(dphi)<0.5*two_pi);
       
-      int iphi=(1<<iphibits)*(0.125+0.75*(stubphi_-phiminsec)/(phimaxsec-phiminsec));
+      int iphi=(1<<iphibits)*(0.125+0.75*dphi/(phimaxsec-phiminsec));
 
 
-      phitmp_=stubphi_-phiminsec+(phimaxsec-phiminsec)/6.0;
+      phitmp_=dphi+(phimaxsec-phiminsec)/6.0;
 
 
       phimin_=phiminsec;
@@ -524,12 +535,19 @@ public:
 
   }
 
+  void setilink(int ilink) {
+    ilink_=ilink;
+  }
+  
   int ilink() const {
 
+    assert(ilink_>0);
+    return ilink_;
+    
     //changed pow(2,phi_.nbits()) to (1<<phi_.nbits()), etc
-    if (phi_.value()<0.33*(1<<phi_.nbits()) ) return 1;
-    if (phi_.value()<0.66*(1<<phi_.nbits()) ) return 2;
-    return 3;
+    //if (phi_.value()<0.33*(1<<phi_.nbits()) ) return 1;
+    //if (phi_.value()<0.66*(1<<phi_.nbits()) ) return 2;
+    //return 3;
 
   }
 
@@ -555,7 +573,7 @@ public:
 
   void setAllStubIndex(int nstub){
     if (nstub>=(1<<6)){
-      //cout << "Warning too large stubindex : "<<nstub<<endl;
+      cout << "Warning too large stubindex : "<<nstub<<endl;
       nstub=(1<<6)-1;
     }
     if (stubindex_.value()!=63) {
@@ -630,6 +648,8 @@ private:
   double phitmp_;
   double phimin_;
 
+  int ilink_;
+  
 };
 
 

@@ -287,14 +287,21 @@ public:
 	  count++;
           if (count>MAXPROJECTIONTRANSCEIVER) continue;
 	  projs->addTracklet(tracklet);
+	  int nprojs=projs->nTracklets();
+	  if (nprojs>1) {
+	    //cout << "FPGAProjectionTransceiver nprojs = "<<nprojs<<endl;
+	    assert(projs->getFPGATracklet(nprojs-2)->TCID()<projs->getFPGATracklet(nprojs-1)->TCID());
+	  }
 	  foundTarget++;
 	}
 
+	/* // this can mean truncation 
 	if (foundTarget==0) {
 	  cout << "ERROR in FPGAProjectionTransceiver "<<getName()
 	       <<" no target for :"<< otherProj->getName() 
 	       <<" seedpair "<<seedpair<<endl;
 	}
+	*/
 
 	assert(foundTarget<2);
 

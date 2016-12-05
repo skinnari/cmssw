@@ -111,9 +111,9 @@ public:
     for (unsigned int j=0;j<tracklets_.size();j++){
       string proj= (layer_>0)? tracklets_[j]->trackletprojstrlayer(layer_)
 	: tracklets_[j]->trackletprojstrdisk(disk_);
-	if (j<16) out_ <<"0";
-	out_ << hex << j << dec ;
-	out_ << " "<< proj <<endl;
+      if (j<16) out_ <<"0";
+      out_ << hex << j << dec ;
+      out_ << " "<< proj <<endl;
     }
     out_.close();
 

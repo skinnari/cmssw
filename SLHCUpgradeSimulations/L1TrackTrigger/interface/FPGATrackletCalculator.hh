@@ -1063,13 +1063,34 @@ public:
     it = t;          //K = 854.817 
     iz0 = z0;        //K = 17.8087
 
+
+
+    // cout<<getName()<<endl;
+    // std::cout << " =============== FINAL PARAMETERS ============= " << std::endl;
+    // std::cout << " iphi0 = " << hex << iphi0 << dec << std::endl;
+    // std::cout << " iz0   = " << hex << iz0   << dec << std::endl;
+    // std::cout << " irinv  = " << hex << irinv  << dec << std::endl;
+    // std::cout << " it    = " << hex << it    << dec << std::endl;
+    // std::cout << " =============================================== " << std::endl;
+
+
     //test
-    if (fabs(irinv*krinvpars)>rinvcut) {
+    if (fabs(irinv)>=int(rinvcut/krinvpars)) {
       //cout << "Failed tracklet pt cut"<<endl;
+      //cout<<int(rinvcut/krinvpars)<<endl;
       return false;
     }
-    if (fabs(iz0*kzpars)>z0cut) {
-      //cout << "Failed tracklet z0 cut"<<endl;
+
+    double thez0cut=-1.0;
+    if (layer_==1) thez0cut=z0cutL1;
+    if (layer_==3) thez0cut=z0cutL3;
+    if (layer_==5) thez0cut=z0cutL5;
+    assert(thez0cut>0.0);
+    
+    if (fabs(iz0*kzpars)>thez0cut) {
+      if (debug1) {
+	cout << "Failed tracklet z0 cut : "<<iz0*kzpars<<endl;
+      }
       return false;
     }
 
@@ -1149,6 +1170,8 @@ public:
     iphider  = der_phiL; // K =  10267.4
     izder    = der_zL;   // K = 13.3565
 
+    //cout << "FPGATrackletCalculator zproj = "<<izproj*kz<<" "<<rp*kr<<endl;
+    
     //from the original
     minusNeighbor=false;
     plusNeighbor=false;
@@ -2788,17 +2811,25 @@ public:
     //we are taking a shortcut here by using the information to
     //find the stubs from the stub pairs list...
 
-    unsigned int countall=0;
+    unsigned int countall=1;
     unsigned int countsel=0;
 
     for(unsigned int l=0;l<stubpairs_.size();l++){
       for(unsigned int i=0;i<stubpairs_[l]->nStubPairs();i++){
+
+	if (trackletpars_->nTracklets()>62) {
+	  cout <<getName()<<" nTracklets too large"<<endl;
+	  break;					      
+	}
+	
 	if (countall>=MAXTC) break;
 	
 	//To implement the extra clock the priority encoder uses when it changes input memory.
 	if (i==0) {
 	  countall++; 
 	}
+
+	if (countall>=MAXTC) break;
 	
 	countall++;
 
@@ -2824,8 +2855,10 @@ public:
 	
 	if (innerFPGAStub->isBarrel()){
 
-	  //cout << getName() << " calculating barrel stub pair"<<endl;
-
+	  if (debug1) {
+	    cout << getName() << " calculating barrel stub pair"<<endl;
+	  }
+	  
 	  assert(outerFPGAStub->isBarrel());
 
 	  //FIXME - should be set at initialization
@@ -2944,6 +2977,7 @@ public:
 	    }
 	    double dphi2=phi2-phimin_+(phimax_-phimin_)/6.0-iphi2.value()*kphi/lphi;
 	    if (dphi2<-0.5*two_pi) dphi2+=two_pi;
+	    if (dphi2>0.5*two_pi) dphi2-=two_pi;
 	    //cout << "layer dphi2 phi2 iphi2: "<<layer_<<" "<<dphi2<<" "
 	    //	 <<phi2<<" "<< iphi2.value()<<endl;
 	    assert(fabs(dphi2)<1e-4);
@@ -3063,6 +3097,7 @@ public:
 	  FPGATracklet* tracklet=new FPGATracklet(innerStub,outerStub,
 						  innerFPGAStub,outerFPGAStub,
 						  phioffset_,
+						  iSector_,
 						  rinv,phi0,z0,t,
 						  rinvapprox,phi0approx,
 						  z0approx,tapprox,
@@ -3083,13 +3118,17 @@ public:
 						  phiderdiskapprox,
 						  rderdiskapprox,
 						  false);
-	  //cout << "Found tracklet in layer = "<<layer_<<" "
-	  //     <<iSector_<<" "<<tracklet<<endl;
-
+	  if (debug1) {
+	    cout << getName()<<" Found tracklet in layer = "<<layer_<<" "
+		 <<iSector_<<" "<<tracklet
+		 << " t="<<it*ktpars
+		 << " eta="<<asinh(it*ktpars)
+		 <<" z0="<<iz0*kz<<endl;
+	  }
+				   
 	  countsel++;
 
 	  tracklet->setTrackletIndex(trackletpars_->nTracklets());
-	  tracklet->setTCIndex(0);
 
 	  trackletpars_->addTracklet(tracklet);
 
@@ -3423,6 +3462,7 @@ public:
 	    FPGATracklet* tracklet=new FPGATracklet(innerStub,outerStub,
 						    innerFPGAStub,outerFPGAStub,
 						    phioffset_,
+						    iSector_,
 						    rinv,phi0,z0,t,
 						    rinvapprox,phi0approx,
 						    z0approx,tapprox,
@@ -3454,7 +3494,6 @@ public:
 	    //cout << "Found tracklet "<<tracklet<<endl;
 
 	    tracklet->setTrackletIndex(trackletpars_->nTracklets());
-	    tracklet->setTCIndex(0);
 
 	    trackletpars_->addTracklet(tracklet);
 
@@ -3736,6 +3775,7 @@ public:
 	    FPGATracklet* tracklet=new FPGATracklet(innerStub,outerStub,
 						    innerFPGAStub,outerFPGAStub,
 						    phioffset_,
+						    iSector_,
 						    rinv,phi0,z0,t,
 						    rinvapprox,phi0approx,
 						    z0approx,tapprox,
@@ -3766,7 +3806,6 @@ public:
 	    countsel++;
 
 	    tracklet->setTrackletIndex(trackletpars_->nTracklets());
-	    tracklet->setTCIndex(0);
 
 	    trackletpars_->addTracklet(tracklet);
 	    //FIXME  need to stick projection in correct place

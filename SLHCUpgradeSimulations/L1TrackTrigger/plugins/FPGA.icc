@@ -1,9 +1,8 @@
-
     //cout << "Read event:"<<ev.eventnum()<<" Number of stubs="
     //	 <<ev.nstubs()<<endl;
     
     cleanTimer.start();
-    for (unsigned int k=0;k<NSector;k++) {
+    for (unsigned int k=first_sector;k<last_sector;k++) {
       sectors[k]->clean();
     }
     cleanTimer.stop();
@@ -37,7 +36,7 @@
 	// <<" z= "<<stub.z()<<endl;
       //}
 
-      if(0) {
+      if(debug1) {
 	cout << "Stub: layer="<<stub.layer()+1
 	       <<" pt="<<stub.pt()
 	       <<" phi="<<stub.phi()
@@ -75,7 +74,7 @@
 
       
 
-      for (unsigned int k=0;k<NSector;k++) {
+      for (unsigned int k=first_sector;k<last_sector;k++) {
         int diff=k-isector;
 	int nSector=NSector;
         if (diff>nSector/2) diff-=NSector;
@@ -85,8 +84,15 @@
       }
     }
 
+    //The stubs has been put in the sector and ordered by pT
+    for (unsigned int k=0;k<NSector;k++) {
+         sectors[k]->fillInputLinks();	  
+    }
+
+
+
     if (writestubs || writestubs_in2) {
-      for (unsigned int k=0;k<NSector;k++) {
+      for (unsigned int k=first_sector;k<last_sector;k++) {
         sectors[k]->writeInputStubs(first);
       }
     }
@@ -131,7 +137,7 @@
 
 
     layerdiskRouterTimer.start();
-    for (unsigned int k=0;k<NSector;k++) {
+    for (unsigned int k=first_sector;k<last_sector;k++) {
       sectors[k]->executeLR();	 
       sectors[k]->executeDR();	
       if (writemem&&k<4) {
@@ -143,7 +149,7 @@
 
 
     VMRouterTimer.start();
-    for (unsigned int k=0;k<NSector;k++) {
+    for (unsigned int k=first_sector;k<last_sector;k++) {
       sectors[k]->executeVMR();	 
       if (writemem&&k<4) {
         sectors[k]->writeVMS(first);	 
@@ -153,9 +159,9 @@
     VMRouterTimer.stop();
 
     TETimer.start();
-    for (unsigned int k=0;k<NSector;k++) {
+    for (unsigned int k=first_sector;k<last_sector;k++) {
       sectors[k]->executeTE();	
-      if(writemem && k<4){
+      if(writemem){
         sectors[k]->writeSP(first);
       } 
     }
@@ -163,9 +169,9 @@
 
 
     TCTimer.start();
-    for (unsigned int k=0;k<NSector;k++) {
+    for (unsigned int k=first_sector;k<last_sector;k++) {
       sectors[k]->executeTC();	 
-      if(writemem && k<4){
+      if(writemem){
         sectors[k]->writeTPAR(first);
       } 
     }
@@ -175,7 +181,7 @@
 
     PTTimer.start();
     //Here we do the projections to the nearest neigbors  
-    for (unsigned int k=0;k<NSector;k++) {
+    for (unsigned int k=first_sector;k<last_sector;k++) {
       unsigned int  plus=k+1;
       if (plus>=NSector) plus=0;
       int minus=k-1;
@@ -190,10 +196,10 @@
 
 
     PRTimer.start();
-    for (unsigned int k=0;k<NSector;k++) {
+    for (unsigned int k=first_sector;k<last_sector;k++) {
       sectors[k]->executePR();	
     }
-    for (unsigned int k=0;k<NSector;k++) {
+    for (unsigned int k=first_sector;k<last_sector;k++) {
       if(writemem && k<4){
         sectors[k]->writeVMPROJ(first);
       }
@@ -202,14 +208,17 @@
 
     
     METimer.start();
-    for (unsigned int k=0;k<NSector;k++) {
-      sectors[k]->executeME();	 
+    for (unsigned int k=first_sector;k<last_sector;k++) {
+      sectors[k]->executeME();
+      if (writemem&&k<4) {
+        sectors[k]->writeCandidate(first);
+	}
     }
     METimer.stop();
 
 
     MCTimer.start();
-    for (unsigned int k=0;k<NSector;k++) {
+    for (unsigned int k=first_sector;k<last_sector;k++) {
       sectors[k]->executeMC();
     }
     MCTimer.stop();
@@ -217,7 +226,7 @@
 
     MTTimer.start();
     //Here we return the matches
-    for (unsigned int k=0;k<NSector;k++) {
+    for (unsigned int k=first_sector;k<last_sector;k++) {
       unsigned int  plus=k+1;
       if (plus>=NSector) plus=0;
       int minus=k-1;
@@ -225,7 +234,7 @@
       sectors[k]->executeMT(sectors[plus],sectors[minus]);	 
       //sectors[k]->executeMT(sectors[minus],sectors[plus]);	 
     }
-    for (unsigned int k=0;k<NSector;k++) {
+    for (unsigned int k=first_sector;k<last_sector;k++) {
       if(writemem && k<4){
         sectors[k]->writeMC(first);
       }
@@ -234,16 +243,16 @@
 
 
     FTTimer.start();
-    for (unsigned int k=0;k<NSector;k++) {
+    for (unsigned int k=first_sector;k<last_sector;k++) {
       sectors[k]->executeFT();	 
-      if(writeifit&&(k==1||k==2||k==3||k==4||k==5)){
+      if(writeifit){
          sectors[k]->writeTF(first);
       }
     }
     FTTimer.stop();
 
     PDTimer.start();
-    for (unsigned int k=0;k<NSector;k++) {
+    for (unsigned int k=first_sector;k<last_sector;k++) {
       sectors[k]->executePD(tracks);	  
       if(writeifit&&(k==1||k==2||k==3||k==4||k==5)){
          sectors[k]->writeCT(first);
@@ -252,7 +261,7 @@
     PDTimer.stop();
     
     bool match=false;
-    for (unsigned int k=0;k<NSector;k++) {
+    for (unsigned int k=first_sector;k<last_sector;k++) {
       //cout << "FPGA.icc " << k << " " << tracks.size() << endl;
       //sectors[k]->findduplicates(tracks);
       if (selectmu==1) {

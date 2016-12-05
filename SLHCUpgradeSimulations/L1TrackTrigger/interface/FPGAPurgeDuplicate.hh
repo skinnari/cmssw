@@ -88,14 +88,16 @@ public:
       inputtracks_[strk]->setSector(iSector_);
 
     }
+
+    ///*
     for(unsigned int itrk=0; itrk<numTrk-1; itrk++) { // numTrk-1 since last track has no other to compare to
 
       // If primary track is a duplicate, it cannot veto any...move on
       if(inputtracks_[itrk]->duplicate()==1) continue;
 
       int nStubP = 0;
-      int nStubS[300] = {0};
-      int nShare[300] = {0};
+      int nStubS[500] = {0};
+      int nShare[500] = {0};
 
       // Get and count primary stubs
       std::map<int, int> stubsTrk1 = inputtracks_[itrk]->stubID();
@@ -121,15 +123,23 @@ public:
       for(unsigned int jtrk=itrk+1; jtrk<numTrk; jtrk++) {
         // Skip duplicate tracks
         if(inputtracks_[jtrk]->duplicate()==1) continue;
-        if((nStubP-nShare[jtrk] < minIndStubs) && (nStubP <  nStubS[jtrk])) {
+
+	// default duplicate removal
+	if((nStubP-nShare[jtrk] < minIndStubs) && (nStubP <  nStubS[jtrk])) {
           inputtracks_[itrk]->setDuplicate(true);
-        }
+	}
         if((nStubS[jtrk]-nShare[jtrk] < minIndStubs) && (nStubS[jtrk] <= nStubP)) {
           inputtracks_[jtrk]->setDuplicate(true);
         }
+
+	// duplicate removal based on prioritizing L1L2 seeds
+	//if((nStubP-nShare[jtrk] < minIndStubs) || (nStubS[jtrk]-nShare[jtrk] < minIndStubs)) {
+        //  inputtracks_[jtrk]->setDuplicate(true);
+	//}
       }
 
     } //loop over primary track
+    //*/
 
     //Add tracks to output
     for(unsigned int i=0;i<inputtracklets_.size();i++) {

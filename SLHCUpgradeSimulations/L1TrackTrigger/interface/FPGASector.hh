@@ -51,28 +51,100 @@ public:
   void addStub(L1TStub stub) {
     double phi=stub.phi();
     int layer=stub.layer()+1;
+    //cout << "FPGASector trying to add stub in layer = "<<layer<<" in sector "<<isector_<<endl;
     //cout << "phi phimin_ phimax_ : "<<phi<<" "<<phimin_<<" "<<phimax_<<endl;
     double dphi=two_pi/NSector/6.0;
     if (layer<999) {
       if ((layer%2==1&&(phi>phimin_)&&(phi<phimax_))||
-	  (layer%2==0&&(phi>phimin_-dphi)&&(phi<phimax_+dphi))) {
+	  (layer%2==0&&(((phi>phimin_-dphi)&&(phi<phimax_+dphi))
+			||((phi-two_pi>phimin_-dphi)&&(phi-two_pi<phimax_+dphi))
+			||((phi+two_pi>phimin_-dphi)&&(phi+two_pi<phimax_+dphi))
+			))) {
+	//cout << "FPGASector phi phimin_-dphi phimax_+dphi :"
+	//     << phi<<" "<<phimin_-dphi<<" "<<phimax_+dphi<<endl;
 	FPGAStub fpgastub(stub,phimin_,phimax_);
-	for (unsigned int i=0;i<IL_.size();i++){
-	  IL_[i]->addStub(stub,fpgastub);
-	}
+	int dtcregion=fpgastub.fedregion()-1;
+	assert(dtcregion>=0);
+	assert(dtcregion<8);
+	assert(dtcregion<4);
+	inputStubs_[dtcregion].push_back(stub);
+	FPGAStub tmp(inputStubs_[dtcregion][inputStubs_[dtcregion].size()-1],phimin_,phimax_);
+	//FPGAStub fpgastub(stub,phimin_,phimax_);
+	//for (unsigned int i=0;i<IL_.size();i++){
+	//  IL_[i]->addStub(stub,fpgastub);
+	//}
       }
     } else {
       int disk=stub.disk();
       if ((abs(disk)%2==0&&(phi>phimin_)&&(phi<phimax_))||
 	  (abs(disk)%2==1&&(phi>phimin_-dphi)&&(phi<phimax_+dphi))) {
-	for (unsigned int i=0;i<IL_.size();i++){
-	  FPGAStub fpgastub(stub,phimin_,phimax_);
-	  IL_[i]->addStub(stub,fpgastub);
-	}      
+	FPGAStub fpgastub(stub,phimin_,phimax_);
+	int dtcregion=fpgastub.fedregion()-1;
+	assert(dtcregion>=0);
+	assert(dtcregion<8);
+	assert(dtcregion>3);
+	inputStubs_[dtcregion].push_back(stub);
+	FPGAStub tmp(inputStubs_[dtcregion][inputStubs_[dtcregion].size()-1],phimin_,phimax_);
+	//for (unsigned int i=0;i<IL_.size();i++){
+	//  FPGAStub fpgastub(stub,phimin_,phimax_);
+	//  IL_[i]->addStub(stub,fpgastub);
+	//}      
       }
     }
   }
 
+  void sortStubs(std::vector<L1TStub>& stubs){
+
+    if (stubs.size()<=1) return;
+    
+    bool more=false;
+    do {
+      more=false;
+      for(unsigned int i=0;i<stubs.size()-1;i++) {
+	if (fabs(stubs[i].pt())<fabs(stubs[i+1].pt())) {
+	  L1TStub tmp=stubs[i];
+	  stubs[i]=stubs[i+1];
+	  stubs[i+1]=tmp;
+	  more=true;
+	}
+      }	
+    } while (more);
+      
+    
+  }
+  
+  void fillInputLinks() {
+    
+    //first sort on PT
+    //cout << "In fillInputLinks"<<endl;
+    for(unsigned int i=0;i<8;i++) {
+      //cout << "Will sort "<<i<<endl;
+      sortStubs(inputStubs_[i]);
+      //cout << "Done sort "<<i<<endl;
+      //cout << "inputStubs_[i].size()="<<inputStubs_[i].size()<<endl;
+      for (unsigned int j=0;j<inputStubs_[i].size();j++){
+	//cout << "j = "<<j<<" "<<inputStubs_[i][j].r()<<endl;
+	FPGAStub fpgastub(inputStubs_[i][j],phimin_,phimax_);
+	int ilink=j/34;
+	ilink++;
+	if (ilink>3) ilink=3;
+	assert(ilink>0);
+	assert(ilink<4);
+	fpgastub.setilink(ilink);
+	for (unsigned int ii=0;ii<IL_.size();ii++){
+	  //cout << "Will call IL->addStub"<<endl;
+	  IL_[ii]->addStub(inputStubs_[i][j],fpgastub);
+	}      
+
+      }
+      inputStubs_[i].clear();
+    }
+
+    //cout << "Done"<<endl;
+    
+	
+  }
+  
 
   void addMem(string memType,string memName){
     if (memType=="InputLink:") {
@@ -300,6 +372,11 @@ public:
       FM_[i]->writeMC(first);
     }
   }
+  void writeCandidate(bool first) {
+    for (unsigned int i=0;i<CM_.size();i++){
+      CM_[i]->writeCandidate(first);
+    }
+  }
 
   void writeTF(bool first){
     for(unsigned int i=0; i<TF_.size(); ++i){
@@ -509,6 +586,8 @@ private:
   double phimin_;
   double phimax_;
 
+  std::vector<L1TStub> inputStubs_[8];
+  
   std::vector<FPGATrack*> fpgatracks_;
 
   std::map<string, FPGAMemoryBase*> Memories_;
