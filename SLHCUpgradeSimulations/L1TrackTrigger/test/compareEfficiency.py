@@ -227,12 +227,12 @@ def compareEfficiency(what, sample, ptRange=0, pdgid=0,rebin=0, normToOne=False)
   l.Draw()
 
   # Save canvas
-  outputDir = 'OverlayPlots{userLabel}'.format(userLabel=userLabel)
+  outputDir = 'OverlayPlots'
   if not os.path.isdir(outputDir):
     os.mkdir(outputDir)
   outputFileName = "{outputDir}/{sample}_{what}.pdf".format( outputDir=outputDir, sample = sample, what=what )
 
-  if sample == 'TTbar':
+  if 'TTbar' in sample:
     if pdgid == 13:
       outputFileName = "{outputDir}/{sample}_muons_{what}.pdf".format( outputDir=outputDir, sample = sample, what=what )
     elif pdgid == 1:
@@ -248,15 +248,17 @@ def compareEfficiency(what, sample, ptRange=0, pdgid=0,rebin=0, normToOne=False)
 if __name__ == '__main__':
   r.gROOT.SetBatch()
 
-  for pdg in [1,2,13]:
-    compareEfficiency("eff_pt_L","TTbar",0,pdg)
-    compareEfficiency("eff_pt_H","TTbar",0,pdg)
-    compareEfficiency("eff_eta_L","TTbar",0,pdg)
-    compareEfficiency("eff_eta_H","TTbar",0,pdg)
-    compareEfficiency("eff_pt","TTbar",0,pdg)
-    compareEfficiency("eff_eta","TTbar",0,pdg)
+  for sample in ['TTbar','TTbarCL']:
+    for pdg in [1,2,13]:
+      compareEfficiency("eff_pt_L",sample,0,pdg)
+      compareEfficiency("eff_pt_H",sample,0,pdg)
+      compareEfficiency("eff_eta_L",sample,0,pdg)
+      compareEfficiency("eff_eta_H",sample,0,pdg)
+      compareEfficiency("eff_pt",sample,0,pdg)
+      compareEfficiency("eff_eta",sample,0,pdg)
 
-    compareEfficiency("ntrk_pt3","TTbar",0,pdg,rebin=4, normToOne=True)
+      compareEfficiency("ntrk_pt3",sample,0,pdg,rebin=4, normToOne=True)
+
 
 
   samplePdg = {

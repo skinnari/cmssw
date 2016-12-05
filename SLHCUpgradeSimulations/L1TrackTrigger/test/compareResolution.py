@@ -4,7 +4,7 @@ import os.path
 
 # Use this for user specific label at the end of the filename
 # userLabel = "_globalLinearRegression2"
-userLabel = "_KF4ParamsComb"
+userLabel = ""
 
 # Labels for input files
 PUtypes = ["0","140","200"]
@@ -93,7 +93,7 @@ def getAllHistogramsFromFile( what, sample, ptRange, pdgid, maxY=-1 ):
   # Make list of input trees
   inputFileNames = [];
   inputFileNameTemplate = ""
-  if sample == 'TTbar':
+  if 'TTbar' in sample:
     inputFileNameTemplate = "output_{sample}_PU{PU}_{trunc}Truncation_{pdg}{userLabel}.root"
   else :
     inputFileNameTemplate = "output_{sample}{ptRange}_PU{PU}_{trunc}Truncation_{pdg}{userLabel}.root"
@@ -281,11 +281,11 @@ def compareResolution(what, sample, ptRange=0, pdgid=0,maxY=-1,legPosition=''):
   l.Draw()
   l1.Draw()
   # Save canvas
-  outputDir = 'OverlayPlots{userLabel}'.format(userLabel=userLabel)
+  outputDir = 'OverlayPlots'
   if not os.path.isdir(outputDir):
     os.mkdir(outputDir)
   outputFileName = "{outputDir}/{sample}_{what}.pdf".format( outputDir = outputDir, sample = sample, what=what )
-  if sample == 'TTbar':
+  if 'TTbar' in sample:
     if pdgid == 13:
       outputFileName = "{outputDir}/{sample}_muons_{what}.pdf".format( outputDir = outputDir, sample = sample, what=what )
     elif pdgid == 1:
@@ -300,26 +300,37 @@ if __name__ == '__main__':
   for pdg in [1,2,13]:
 
 
-    if pdg == 13:
-      for ptRange in ['L','H']:
-        compareResolution("resVsEta_phi_"+ptRange,"TTbar",ptRange,pdg,maxY=0.03)
-        compareResolution("resVsEta_z0_"+ptRange,"TTbar",ptRange,pdg,maxY=1)
-        compareResolution("resVsEta_ptRel_"+ptRange,"TTbar",ptRange,pdg,maxY=0.5)
-        compareResolution("resVsEta_eta_"+ptRange,"TTbar",ptRange,pdg,maxY=0.015)
+    for sample in ['TTbarCL']:
+      if pdg == 13:
+        for ptRange in ['L','H']:
+          compareResolution("resVsEta_phi_"+ptRange,sample,ptRange,pdg,maxY=0.03)
+          compareResolution("resVsEta_z0_"+ptRange,sample,ptRange,pdg,maxY=1)
+          compareResolution("resVsEta_ptRel_"+ptRange,sample,ptRange,pdg,maxY=0.5)
+          compareResolution("resVsEta_eta_"+ptRange,sample,ptRange,pdg,maxY=0.015)
 
-        compareResolution("resVsPt2_phi","TTbar",ptRange,pdg,maxY=0.03)
-        compareResolution("resVsPt2_z0","TTbar",ptRange,pdg,maxY=1)
-        compareResolution("resVsPt2_ptRel","TTbar",ptRange,pdg,maxY=0.5)
-        compareResolution("resVsPt2_eta","TTbar",ptRange,pdg,maxY=0.015)
-    else:
-      compareResolution("resVsEta_phi","TTbar",0,pdg,maxY=0.03)
-      compareResolution("resVsEta_z0","TTbar",0,pdg,maxY=1)
-      compareResolution("resVsEta_ptRel","TTbar",0,pdg,maxY=0.5)
-      compareResolution("resVsEta_eta","TTbar",0,pdg,maxY=0.015)
-      compareResolution("resVsPt2_phi","TTbar",0,pdg,maxY=0.03)
-      compareResolution("resVsPt2_z0","TTbar",0,pdg,maxY=1)
-      compareResolution("resVsPt2_ptRel","TTbar",0,pdg,maxY=0.5)
-      compareResolution("resVsPt2_eta","TTbar",0,pdg,maxY=0.015)
+          compareResolution("resVsPt2_phi",sample,ptRange,pdg,maxY=0.03)
+          compareResolution("resVsPt2_z0",sample,ptRange,pdg,maxY=1)
+          compareResolution("resVsPt2_ptRel",sample,ptRange,pdg,maxY=0.5)
+          compareResolution("resVsPt2_eta",sample,ptRange,pdg,maxY=0.015)
+
+          compareResolution("resVsEta_phi_"+ptRange,sample,ptRange,pdg,maxY=0.03)
+          compareResolution("resVsEta_z0_"+ptRange,sample,ptRange,pdg,maxY=1)
+          compareResolution("resVsEta_ptRel_"+ptRange,sample,ptRange,pdg,maxY=0.5)
+          compareResolution("resVsEta_eta_"+ptRange,sample,ptRange,pdg,maxY=0.015)
+
+          compareResolution("resVsPt2_phi",sample,ptRange,pdg,maxY=0.03)
+          compareResolution("resVsPt2_z0",sample,ptRange,pdg,maxY=1)
+          compareResolution("resVsPt2_ptRel",sample,ptRange,pdg,maxY=0.5)
+          compareResolution("resVsPt2_eta",sample,ptRange,pdg,maxY=0.015)
+      else:
+        compareResolution("resVsEta_phi",sample,0,pdg,maxY=0.03)
+        compareResolution("resVsEta_z0",sample,0,pdg,maxY=1)
+        compareResolution("resVsEta_ptRel",sample,0,pdg,maxY=0.5)
+        compareResolution("resVsEta_eta",sample,0,pdg,maxY=0.015)
+        compareResolution("resVsPt2_phi",sample,0,pdg,maxY=0.03)
+        compareResolution("resVsPt2_z0",sample,0,pdg,maxY=1)
+        compareResolution("resVsPt2_ptRel",sample,0,pdg,maxY=0.5)
+        compareResolution("resVsPt2_eta",sample,0,pdg,maxY=0.015)
 
   samplePdg = {
     'Muon' : 13,
