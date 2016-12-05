@@ -528,7 +528,7 @@ void L1TrackNtupleMaker::beginJob()
     eventTree->Branch("jet_pt", &m_jet_pt);
     eventTree->Branch("jet_tp_sumpt", &m_jet_tp_sumpt);
     eventTree->Branch("jet_matchtrk_sumpt", &m_jet_matchtrk_sumpt);
-    if (!Slim) eventTree->Branch("jet_loosematchtrk_sumpt", &m_jet_loosematchtrk_sumpt);
+    eventTree->Branch("jet_loosematchtrk_sumpt", &m_jet_loosematchtrk_sumpt);
     eventTree->Branch("jet_trk_sumpt", &m_jet_trk_sumpt);
   }
 
