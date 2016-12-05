@@ -70,7 +70,7 @@ static bool writeTrackletParsDisk=false;
 
 static bool writestubs=false;
 static bool writestubs_in2=false;
-static bool writeifit=false;
+static bool writeifit=true;
 static bool padding=false;
 static bool exactderivatives=false;  //for both the integer and float
 static bool exactderivativesforfloating=true; //only for the floating point
@@ -214,15 +214,15 @@ static int L1Nr=4;   //Bad name! Number of r VM
 //static int NMAXroute = 250;
 
 
-//static unsigned int MAXOFFSET=10000; //set to 0 for regular truncation
-static unsigned int MAXOFFSET=0;
+static unsigned int MAXOFFSET=10000; //set to 0 for regular truncation
 
-static unsigned int MAXSTUBSLINK = MAXOFFSET + 36; //Max stubs per link
+static unsigned int MAXSTUBSLINK = MAXOFFSET + 33; //Max stubs per link
 static unsigned int MAXLAYERROUTER = MAXOFFSET + 33; //Max stubs handled by layer router
-static unsigned int MAXDISKROUTER = MAXOFFSET + 10000; //Max stubs handled by disk router
+static unsigned int MAXDISKROUTER = MAXOFFSET + 33; //Max stubs handled by disk router
 static unsigned int MAXVMROUTER = MAXOFFSET + 31; //Max stubs handled by VM router
+static unsigned int MAXVMDROUTER = MAXOFFSET + 31; //Max stubs handled by VMD router
 static unsigned int MAXTE = MAXOFFSET + 34; //Maximum number of stub pairs to try in TE 
-static unsigned int MAXTC = MAXOFFSET + 36; //Maximum number of tracklet parameter calculations
+static unsigned int MAXTC = MAXOFFSET + 35; //Maximum number of tracklet parameter calculations
 static unsigned int MAXPROJECTIONTRANSCEIVER = MAXOFFSET + 36; //Maximum number of projections to neighbor
 static unsigned int MAXPROJROUTER = MAXOFFSET + 36; //Maximum number of projections to route
 static unsigned int MAXME = MAXOFFSET + 34; //Maximum number of stub-projection matches to try

@@ -295,13 +295,11 @@ public:
 	  foundTarget++;
 	}
 
-	/* // this can mean truncation 
 	if (foundTarget==0) {
 	  cout << "ERROR in FPGAProjectionTransceiver "<<getName()
 	       <<" no target for :"<< otherProj->getName() 
 	       <<" seedpair "<<seedpair<<endl;
 	}
-	*/
 
 	assert(foundTarget<2);
 

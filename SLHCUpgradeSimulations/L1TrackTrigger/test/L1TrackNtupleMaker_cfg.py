@@ -32,26 +32,20 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgradePLS3', '')
 
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1000))
 Source_Files = cms.untracked.vstring(
-    ## ttbar PU=140
-    #'/store/group/upgrade/Tracker/L1Tracking/Synchro/Input/TTbar/CMSSW_6_2_0_SLHC26-DES23_62_V1_LHCCRefPU140-v1/FC5CDAC1-4E2F-E511-8085-0026189438D9.root'
-    # single muons PU=140, pt=100
-    #'/store/group/upgrade/Tracker/L1Tracking/Synchro/Input/Muon/RelValSingleMuPt100_CMSSW_6_2_0_SLHC26-DES23_62_V1_LHCCRefPU140-v1/D8D712F1-3A2F-E511-9716-0025905A605E.root',
-    #'/store/group/upgrade/Tracker/L1Tracking/Synchro/Input/Muon/RelValSingleMuPt100_CMSSW_6_2_0_SLHC26-DES23_62_V1_LHCCRefPU140-v1/BA72AD12-392F-E511-8E29-0025905A60B0.root',
-    #'/store/group/upgrade/Tracker/L1Tracking/Synchro/Input/Muon/RelValSingleMuPt100_CMSSW_6_2_0_SLHC26-DES23_62_V1_LHCCRefPU140-v1/BE12E362-3C2F-E511-BEBD-0025905A6136.root',
-    #'/store/group/upgrade/Tracker/L1Tracking/Synchro/Input/Muon/RelValSingleMuPt100_CMSSW_6_2_0_SLHC26-DES23_62_V1_LHCCRefPU140-v1/BEAF343E-3B2F-E511-BADF-002618943800.root',
-    #'/store/group/upgrade/Tracker/L1Tracking/Synchro/Input/Muon/RelValSingleMuPt100_CMSSW_6_2_0_SLHC26-DES23_62_V1_LHCCRefPU140-v1/C2D56BE8-392F-E511-814C-0025905B8598.root',
-    
-    ## new ttbar sample
-    'file:TTbar_new_1.root',
-    'file:TTbar_new_2.root',
-    'file:TTbar_new_3.root',
-    'file:TTbar_new_4.root',
-    'file:TTbar_new_5.root',
-    'file:TTbar_new_6.root',
-	)
+    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/04F2D7A8-4D9E-E611-93C2-00266CFFC948.root",
+    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/063FD7BE-4D9E-E611-B688-047D7B881D40.root",
+    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/064A07F6-769E-E611-A389-6CC2173BC1A0.root",
+    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/06CB7BED-4D9E-E611-8B74-0025907DCA72.root",
+    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/06EED2D7-4D9E-E611-B291-0025907FD2DC.root",
+    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/08D3BAA4-4D9E-E611-8D4A-AC162DACC3F8.root",
+    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/08F5A858-4D9E-E611-8DFC-E41D2D08DDE0.root",
+    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/0A5DE411-4E9E-E611-A83E-00266CFFC7B0.root",
+    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/0A63DDD8-699E-E611-8A36-008CFA052C0C.root",
+    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/0AF38CA6-4D9E-E611-8B10-00266CFFCD50.root"    
+    )
 process.source = cms.Source("PoolSource", fileNames = Source_Files)
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('ntuple_TTbar_PU0.root'), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string('ntuple_ttbar_PU200.root'), closeFileFast = cms.untracked.bool(True))
 
 
 ############################################################
@@ -64,21 +58,21 @@ BeamSpotFromSim = cms.EDProducer("BeamSpotFromSimProducer")
 process.TT_step = cms.Path(process.TrackTriggerTTTracks)
 process.TTAssociator_step = cms.Path(process.TrackTriggerAssociatorTracks)
 
-## run tracklet integer emulation instead 
-#process.TTTracksFromPixelDigisInteger = cms.EDProducer("L1FPGATrackProducer",
-#                                                       fitPatternFile  = cms.FileInPath('SLHCUpgradeSimulations/L1TrackTrigger/test/fitpattern.txt'),
-#                                                       memoryModulesFile  = cms.FileInPath('SLHCUpgradeSimulations/L1TrackTrigger/test/memorymodules_full.dat'),
-#                                                       processingModulesFile  = cms.FileInPath('SLHCUpgradeSimulations/L1TrackTrigger/test/processingmodules_full.dat'),
-#                                                       wiresFile  = cms.FileInPath('SLHCUpgradeSimulations/L1TrackTrigger/test/wires_full.dat')
-#)
-#process.TrackTriggerTTTracksInteger = cms.Sequence(process.BeamSpotFromSim*process.TTTracksFromPixelDigisInteger)
-#process.TT_step_Integer = cms.Path(process.TrackTriggerTTTracksInteger)
-#
-#from SimTracker.TrackTriggerAssociation.TrackTriggerAssociator_cff import *
-#
-#process.TTTrackAssociatorInteger = TTTrackAssociatorFromPixelDigis.clone()
-#process.TTTrackAssociatorInteger.TTTracks = cms.VInputTag( cms.InputTag("TTTracksFromPixelDigisInteger", "Level1TTTracks") )
-#process.TTAssociator_step_Integer = cms.Path( process.TTTrackAssociatorInteger )
+# run tracklet integer emulation instead 
+process.TTTracksFromPixelDigisInteger = cms.EDProducer("L1FPGATrackProducer",
+                                                       fitPatternFile  = cms.FileInPath('SLHCUpgradeSimulations/L1TrackTrigger/test/fitpattern.txt'),
+                                                       memoryModulesFile  = cms.FileInPath('SLHCUpgradeSimulations/L1TrackTrigger/test/memorymodules_full.dat'),
+                                                       processingModulesFile  = cms.FileInPath('SLHCUpgradeSimulations/L1TrackTrigger/test/processingmodules_full.dat'),
+                                                       wiresFile  = cms.FileInPath('SLHCUpgradeSimulations/L1TrackTrigger/test/wires_full.dat')
+)
+process.TrackTriggerTTTracksInteger = cms.Sequence(process.BeamSpotFromSim*process.TTTracksFromPixelDigisInteger)
+process.TT_step_Integer = cms.Path(process.TrackTriggerTTTracksInteger)
+
+from SimTracker.TrackTriggerAssociation.TrackTriggerAssociator_cff import *
+
+process.TTTrackAssociatorInteger = TTTrackAssociatorFromPixelDigis.clone()
+process.TTTrackAssociatorInteger.TTTracks = cms.VInputTag( cms.InputTag("TTTracksFromPixelDigisInteger", "Level1TTTracks") )
+process.TTAssociator_step_Integer = cms.Path( process.TTTrackAssociatorInteger )
 
 
 ############################################################
@@ -86,7 +80,8 @@ process.TTAssociator_step = cms.Path(process.TrackTriggerAssociatorTracks)
 ############################################################
 
 process.load("SLHCUpgradeSimulations.L1TrackTrigger.L1TkPrimaryVertexProducer_cfi")
-process.L1TkPrimaryVertex.L1TrackInputTag = cms.InputTag("TTTracksFromPixelDigis","Level1TTTracks")
+#process.L1TkPrimaryVertex.L1TrackInputTag = cms.InputTag("TTTracksFromPixelDigis","Level1TTTracks")
+process.L1TkPrimaryVertex.L1TrackInputTag = cms.InputTag("TTTracksFromPixelDigisInteger","Level1TTTracks")
 process.pL1TkPrimaryVertex = cms.Path( process.L1TkPrimaryVertex )
 
 process.L1TkPrimaryVertexMC = process.L1TkPrimaryVertex.clone()
@@ -118,8 +113,10 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackNtupleMaker',
                                        TP_minPt = cms.double(2.0),       # only save TPs with pt > X GeV
                                        TP_maxEta = cms.double(2.4),      # only save TPs with |eta| < X
                                        TP_maxZ0 = cms.double(30.0),      # only save TPs with |z0| < X cm
-                                       L1TrackInputTag = cms.InputTag("TTTracksFromPixelDigis", "Level1TTTracks"),               # TTTrack input
-                                       MCTruthTrackInputTag = cms.InputTag("TTTrackAssociatorFromPixelDigis", "Level1TTTracks"), # MCTruth input 
+#                                       L1TrackInputTag = cms.InputTag("TTTracksFromPixelDigis", "Level1TTTracks"),               # TTTrack input
+#                                       MCTruthTrackInputTag = cms.InputTag("TTTrackAssociatorFromPixelDigis", "Level1TTTracks"), # MCTruth input 
+                                       L1TrackInputTag = cms.InputTag("TTTracksFromPixelDigisInteger", "Level1TTTracks"),               # TTTrack input
+                                       MCTruthTrackInputTag = cms.InputTag("TTTrackAssociatorInteger", "Level1TTTracks"), # MCTruth input 
                                        ## isolation stuff 
                                        TrackIsolation = cms.bool(True),
                                        # cuts on the central object (the truth muon & track matched to it)
@@ -178,4 +175,5 @@ process=customise_ev_BE5DPixel10D(process)
 # process schedule
 ############################################################
 
-process.schedule = cms.Schedule(process.TT_step,process.TTAssociator_step,process.pL1TkPrimaryVertex,process.pL1TkPrimaryVertexMC,process.ana)
+#process.schedule = cms.Schedule(process.TT_step,process.TTAssociator_step,process.pL1TkPrimaryVertex,process.pL1TkPrimaryVertexMC,process.ana)
+process.schedule = cms.Schedule(process.TT_step_Integer,process.TTAssociator_step_Integer,process.pL1TkPrimaryVertex,process.pL1TkPrimaryVertexMC,process.ana)

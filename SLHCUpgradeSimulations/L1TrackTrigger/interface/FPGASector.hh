@@ -125,7 +125,7 @@ public:
       for (unsigned int j=0;j<inputStubs_[i].size();j++){
 	//cout << "j = "<<j<<" "<<inputStubs_[i][j].r()<<endl;
 	FPGAStub fpgastub(inputStubs_[i][j],phimin_,phimax_);
-	int ilink=j/34;
+	int ilink=j/MAXSTUBSLINK;
 	ilink++;
 	if (ilink>3) ilink=3;
 	assert(ilink>0);

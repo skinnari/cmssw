@@ -91,9 +91,12 @@ public:
 
     for (unsigned int i=0;i<4;i++){
       fpgastubid_[i].set(63,9);  //FIXME dummy values...
-		fpgastubiddisk_[i].set(63,9);  //FIXME dummy values...
     }
 
+    for (unsigned int i=0;i<5;i++){
+      fpgastubiddisk_[i].set(63,9);  //FIXME dummy values...
+    }
+    
     if (innerStub_->layer()==0) {
       rproj_[0]=rmeanL3;
       rproj_[1]=rmeanL4;
@@ -1655,9 +1658,13 @@ public:
 	//get disks
 	if(fpgastubiddisk_[i].value() != 63) {
 	  if(projdisk_[i] < 0) {
-	    stubIDs[projdisk_[i]-10] = fpgastubiddisk_[i].value();
+      if(projdisk_[i]!=-5 || fpgastubid_[1].value() == 63) {
+        stubIDs[projdisk_[i]-10] = fpgastubiddisk_[i].value();
+      }
 	  } else {
-	    stubIDs[projdisk_[i]+10] = fpgastubiddisk_[i].value();
+      if(projdisk_[i]!=5 || fpgastubid_[1].value() == 63) {
+        stubIDs[projdisk_[i]+10] = fpgastubiddisk_[i].value();
+      }
 	  }
 	}	 			  
       }
@@ -1828,19 +1835,134 @@ public:
     <<fpgastubid_[3].str();                              
     */
     //Binary print out
+
+    //Need to sort the matches in the right order
+    FPGAWord stubid1;
+    FPGAWord stubid2;
+    FPGAWord stubid3;
+    FPGAWord stubid4;
+
+    bool fmatch=false;
+
+    //cout << "layer disk : "<<layer()<<" "<<disk()<<endl;
+    //cout << "nMatches nMatchesDisk : "<<nMatches()<<" "<<nMatchesDisk()<<endl;
+    //if (fabs(disk())==1) {
+    //  for (int disk=3;disk<6;disk++) {
+    // 	cout <<" "<<matchdisk(disk);
+    //  }
+    //  cout << endl;
+    //}    
+
+    //L1L2 seeding
+    if (layer()==1&&disk()==0) {
+      fmatch=true;
+      if (match(3)) {
+	stubid1=fpgastubid_[0];
+      } else {
+	stubid1=fpgastubiddisk_[3];
+      }
+      if (match(4)) {
+	stubid2=fpgastubid_[1];
+      } else {
+	stubid2=fpgastubiddisk_[2];
+      }
+      if (match(5)) {
+	stubid3=fpgastubid_[2];
+      } else {
+	stubid3=fpgastubiddisk_[1];
+      }
+      if (match(6)) {
+	stubid4=fpgastubid_[3];
+      } else {
+	stubid4=fpgastubiddisk_[0];
+      }     
+    }
+
+    //L3L4 seeding
+    if (layer()==3&&disk()==0) {
+      fmatch=true;
+      stubid1=fpgastubid_[0];
+      stubid2=fpgastubid_[1];
+      if (match(5)) {
+	stubid3=fpgastubid_[2];
+      } else {
+	stubid3=fpgastubiddisk_[1];
+      }
+      if (match(6)) {
+	stubid4=fpgastubid_[3];
+      } else {
+	stubid4=fpgastubiddisk_[0];
+      }     
+    }
+
+
+    //L5L6 seeding
+    if (layer()==5&&disk()==0) {
+      fmatch=true;
+      stubid1=fpgastubid_[0];
+      stubid2=fpgastubid_[1];
+      stubid3=fpgastubid_[2];
+      stubid4=fpgastubid_[3];
+    }
+
+    //F1F2 seeding
+    if (layer()==0&&abs(disk())==1) {
+      fmatch=true;
+      stubid1=fpgastubid_[0];
+      stubid2=fpgastubiddisk_[0];
+      stubid3=fpgastubiddisk_[1];
+      if (match(2)) {
+	stubid4=fpgastubid_[1];
+      } else {
+	stubid4=fpgastubiddisk_[2];
+      }     
+    }
+
+    
+    //F3F4 seeding
+    if (layer()==0&&abs(disk())==3) {
+      fmatch=true;
+      stubid1=fpgastubid_[0];
+      stubid2=fpgastubiddisk_[0];
+      stubid3=fpgastubiddisk_[1];
+      if (match(2)) {
+	stubid4=fpgastubid_[1];
+      } else {
+	stubid4=fpgastubiddisk_[2];
+      }     
+    }
+
+
+    //L1F1 seeding
+    if (layer()==1&&abs(disk())==1) {
+      fmatch=true;
+      stubid1=fpgastubiddisk_[1];
+      stubid2=fpgastubiddisk_[2];
+      stubid3=fpgastubiddisk_[3];
+      stubid4=fpgastubiddisk_[4];
+    }
+    
+    assert(stubid1.nbits()!=-1);
+    assert(stubid2.nbits()!=-1);
+    assert(stubid3.nbits()!=-1);
+    assert(stubid4.nbits()!=-1);
+    
+    assert(fmatch);
+    
+    
     if(!writeoutReal){ 
-    oss << irinvfit_.str()<<"|"
-	<< iphi0fit_.str()<<"|"
+      oss << irinvfit_.str()<<"|"
+	  << iphi0fit_.str()<<"|"
       //<< "xxxxxxxxxxx|"
 	<< itfit_.str()<<"|"
 	<< iz0fit_.str()<<"|"
       //<< ichisqfit_.str()<< "|"
 	<< innerFPGAStub_->fedregionaddressstr()<<"|"
 	<< outerFPGAStub_->fedregionaddressstr()<<"|"
-	<<fpgastubid_[0].str()<<"|"
-	<<fpgastubid_[1].str()<<"|"
-	<<fpgastubid_[2].str()<<"|"
-	<<fpgastubid_[3].str();
+	<<stubid1.str()<<"|"
+	<<stubid2.str()<<"|"
+	<<stubid3.str()<<"|"
+	<<stubid4.str();
     }
     return oss.str();
   }

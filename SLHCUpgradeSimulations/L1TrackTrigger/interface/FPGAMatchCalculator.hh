@@ -367,7 +367,7 @@ public:
 	  fact=(1<<(nbitszprojL123-nbitszprojL456));
 	  if (seedlayer==1) {
 	    imatchphi=fabs(ideltaphi)<0.28/(kphi1*rmean[layer_-1]);
-	    imatchz=fabs(fact*ideltaz)<4.5/kz; //to allow for bias in rounding of iz and izcorm
+	    imatchz=fabs(fact*ideltaz)<3.0/kz; //to allow for bias in rounding of iz and izcorm
 	  }
 	  else {
 	    imatchphi=fabs(ideltaphi)<0.2/(kphi1*rmean[layer_-1]);

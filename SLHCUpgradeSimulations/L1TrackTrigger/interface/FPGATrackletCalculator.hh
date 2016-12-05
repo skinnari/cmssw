@@ -1082,9 +1082,9 @@ public:
     }
 
     double thez0cut=-1.0;
-    if (layer_==1) thez0cut=z0cutL1;
-    if (layer_==3) thez0cut=z0cutL3;
-    if (layer_==5) thez0cut=z0cutL5;
+    if (layer_==1) thez0cut=z0cut;
+    if (layer_==3) thez0cut=z0cut;
+    if (layer_==5) thez0cut=z0cut;
     assert(thez0cut>0.0);
     
     if (fabs(iz0*kzpars)>thez0cut) {
@@ -4106,12 +4106,35 @@ public:
     FPGAWord fpgar=tracklet->fpgarprojdisk(disk);
 
     
-    if (fpgar.value()*krprojshiftdisk<rmindisk) return;
-    if (fpgar.value()*krprojshiftdisk>rmaxdisk) return;
-	    
-    //FIXME should not use the floats...
-    int ir=2*(fpgar.value()*krprojshiftdisk)/(rmaxdisk-rmindisk)+1;
+    //if (fpgar.value()*krprojshiftdisk<rmindisk) return;
+    //if (fpgar.value()*krprojshiftdisk>rmaxdisk) return;
 
+    //cout << "rmindisk/krprojshiftdisk rmaxdisk/krprojshiftdisk "
+    //  << rmindisk/krprojshiftdisk<<" "<<rmaxdisk/krprojshiftdisk<<endl;
+      
+    
+    if (fpgar.value()<rmindisk/krprojshiftdisk) {
+      //cout << "fpgar.value() rmindisk/krprojshiftdisk) : "<<fpgar.value()<<" "<<rmindisk/krprojshiftdisk<<endl;
+      return;
+    }
+    if (fpgar.value()>rmaxdisk/krprojshiftdisk) {
+      assert(0);
+      return;
+    }
+
+
+    
+    
+    //int irold=2*(fpgar.value()*krprojshiftdisk)/(rmaxdisk-rmindisk)+1;
+ 
+    int ir=(fpgar.value()>>(fpgar.nbits()-1))+1;
+    
+    //cout << "ir "<<ir<<" "<<irold<<endl;
+
+    //assert(ir==irold);
+    
+
+    
     //cout << "irproj ir : "<<fpgar.value()<<" "
     //	 <<fpgar.value()<<" "<<ir<<endl;
     

@@ -378,11 +378,16 @@ public:
       }
 
     }
+
+    unsigned int count_disk=0;
+
     if (stubinputsdisk_.size()>0) {
       //cout << "Routing stubs in disk" <<endl;
       for(unsigned int j=0;j<stubinputsdisk_.size();j++){
 	for(unsigned int i=0;i<stubinputsdisk_[j]->nStubs();i++){
 	  //cout << "Found stub in disk in "<<getName()<<endl;
+	  count_disk++;
+	  if (count_disk>MAXVMDROUTER) continue;
 	  std::pair<FPGAStub*,L1TStub*> stub=stubinputsdisk_[j]->getStub(i);
 	  //
           bool isSS = name_[8] == '6' || name_[8] == '8';

@@ -602,6 +602,18 @@ public:
 
 
       for (unsigned int d=1;d<=5;d++) {
+		  /*
+		// skip F/B4 if there's already a L3 match
+		if (d==4 and layermask&(1<<3)) continue;
+		// skip F/B3 if there's already a L4 match
+		if (d==3 and layermask&(1<<2)) continue;  
+		// skip F/B2 if there's already a L5 match
+		if (d==2 and layermask&(1<<1)) continue;
+		// skip F/B1 if there's already a L6 match
+		if (d==1 and layermask&(1<<0)) continue;
+		  */
+		if (layermask&(1<<(d-1))) continue;
+		  
         if (mult==1<<(3*alphaBitsTable)) continue;
 	//cout << "d ndisks nlayers : "<<d<<" "<<ndisks<<" "<<nlayers<<endl;
 	if (ndisks+nlayers>=6) continue;
@@ -663,6 +675,10 @@ public:
 
       for (unsigned int d1=1;d1<=5;d1++) {
 	int d=d1;
+	
+	// skip F/B5 if there's already a L2 match
+	if (d==5 and layermask&(1<<4)) continue;
+	
 	if (tracklet->fpgat().value()<0.0) d=-d1;
 	if (d==tracklet->disk()||  //All seeds in PS modules
 	    d==tracklet->disk2()){
