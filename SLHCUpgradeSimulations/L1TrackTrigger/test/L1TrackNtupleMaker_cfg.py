@@ -6,7 +6,7 @@ import FWCore.ParameterSet.Config as cms
 import os
 process = cms.Process("L1TrackNtuple")
  
-
+ 
 ############################################################
 # import standard configurations
 ############################################################
@@ -14,48 +14,166 @@ process = cms.Process("L1TrackNtuple")
 process.load('Configuration.StandardSequences.Services_cff')
 process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
-process.load('Configuration.Geometry.GeometryExtended2023TTIReco_cff')
+process.load('Configuration.Geometry.GeometryExtendedPhase2TkBE5DPixel10DReco_cff')
+process.load('Configuration.Geometry.GeometryExtendedPhase2TkBE5DPixel10D_cff')
 process.load('Configuration.StandardSequences.MagneticField_38T_PostLS1_cff')
 process.load('Configuration.StandardSequences.L1TrackTrigger_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 process.load('Geometry.TrackerGeometryBuilder.StackedTrackerGeometry_cfi')
+process.load('IOMC.EventVertexGenerators.VtxSmearedGauss_cfi')
 
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, 'PH2_1K_FB_V3::All', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgradePLS3', '')
 
 
 ############################################################
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1000))
 Source_Files = cms.untracked.vstring(
-    '/store/group/comm_trigger/L1TrackTrigger/620_SLHC10/Extended2023TTI/Muons/NoPU/SingleMuon_DIGI_1.root',
+    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/04F2D7A8-4D9E-E611-93C2-00266CFFC948.root",
+    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/063FD7BE-4D9E-E611-B688-047D7B881D40.root",
+    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/064A07F6-769E-E611-A389-6CC2173BC1A0.root",
+    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/06CB7BED-4D9E-E611-8B74-0025907DCA72.root",
+    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/06EED2D7-4D9E-E611-B291-0025907FD2DC.root",
+    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/08D3BAA4-4D9E-E611-8D4A-AC162DACC3F8.root",
+    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/08F5A858-4D9E-E611-8DFC-E41D2D08DDE0.root",
+    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/0A5DE411-4E9E-E611-A83E-00266CFFC7B0.root",
+    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/0A63DDD8-699E-E611-8A36-008CFA052C0C.root",
+    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/0AF38CA6-4D9E-E611-8B10-00266CFFCD50.root"    
     )
 process.source = cms.Source("PoolSource", fileNames = Source_Files)
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('Debug_TrkPerf.root'), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string('ntuple_ttbar_PU200.root'), closeFileFast = cms.untracked.bool(True))
 
 
 ############################################################
 # Path definitions & schedule
 ############################################################
 
-#run the tracking
+#run the tracking (example for tracklet method)
+BeamSpotFromSim = cms.EDProducer("BeamSpotFromSimProducer")
+#process.TTTracksFromPixelDigis.phiWindowSF = cms.untracked.double(2.0)  ## uncomment this to run with wider projection windows
 process.TT_step = cms.Path(process.TrackTriggerTTTracks)
 process.TTAssociator_step = cms.Path(process.TrackTriggerAssociatorTracks)
 
+# run tracklet integer emulation instead 
+process.TTTracksFromPixelDigisInteger = cms.EDProducer("L1FPGATrackProducer",
+                                                       fitPatternFile  = cms.FileInPath('SLHCUpgradeSimulations/L1TrackTrigger/test/fitpattern.txt'),
+                                                       memoryModulesFile  = cms.FileInPath('SLHCUpgradeSimulations/L1TrackTrigger/test/memorymodules_full.dat'),
+                                                       processingModulesFile  = cms.FileInPath('SLHCUpgradeSimulations/L1TrackTrigger/test/processingmodules_full.dat'),
+                                                       wiresFile  = cms.FileInPath('SLHCUpgradeSimulations/L1TrackTrigger/test/wires_full.dat')
+)
+process.TrackTriggerTTTracksInteger = cms.Sequence(process.BeamSpotFromSim*process.TTTracksFromPixelDigisInteger)
+process.TT_step_Integer = cms.Path(process.TrackTriggerTTTracksInteger)
+
+from SimTracker.TrackTriggerAssociation.TrackTriggerAssociator_cff import *
+
+process.TTTrackAssociatorInteger = TTTrackAssociatorFromPixelDigis.clone()
+process.TTTrackAssociatorInteger.TTTracks = cms.VInputTag( cms.InputTag("TTTracksFromPixelDigisInteger", "Level1TTTracks") )
+process.TTAssociator_step_Integer = cms.Path( process.TTTrackAssociatorInteger )
+
+
+############################################################
+# primary vertex producer 
+############################################################
+
+process.load("SLHCUpgradeSimulations.L1TrackTrigger.L1TkPrimaryVertexProducer_cfi")
+#process.L1TkPrimaryVertex.L1TrackInputTag = cms.InputTag("TTTracksFromPixelDigis","Level1TTTracks")
+process.L1TkPrimaryVertex.L1TrackInputTag = cms.InputTag("TTTracksFromPixelDigisInteger","Level1TTTracks")
+process.pL1TkPrimaryVertex = cms.Path( process.L1TkPrimaryVertex )
+
+process.L1TkPrimaryVertexMC = process.L1TkPrimaryVertex.clone()
+process.L1TkPrimaryVertexMC.MonteCarloVertex = cms.bool( True )
+process.pL1TkPrimaryVertexMC = cms.Path( process.L1TkPrimaryVertexMC )
+
+
+############################################################
 # Define the track ntuple process, MyProcess is the (unsigned) PDGID corresponding to the process which is run
-# e.g. single electron/positron = 11
+# Valid options are:
+#      single electron/positron = 11
 #      single pion+/pion- = 211
 #      single muon+/muon- = 13 
-#      pions in jets = 6
+#      pions in jets from ttbar = 6
+#      pions from taus = 15
+#      inclusively, store all TPs (also those not from primary interaction, if available in samples you are running on) = 1
+############################################################
+
 process.L1TrackNtuple = cms.EDAnalyzer('L1TrackNtupleMaker',
-                                       MyProcess = cms.int32(13),
-                                       DebugMode = cms.bool(False)
+                                       MyProcess = cms.int32(1),
+                                       Slim = cms.bool(True),            # only keep the branches we really need
+                                       DebugMode = cms.bool(False),      # printout lots of debug statements
+                                       SaveAllTracks = cms.bool(True),   # save *all* L1 tracks, not just truth matched to primary particle
+                                       SaveStubs = cms.bool(False),      # save some info for *all* stubs
+                                       L1Tk_nPar = cms.int32(4),         # use 4 or 5-parameter L1 track fit ??
+                                       L1Tk_minNStub = cms.int32(4),     # L1 tracks with >= 4 stubs
+                                       TP_minNStub = cms.int32(4),       # require TP to have >= X number of stubs associated with it
+                                       TP_minNStubLayer = cms.int32(4),  # require TP to have stubs in >= X layers/disks
+                                       TP_minPt = cms.double(2.0),       # only save TPs with pt > X GeV
+                                       TP_maxEta = cms.double(2.4),      # only save TPs with |eta| < X
+                                       TP_maxZ0 = cms.double(30.0),      # only save TPs with |z0| < X cm
+#                                       L1TrackInputTag = cms.InputTag("TTTracksFromPixelDigis", "Level1TTTracks"),               # TTTrack input
+#                                       MCTruthTrackInputTag = cms.InputTag("TTTrackAssociatorFromPixelDigis", "Level1TTTracks"), # MCTruth input 
+                                       L1TrackInputTag = cms.InputTag("TTTracksFromPixelDigisInteger", "Level1TTTracks"),               # TTTrack input
+                                       MCTruthTrackInputTag = cms.InputTag("TTTrackAssociatorInteger", "Level1TTTracks"), # MCTruth input 
+                                       ## isolation stuff 
+                                       TrackIsolation = cms.bool(True),
+                                       # cuts on the central object (the truth muon & track matched to it)
+                                       PTmin = cms.double(20.0),           # central object pt > X GeV, ptmin < 0 means no cut applied
+                                       ETAmax = cms.double(2.4),           # central object |eta| < X
+                                       TrackPTmin = cms.double(20.0),      # for track matched to central object
+                                       TrackETAmax = cms.double(2.4),
+                                       TrackChi2max = cms.double(1e10),
+                                       TrackNStubmin = cms.int32(4),
+                                       # cuts on the tracks (used to determine isolation variable)
+                                       IsoTrackZmax = cms.double(25.),     # in cm
+                                       IsoTrackChi2max = cms.double(1e10),
+                                       IsoTrackNStubmin = cms.int32(4),    
+                                       IsoTrackPTmin = cms.double(3.0),    # in GeV
+                                       IsoDRmin = cms.double(0.0),
+                                       IsoDRmax = cms.double(0.3),
+                                       IsoDZmax = cms.double(0.5),         # in cm
+                                       ## tracking in jets stuff (--> requires AK4 genjet collection present!)
+                                       TrackingInJets = cms.bool(True),
+                                       ## save primary vertex information? (--> requires that you ran that above)
+                                       PrimaryVertex = cms.bool(True),
                                        )
 process.ana = cms.Path(process.L1TrackNtuple)
 
-process.schedule = cms.Schedule(process.TT_step,process.TTAssociator_step,process.ana)
-#process.schedule = cms.Schedule(process.ana)
 
+############################################################
+# output module
+############################################################
+
+#process.out = cms.OutputModule( "PoolOutputModule",
+#                                fileName = cms.untracked.string("FileOut.root"),
+#                                fastCloning = cms.untracked.bool( False ),
+#                                outputCommands = cms.untracked.vstring('drop *',
+#                                                                       'keep *_*_Level1TTTracks_*',
+#                                                                       'keep *_*_StubAccepted_*',
+#                                                                       'keep *_*_ClusterAccepted_*',
+#                                                                       'keep *_*_MergedTrackTruth_*',
+#                                                                       'keep *_L1TkPrimaryVertex_*_*',
+#                                                                       'keep *_L1TkPrimaryVertexMC_*_*',
+#                                                                       'keep *_genParticles_*_*'
+#)
+#process.FEVToutput_step = cms.EndPath(process.out)
+
+
+############################################################
+# Automatic addition of the customisation function from SLHCUpgradeSimulations.Configuration.combinedCustoms
+############################################################
+
+from SLHCUpgradeSimulations.Configuration.combinedCustoms import customiseBE5DPixel10D
+from SLHCUpgradeSimulations.Configuration.combinedCustoms import customise_ev_BE5DPixel10D
+process=customiseBE5DPixel10D(process)
+process=customise_ev_BE5DPixel10D(process)
+
+
+############################################################
+# process schedule
+############################################################
+
+#process.schedule = cms.Schedule(process.TT_step,process.TTAssociator_step,process.pL1TkPrimaryVertex,process.pL1TkPrimaryVertexMC,process.ana)
+process.schedule = cms.Schedule(process.TT_step_Integer,process.TTAssociator_step_Integer,process.pL1TkPrimaryVertex,process.pL1TkPrimaryVertexMC,process.ana)
