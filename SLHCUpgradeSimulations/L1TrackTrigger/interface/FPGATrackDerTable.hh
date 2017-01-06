@@ -19,7 +19,7 @@ public:
     Nlay_=6;
     Ndisk_=5;
 
-    LayerMemBits_=5;
+    LayerMemBits_=6;
     DiskMemBits_=7;
     
     LayerDiskMemBits_=15;
@@ -620,9 +620,9 @@ public:
 		for (unsigned int i=0;i<LayerMem_.size();i++){
 			FPGAWord tmp;
 			int tmp1=LayerMem_[i];
-			if (tmp1<0) tmp1=(1<<5)-1;
+			if (tmp1<0) tmp1=(1<<6)-1;
 			cout << "i LayerMem_ : "<<i<<" "<<tmp1<<endl;
-			tmp.set(tmp1,5,true,__LINE__,__FILE__);
+			tmp.set(tmp1,6,true,__LINE__,__FILE__);
 			outL << tmp.str() <<endl;
 		}
 		outL.close();
@@ -640,9 +640,9 @@ public:
 		ofstream outLD("FitDerTableNew_LayerDiskMem.txt");
 		for (unsigned int i=0;i<LayerDiskMem_.size();i++){
 			int tmp1=LayerDiskMem_[i];
-			if (tmp1<0) tmp1=(1<<15)-1;
+			if (tmp1<0) tmp1=(1<<10)-1;
 			FPGAWord tmp;
-			tmp.set(tmp1,15,true,__LINE__,__FILE__);
+			tmp.set(tmp1,10,true,__LINE__,__FILE__);
 			outLD << tmp.str() <<endl;
 		}
 		outLD.close();

@@ -33,7 +33,7 @@ void mySmallText(Double_t x,Double_t y,Color_t color,char *text);
 // ----------------------------------------------------------------------------------------------------------------
 
 
-void PlotL1iso(TString name) {
+void PlotL1iso(TString name, bool WithTrunc) {
  
   gROOT->SetBatch();
   gErrorIgnoreLevel = kWarning;
@@ -44,8 +44,11 @@ void PlotL1iso(TString name) {
   // ----------------------------------------------------------------------------------------------------------------
   // read ntuples
   TChain* tree = new TChain("L1TrackNtuple/eventTree");
-  tree->Add(name+".root");
-  
+  //tree->Add(name+".root");
+  if (WithTrunc) tree->Add("root://eoscms.cern.ch//store/user/skinnari/Emulation_WithTrunc_dec7/"+name+".root");
+  else tree->Add("root://eoscms.cern.ch//store/user/skinnari/Emulation_NoTrunc_dec7/"+name+".root");
+
+
   if (tree->GetEntries() == 0) {
     cout << "File doesn't exist or is empty, returning..." << endl;
     return;
@@ -252,7 +255,12 @@ void PlotL1iso(TString name) {
   //
   // Output file
   // 
-  TFile* fout = new TFile("output_L1Iso_"+name+".root","recreate");
+
+  TString trunc="";
+  if (WithTrunc) trunc = "_WithTruncation";
+  else trunc = "_WithoutTruncation";
+
+  TFile* fout = new TFile("output_L1Iso_"+name+trunc+".root","recreate");
 
   TGraph* g_eff = new TGraph(100,passIso_nonprompt,passIso_prompt);
   TH2F* h_dummy = new TH2F("dummy", "; efficiency (non-prompt #mu); efficiency (prompt #mu)",90,0.1,1.0,10,0.9,1.0);

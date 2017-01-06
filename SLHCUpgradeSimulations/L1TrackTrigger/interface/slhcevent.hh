@@ -487,7 +487,7 @@ public:
 
       bool foundclose=false;
 
-      if(1) {
+      if(0) {
 
 	for (unsigned int i=0;i<stubs_.size();i++) {
 	  if (layer<10) {
@@ -515,13 +515,15 @@ public:
 
       double fact=1.0;
       if (ptcut>=3.0) fact=1.4;
-      fact=1.0;
+      fact=0.0;
 
       if (!foundclose) {
 	if (((fabs(stub.pt())>1.8*fact)&&(fabs(eta)<2.0))||
 	    ((fabs(stub.pt())>1.4*fact)&&(fabs(eta)>2.0))||
 	    ((fabs(stub.pt())>1.0*fact)&&(fabs(eta)>2.3))) {
-	  stubs_.push_back(stub);
+	  if (fabs(eta)<2.6) {
+	    stubs_.push_back(stub);
+	  }
 	}
       }
     }

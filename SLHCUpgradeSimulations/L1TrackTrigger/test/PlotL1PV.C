@@ -32,7 +32,7 @@ void mySmallText(Double_t x,Double_t y,Color_t color,char *text);
 // ----------------------------------------------------------------------------------------------------------------
 
 
-void PlotL1PV(TString name) {
+void PlotL1PV(TString name, bool WithTrunc) {
 
   gROOT->SetBatch();
   gErrorIgnoreLevel = kWarning;
@@ -42,7 +42,9 @@ void PlotL1PV(TString name) {
 
   // ----------------------------------------------------------------------------------------------------------------
   TChain* tree = new TChain("L1TrackNtuple/eventTree");
-  tree->Add(name+".root");
+  //tree->Add(name+".root");
+  if (WithTrunc) tree->Add("root://eoscms.cern.ch//store/user/skinnari/Emulation_WithTrunc_dec7/"+name+".root");
+  else tree->Add("root://eoscms.cern.ch//store/user/skinnari/Emulation_NoTrunc_dec7/"+name+".root");
 
 
   // ----------------------------------------------------------------------------------------------------------------
@@ -123,8 +125,13 @@ void PlotL1PV(TString name) {
   //
   // Output file
   // 
-  TFile* fout = new TFile("output_L1PV_"+name+".root","recreate");
 
+  TString trunc="";
+  if (WithTrunc) trunc+="_WithTruncation";
+  else trunc+="_WithoutTruncation";
+  
+  TFile* fout = new TFile("output_L1PV_"+name+trunc+".root","recreate");
+  
   // ----------------------------------------------------------------------------------------------------------------
   // write/plot histograms
 

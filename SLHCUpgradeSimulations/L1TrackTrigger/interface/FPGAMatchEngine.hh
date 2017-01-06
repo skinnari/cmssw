@@ -106,7 +106,7 @@ public:
 	    if (abs(izvmdiff)>1000) continue; //dummy for now
 	  }
 	}
-	if (disk_>0) {
+	if (disk_!=0) {
 	  int iphivmdiff=stub.first->phivm().value()-proj->phiprojvmdisk(disk_);
 	  int irvmdiff=stub.first->rvm().value()-proj->rprojvmdisk(disk_);
 	  //cout << getName()<<" "<<disk_<<" "<<iphivmdiff<<" "<<irvmdiff<<endl;

@@ -1179,14 +1179,16 @@ public:
   }
 
 
-  bool matchdisk(int disk) {
-    if (!disk_) return !fpgaphiresiddisk_[abs(disk)-1].atExtreme();
+  bool matchdisk(int adisk) {
+    if (!disk_) return !fpgaphiresiddisk_[abs(adisk)-1].atExtreme();
     for (int i=0;i<3;i++) {
       //cout << "disk projdisk : "<<disk<<" "<<projdisk_[i]<<endl;
-      if (projdisk_[i]==disk) {
+      if (projdisk_[i]==adisk) {
 	return !fpgaphiresiddisk_[i].atExtreme();
       }
-    } 
+    }
+    cout << "FPGATracklet::matchdisk adisk disk_ disk() "
+	 <<adisk<<" "<<disk_<<" "<<disk()<<endl;
     assert(0);
     return false;
   }
@@ -1246,10 +1248,28 @@ public:
 
     //cout << "addMatchDisk1 "<<disk<<" "<<ideltaphi<<endl; 
 
+    long int irstub = stubptrs.first->r().value();
+    if(stubptrs.second->r()>60){
+      double rstub = rDSS[irstub];
+      assert (rstub>60 && rstub < rmaxdisk);
+      irstub = (1<<nrbitsdisk)*(rstub-rmindisk)/(rmaxdisk-rmindisk);	    
+    }
+    
     if (!disk_) {
+      long int irstubold=irstub;
+      if (!fpgaphiresiddisk_[abs(disk)-1].atExtreme()){
+      	irstubold=stubptrsdisk_[abs(disk)-1].first->r().value();
+      	if(stubptrsdisk_[abs(disk)-1].second->r()>60){
+      	  double rstub = rDSS[irstubold];
+      	  assert (rstub>60 && rstub < rmaxdisk);
+      	  irstubold = (1<<nrbitsdisk)*(rstub-rmindisk)/(rmaxdisk-rmindisk);	
+      	}
+      }
       assert(abs(ideltaphi)<(1<<(phiresidbits-1)));
       assert(abs(ideltar)<(1<<(rresidbits-1)));
-      if (fabs(ideltaphi)<fabs(fpgaphiresiddisk_[abs(disk)-1].value())) {
+      //if (fabs(ideltaphi)<fabs(fpgaphiresiddisk_[abs(disk)-1].value())) {
+      if (fabs(ideltaphi*(irstub + rmindisk/kr))
+	  <fabs(fpgaphiresiddisk_[abs(disk)-1].value()*(irstubold + rmindisk/kr))) {
 	//cout << "addMatchDisk2 "<<disk<<" "<<ideltaphi<<endl; 
 	phiresiddisk_[abs(disk)-1]=dphi;
 	rresiddisk_[abs(disk)-1]=dr;
@@ -1286,7 +1306,17 @@ public:
       if (projdisk_[i]==disk) {
 	assert(abs(ideltaphi)<(1<<(phiresidbits-1)));
 	assert(abs(ideltar)<(1<<(rresidbits-1)));
-	if (fabs(ideltaphi)<fabs(fpgaphiresiddisk_[i].value())) {
+	long int irstubold=irstub;
+	if (!fpgaphiresiddisk_[i].atExtreme()){
+	  irstubold=stubptrsdisk_[i].first->r().value();
+	  if(stubptrsdisk_[i].second->r()>60){
+	    double rstub = rDSS[irstubold];
+	    assert (rstub>60 && rstub < rmaxdisk);
+	    irstubold = (1<<nrbitsdisk)*(rstub-rmindisk)/(rmaxdisk-rmindisk);	
+	  }
+	}
+	//if (fabs(ideltaphi)<fabs(fpgaphiresiddisk_[i].value())) {
+	if (fabs(ideltaphi*(irstub + rmindisk/kr))<fabs(fpgaphiresiddisk_[i].value()*(irstubold + rmindisk/kr))) {
 	  phiresiddisk_[i]=dphi;
 	  rresiddisk_[i]=dr;
 	  assert(dphiapprox!=0.0);
@@ -1952,17 +1982,18 @@ public:
     
     if(!writeoutReal){ 
       oss << irinvfit_.str()<<"|"
-	  << iphi0fit_.str()<<"|"
-      //<< "xxxxxxxxxxx|"
-	<< itfit_.str()<<"|"
-	<< iz0fit_.str()<<"|"
+	//cout << irinvfit_.str()<<"|"
+	   << iphi0fit_.str()<<"|"
+	//<< "xxxxxxxxxxx|"
+	   << itfit_.str()<<"|"
+	   << iz0fit_.str()<<"|"
       //<< ichisqfit_.str()<< "|"
-	<< innerFPGAStub_->fedregionaddressstr()<<"|"
-	<< outerFPGAStub_->fedregionaddressstr()<<"|"
-	<<stubid1.str()<<"|"
-	<<stubid2.str()<<"|"
-	<<stubid3.str()<<"|"
-	<<stubid4.str();
+	   << innerFPGAStub_->fedregionaddressstr()<<"|"
+	   << outerFPGAStub_->fedregionaddressstr()<<"|"
+	   <<stubid1.str()<<"|"
+	   <<stubid2.str()<<"|"
+	   <<stubid3.str()<<"|"
+	   <<stubid4.str();
     }
     return oss.str();
   }

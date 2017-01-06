@@ -177,7 +177,6 @@ private:
   edm::FileInPath processingModulesFile; 
   edm::FileInPath wiresFile; 
 
-
   double phiWindowSF_;
 
   string asciiEventOutName_;
@@ -208,8 +207,7 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig) // : 
   processingModulesFile = iConfig.getParameter<edm::FileInPath> ("processingModulesFile");
   memoryModulesFile = iConfig.getParameter<edm::FileInPath> ("memoryModulesFile");
   wiresFile = iConfig.getParameter<edm::FileInPath> ("wiresFile");
-
-
+  
   eventnum=0;
   if (asciiEventOutName_!="") {
     asciiEventOut_.open(asciiEventOutName_.c_str());
@@ -471,6 +469,13 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
       if (stub->getTriggerBend()<0.0) stubPt=-stubPt;
       if (iStack==999999 && stubPosition.z()>0) stubPt=-stubPt;
 	
+
+      double r=sqrt(stubPosition.x()*stubPosition.x() + stubPosition.y()*stubPosition.y());
+      double t=fabs(stubPosition.z())/r;
+      double eta=asinh(t);
+      if (fabs(eta) > 2.6) continue;
+
+
       std::vector<bool> innerStack;
       std::vector<int> irphi;
       std::vector<int> iz;

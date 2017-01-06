@@ -93,10 +93,11 @@ def getAllHistogramsFromFile():
   # Get trees from files
   inputFiles=[];
   for i in range(0,len(inputFileNames)):
-    if os.path.isfile( inputFileNames[i] ):
-      inputFiles.append(r.TFile(inputFileNames[i]))
-    else:
-      inputFiles.append(None)
+      print inputFileNames[i]
+      if os.path.isfile( inputFileNames[i] ):
+          inputFiles.append(r.TFile(inputFileNames[i]))
+      else:
+          inputFiles.append(None)
 
   histograms = {
   'PU0_wt' : getHistogramFromFile(inputFiles[0], "ROC"),

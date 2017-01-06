@@ -102,10 +102,11 @@ def getAllHistogramsFromFile( what ):
   # Get trees from files
   inputFiles=[];
   for i in range(0,len(inputFileNames)):
-    if os.path.isfile( inputFileNames[i] ):
-      inputFiles.append(r.TFile(inputFileNames[i]))
-    else:
-      inputFiles.append(None)
+      print inputFileNames[i]
+      if os.path.isfile( inputFileNames[i] ):
+          inputFiles.append(r.TFile(inputFileNames[i]))
+      else:
+          inputFiles.append(None)
   print inputFiles
   histograms = {
   'PU0_wt' : getHistogramFromFile(inputFiles[0], what),
@@ -223,6 +224,7 @@ if __name__ == '__main__':
   r.gROOT.SetBatch()
 
   comparePV("eff1")
+  comparePV("eff5")
   comparePV("zres_vsz")
 
 
