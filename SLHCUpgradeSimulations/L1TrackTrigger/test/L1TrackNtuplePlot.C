@@ -71,9 +71,7 @@ void L1TrackNtuplePlot(TString type, int TP_select_injet=0, int TP_select_pdgid=
   bool doGausFit = false;       //do gaussian fit for resolution vs eta/pt plots
   bool doLooseMatch = false;    //looser MC truth matching
 
-
-  bool WithTrunc = true;
-  bool isLocal = false;
+  bool WithTrunc = true; //just for output file name
 
 
 
@@ -101,9 +99,9 @@ void L1TrackNtuplePlot(TString type, int TP_select_injet=0, int TP_select_pdgid=
   // read ntuples
   TChain* tree = new TChain("L1TrackNtuple/eventTree");
 
-  if (isLocal) tree->Add(type+".root");
-  else if (WithTrunc) tree->Add("root://eoscms.cern.ch//store/user/skinnari/Emulation_LongVM_WithTrunc_nodupl_dec7/"+type+".root");
-  else tree->Add("root://eoscms.cern.ch//store/user/skinnari/Emulation_NoTrunc/"+type+".root");
+  tree->Add(type+".root");
+  //if (WithTrunc) tree->Add("root://eoscms.cern.ch//store/user/skinnari/Emulation_LongVM_WithTrunc_nodupl_dec7/"+type+".root");
+  //else tree->Add("root://eoscms.cern.ch//store/user/skinnari/Emulation_NoTrunc/"+type+".root");
   
   if (tree->GetEntries() == 0) {
     cout << "File doesn't exist or is empty, returning..." << endl;

@@ -32,10 +32,6 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgradePLS3', '')
 
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(200))
 Source_Files = cms.untracked.vstring(
-#    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/MuGunFlatPt8to100/GEN-SIM-DIGI-RAW/DES23_62_V1-v2/60000/BABE9D93-80AB-E611-A348-0025905A60A6.root",
-#    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/MuGunFlatPt8to100/GEN-SIM-DIGI-RAW/DES23_62_V1-v2/60000/BE20831B-80AB-E611-9E99-FA163E9B36F5.root",
-#    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/MuGunFlatPt8to100/GEN-SIM-DIGI-RAW/DES23_62_V1-v2/60000/C66D15DE-80AB-E611-8415-0CC47A7E6A4E.root",
-    
 #    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/06CB7BED-4D9E-E611-8B74-0025907DCA72.root",
 #    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/06EED2D7-4D9E-E611-B291-0025907FD2DC.root",
 #    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/04F2D7A8-4D9E-E611-93C2-00266CFFC948.root",
@@ -46,13 +42,11 @@ Source_Files = cms.untracked.vstring(
 #    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/0A5DE411-4E9E-E611-A83E-00266CFFC7B0.root",
 #    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/0A63DDD8-699E-E611-8A36-008CFA052C0C.root",
 #    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/0AF38CA6-4D9E-E611-8B10-00266CFFCD50.root"    
-
     "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/004C20AB-4D9E-E611-AE77-00266CFFBDAC.root"
     )
 process.source = cms.Source("PoolSource", fileNames = Source_Files)
 
-#process.TFileService = cms.Service("TFileService", fileName = cms.string('ntuple_ttbar_PU200_nodupl.root'), closeFileFast = cms.untracked.bool(True))
-process.TFileService = cms.Service("TFileService", fileName = cms.string('ntuple_ttbar_PU200_2gev.root'), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string('ntuple_ttbar_PU200_nodupl.root'), closeFileFast = cms.untracked.bool(True))
 
 
 ############################################################
@@ -125,7 +119,7 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackNtupleMaker',
                                        L1TrackInputTag = cms.InputTag("TTTracksFromPixelDigisInteger", "Level1TTTracks"),               # TTTrack input
                                        MCTruthTrackInputTag = cms.InputTag("TTTrackAssociatorInteger", "Level1TTTracks"), # MCTruth input 
                                        ## isolation stuff 
-                                       TrackIsolation = cms.bool(True),
+                                       TrackIsolation = cms.bool(False),
                                        # cuts on the central object (the truth muon & track matched to it)
                                        PTmin = cms.double(20.0),           # central object pt > X GeV, ptmin < 0 means no cut applied
                                        ETAmax = cms.double(2.4),           # central object |eta| < X
@@ -142,9 +136,9 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackNtupleMaker',
                                        IsoDRmax = cms.double(0.3),
                                        IsoDZmax = cms.double(0.5),         # in cm
                                        ## tracking in jets stuff (--> requires AK4 genjet collection present!)
-                                       TrackingInJets = cms.bool(True),
+                                       TrackingInJets = cms.bool(False),
                                        ## save primary vertex information? (--> requires that you ran that above)
-                                       PrimaryVertex = cms.bool(True),
+                                       PrimaryVertex = cms.bool(False),
                                        )
 process.ana = cms.Path(process.L1TrackNtuple)
 
@@ -183,4 +177,5 @@ process=customise_ev_BE5DPixel10D(process)
 ############################################################
 
 #process.schedule = cms.Schedule(process.TT_step,process.TTAssociator_step,process.pL1TkPrimaryVertex,process.pL1TkPrimaryVertexMC,process.ana)
-process.schedule = cms.Schedule(process.TT_step_Integer,process.TTAssociator_step_Integer,process.pL1TkPrimaryVertex,process.pL1TkPrimaryVertexMC,process.ana)
+#process.schedule = cms.Schedule(process.TT_step_Integer,process.TTAssociator_step_Integer,process.pL1TkPrimaryVertex,process.pL1TkPrimaryVertexMC,process.ana)
+process.schedule = cms.Schedule(process.TT_step_Integer,process.TTAssociator_step_Integer,process.ana)
