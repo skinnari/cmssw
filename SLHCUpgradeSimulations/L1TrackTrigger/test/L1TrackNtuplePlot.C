@@ -62,12 +62,20 @@ void L1TrackNtuplePlot(TString type, int TP_select_injet=0, int TP_select_pdgid=
   // define input options
 
   int L1Tk_minNstub = 4;  
-  float L1Tk_maxChi2 = 100.;  
-  float L1Tk_maxChi2dof = 9999.;  
+  //float L1Tk_maxChi2 = 100.;  
+  //float L1Tk_maxChi2dof = 9999.;  
+  float L1Tk_maxChi2 = 999999.;  
+  float L1Tk_maxChi2dof = 999999.;  
 
   bool doDetailedPlots = false; //turn on to make full set of plots
   bool doGausFit = false;       //do gaussian fit for resolution vs eta/pt plots
   bool doLooseMatch = false;    //looser MC truth matching
+
+
+  bool WithTrunc = true;
+  bool isLocal = false;
+
+
 
   //some counters for integrated efficiencies
   int n_all_eta2p5 = 0;
@@ -92,7 +100,10 @@ void L1TrackNtuplePlot(TString type, int TP_select_injet=0, int TP_select_pdgid=
   // ----------------------------------------------------------------------------------------------------------------
   // read ntuples
   TChain* tree = new TChain("L1TrackNtuple/eventTree");
-  tree->Add(type+".root");
+
+  if (isLocal) tree->Add(type+".root");
+  else if (WithTrunc) tree->Add("root://eoscms.cern.ch//store/user/skinnari/Emulation_LongVM_WithTrunc_nodupl_dec7/"+type+".root");
+  else tree->Add("root://eoscms.cern.ch//store/user/skinnari/Emulation_NoTrunc/"+type+".root");
   
   if (tree->GetEntries() == 0) {
     cout << "File doesn't exist or is empty, returning..." << endl;
@@ -1646,6 +1657,7 @@ void L1TrackNtuplePlot(TString type, int TP_select_injet=0, int TP_select_pdgid=
   // output file for histograms
   // -------------------------------------------------------------------------------------------
  
+  /*
   if (TP_select_pdgid != 0) {
     char pdgidtxt[500];
     sprintf(pdgidtxt,"_pdgid%i",TP_select_pdgid);
@@ -1654,8 +1666,65 @@ void L1TrackNtuplePlot(TString type, int TP_select_injet=0, int TP_select_pdgid=
   else if (TP_select_injet == 1) type = type+"_injet";
   else if (TP_select_injet == 2) type = type+"_injet_highpt";
 
-  
+
+  if (doLooseMatch) type=type+"_loose";  
+
+  if (WithTrunc) type="wtrunc_nodupl_longVM_"+type;
+  else type="wotrunc_"+type;
+
+
   TFile* fout = new TFile("output_"+type+".root","recreate");
+  */
+
+
+  TString name="";
+  if (type.Contains("ElectronHigh")) name = "ElectronPt8to100";
+  else if (type.Contains("Electron")) name = "ElectronPt2to8";
+  else if (type.Contains("MuonHigh_flatBS")) name = "MuonFLATBSPt8to100";
+  else if (type.Contains("Muon_flatBS")) name = "MuonFLATBSPt2to8";
+  else if (type.Contains("MuonHigh")) name = "MuonPt8to100";
+  else if (type.Contains("Muon")) name = "MuonPt2to8";
+  else if (type.Contains("PionHigh")) name = "PionPt8to100";
+  else if (type.Contains("Pion")) name = "PionPt2to8";
+  else if (type.Contains("TTbar_cool")) name = "TTbarCL";
+  else if (type.Contains("TTbar")) name = "TTbar";
+
+  if (type.Contains("PU0")) name += "_PU0";
+  else if (type.Contains("PU140")) name += "_PU140";
+  else if (type.Contains("PU200")) name += "_PU200";
+
+  if (WithTrunc) name += "_WithTruncation";
+  else name += "_WithoutTruncation";
+
+ 
+  if (TP_select_pdgid != 0) {
+    char pdgidtxt[500];
+    sprintf(pdgidtxt,"_pdgid%i",TP_select_pdgid);
+    type = type+pdgidtxt;
+  }
+  else if (TP_select_injet == 1) type = type+"_injet";
+  else if (TP_select_injet == 2) type = type+"_injet_highpt";
+
+  if (type.Contains("Electron")) name += "_pdgid11";
+  else if (type.Contains("Muon")) name += "_pdgid13";
+  else if (type.Contains("Pion")) name += "_pdgid211";
+  else if (type.Contains("TTbar") && TP_select_pdgid != 0) {
+    char pdgidtxt[500];
+    sprintf(pdgidtxt,"_pdgid%i",TP_select_pdgid);
+    name = name+pdgidtxt;
+  }
+  else if (TP_select_injet == 1) name += "_injet";
+  else if (TP_select_injet == 2) name += "_injet_highpt";
+
+
+  if (doLooseMatch) type=type+"_loose";  
+  if (doLooseMatch) name=name+"_loose";  
+
+
+  //TFile* fout = new TFile("output_"+type+".root","recreate");
+  cout << "name = " << name << endl;
+  TFile* fout = new TFile("output_"+name+"_nodupl_longVM.root","recreate");
+
   
   
   // -------------------------------------------------------------------------------------------

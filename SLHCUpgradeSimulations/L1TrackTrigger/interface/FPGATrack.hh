@@ -14,7 +14,7 @@ class FPGATrack{
 
 public:
 
-  FPGATrack(int irinv, int iphi0, int it, int iz0,
+  FPGATrack(int irinv, int iphi0, int it, int iz0, 
 	    std::map<int, int> stubID,
 	    std::vector<L1TStub*> l1stub){
 
@@ -25,7 +25,7 @@ public:
     stubID_=stubID;
     l1stub_=l1stub;
     duplicate_=false;
-    isector_=28;
+    isector_=NSector;
 
   }
 

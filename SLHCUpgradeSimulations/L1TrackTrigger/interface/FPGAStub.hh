@@ -18,20 +18,17 @@ class FPGAStub{
 public:
 
   FPGAStub() {
-    //cout << "Default const"<<endl;
+  
   }
   
 
   FPGAStub(const L1TStub& stub,double phiminsec, double phimaxsec) {
 
     double r=stub.r();
-    //cout << "stub.r = "<<r<<endl;
     double z=stub.z();
     double ptinv=1.0/stub.pt();
     double sbend = stub.bend();
 
-    ilink_=-1;
-    
     //HACK!!! seems like stubs in negative disk has wrong sign!
     if (z<-120.0) ptinv=-ptinv;
     //cout << "z stub.pt() : "<<z<<" "<<stub.pt()<<endl;
@@ -100,13 +97,9 @@ public:
 
     isbarrel_=false;
 
-    stubindex_.set(63,6);
-    
     if (layer<999) {
 
       isbarrel_=true;
-
-      disk_.set(0,4,false,__LINE__,__FILE__);    
 
       double rmin=-1.0;
       double rmax=-1.0;
@@ -161,23 +154,15 @@ public:
       if (layer>=4) iphibits=nbitsphistubL456;
 
 
-      //cout << "phimax-phimin : "<<phimax-phimin<<" "<<two_pi/28.0<<endl;
+      //cout << "phimax-phimin : "<<phimax-phimin<<" "<<two_pi/NSector<<endl;
 
       //cout << "phi phimin phimax : "<<stubphi_<<" "<<phiminsec
       //	   <<" "<<phimaxsec<<endl;
-
-
-      double dphi=stubphi_-phiminsec;
-
-      if (dphi<-0.5*two_pi) dphi+=two_pi;
-      if (dphi>0.5*two_pi) dphi-=two_pi;
-
-      assert(fabs(dphi)<0.5*two_pi);
       
-      int iphi=(1<<iphibits)*(0.125+0.75*dphi/(phimaxsec-phiminsec));
+      int iphi=(1<<iphibits)*(0.125+0.75*(stubphi_-phiminsec)/(phimaxsec-phiminsec));
 
 
-      phitmp_=dphi+(phimaxsec-phiminsec)/6.0;
+      phitmp_=stubphi_-phiminsec+(phimaxsec-phiminsec)/6.0;
 
 
       phimin_=phiminsec;
@@ -247,35 +232,35 @@ public:
       if(enstubbend){
       //pt encoding based on position                                                        
                                                                                              
-      if(r  > 24.5559 && r  < 40.7415 ){//rings 1-4                                          
+      if(r  > 245.559 && r  < 407.415 ){//rings 1-4                                          
         if(fabs(sbend)  ==  2  ) ipt = 7;                                                    
         if(fabs(sbend)  ==  1.5) ipt = 6;                                                    
         if(fabs(sbend)  ==  1  ) ipt = 5;                                                    
         if(fabs(sbend)  <=  0.5) ipt = 4;                                                    
         if( sbend < -0.5 ) ipt = 8 - ipt;                                                    
       }                                                                                      
-      if(r  > 40.7415 && r  < 51.6901 ){//rings 5-7                                          
+      if(r  > 407.415 && r  < 516.901 ){//rings 5-7                                          
         if(fabs(sbend)  ==  2.5) ipt = 7;                                                    
         if(fabs(sbend)  ==  2  ) ipt = 6;                                                    
         if(fabs(sbend)  ==  1.5) ipt = 5;                                                    
         if(fabs(sbend)  <=  1  ) ipt = 4;                                                    
         if( sbend < -1  ) ipt = 8 -  ipt;                                                     
       }                                                                                      
-      if(r  > 51.9273 && r  < 55.8049 ){//ring 8                                             
+      if(r  > 519.273 && r  < 558.049 ){//ring 8                                             
         if(fabs(sbend)  ==  3  ) ipt = 7;                                                    
         if(fabs(sbend)  ==  2.5) ipt = 6;                                                    
         if(fabs(sbend)  ==  2 || fabs(sbend)  == 1.5 ) ipt = 5;                              
         if(fabs(sbend)  <=  1  ) ipt = 4;                                                    
         if( sbend < -1  ) ipt = 8 - ipt;                                                     
       }                                                                                      
-      if(r  > 55.8049 && r  < 59.6825 ){//ring 9                                             
+      if(r  > 558.049 && r  < 596.825 ){//ring 9                                             
         if(fabs(sbend)  ==  3.5) ipt = 7;                                                    
         if(fabs(sbend)  ==  3 || fabs(sbend) == 2.5 ) ipt = 6;                               
         if(fabs(sbend)  ==  2 || fabs(sbend) == 1.5 ) ipt = 5;                               
         if(fabs(sbend)  <=  1) ipt = 4;                                                      
         if( sbend < -1 ) ipt = 8 - ipt;                                                      
       }                                                                                      
-      if(r  > 60.0567 && r  < 110.0000 ){//ring 10 to 15                                     
+      if(r  > 600.567 && r  < 1100.000 ){//ring 10 to 15                                     
         if(fabs(sbend)  ==  5.5 || fabs(sbend)  ==  5) ipt = 7;                              
         if(fabs(sbend)  ==  4.5 || fabs(sbend)  ==  4 || fabs(sbend)  ==  3.5 || fabs(sbend) ==  3) ipt = 6;
         if(fabs(sbend)  ==  2.5 || fabs(sbend)  ==  2 || fabs(sbend)  ==  1.5  ) ipt = 5;    
@@ -321,7 +306,7 @@ public:
 
       int iphibits=nbitsphistubL123;
       //if (layer>=4) iphibits=nbitsphistubL456; //Need to figure out this...
-      //cout << "phimax-phimin : "<<phimax-phimin<<" "<<two_pi/28.0<<endl;
+      //cout << "phimax-phimin : "<<phimax-phimin<<" "<<two_pi/NSector<<endl;
       
       int iphi=(1<<iphibits)*(0.125+0.75*(stubphi_-phiminsec)/(phimaxsec-phiminsec));
 
@@ -342,6 +327,7 @@ public:
       }
       if(irSS < 0){
 	//PS modules
+        if (r>60) cout << "r = "<<r<<endl;
 	assert (r<60);
       	//cout << "ir irbits : "<<ir<<" "<<irbits<<endl;
 	r_.set(ir,nrbitsdisk,true,__LINE__,__FILE__);
@@ -357,8 +343,6 @@ public:
       stubpt_.set(ipt,3,true,__LINE__,__FILE__);
 
       int irvm=ir>>(nrbitsdisk-(Nrbitsdisk+nrbitsdiskvm))&((1<<nrbitsdiskvm)-1);
-      //cout << "Bits for irvm : "<<(nrbitsdisk-(Nrbitsdisk+nrbitsdiskvm))
-      //	   <<" "<<((1<<nrbitsdiskvm)-1)<<endl;
       int izvm=iz>>(nzbitsdisk-nzbitsdiskvm);
       int iphivm=0;
 
@@ -396,6 +380,45 @@ public:
 
   }
 
+
+  //Returns a number from 0 to 31
+  int iphivmRaw() {
+
+    //cout << layer_.value()<<" "<<disk_.value()<<endl;
+    
+    int iphivm=(phi_.value()>>(phi_.nbits()-5));
+    assert(iphivm>=0);
+    assert(iphivm<32);
+    return iphivm;
+    
+  }
+
+
+    //Returns a number from 0 to 31
+  int iphivmRawPlus() {
+
+    //cout << layer_.value()<<" "<<disk_.value()<<endl;
+
+    //cout << "bits : "<<phi_.value()<<" "<<(1<<(phi_.nbits()-8))<<endl;
+    
+    int iphivm=((phi_.value()+(1<<(phi_.nbits()-7)))>>(phi_.nbits()-5));
+    if (iphivm<0) iphivm=0;
+    if (iphivm>31) iphivm=0;
+    return iphivm;
+    
+  }
+
+  int iphivmRawMinus() {
+
+    //cout << layer_.value()<<" "<<disk_.value()<<endl;
+    
+    int iphivm=((phi_.value()-(1<<(phi_.nbits()-7)))>>(phi_.nbits()-5));
+    if (iphivm<0) iphivm=0;
+    if (iphivm>31) iphivm=0;
+    return iphivm;
+    
+  }
+  
   std::string str() const {
     
     std::ostringstream oss;
@@ -481,16 +504,9 @@ public:
   std::string strbareUNFLIPPED() const {
     
     std::ostringstream oss;
-    if((stubr_ > 60.) && isDisk()){
+    oss << r_.str()
+	<< z_.str()<< phi_.str()<<stubpt_.str();
 
-      oss << alpha_.str() << r_.str()
-          << z_.str() << phi_.str() << stubpt_.str(); 
-    }else{
-
-      oss << r_.str()
-          << z_.str()<< phi_.str()<<stubpt_.str();
-
-    }
     return oss.str();
 
   }
@@ -535,19 +551,12 @@ public:
 
   }
 
-  void setilink(int ilink) {
-    ilink_=ilink;
-  }
-  
   int ilink() const {
 
-    assert(ilink_>0);
-    return ilink_;
-    
     //changed pow(2,phi_.nbits()) to (1<<phi_.nbits()), etc
-    //if (phi_.value()<0.33*(1<<phi_.nbits()) ) return 1;
-    //if (phi_.value()<0.66*(1<<phi_.nbits()) ) return 2;
-    //return 3;
+    if (phi_.value()<0.33*(1<<phi_.nbits()) ) return 1;
+    if (phi_.value()<0.66*(1<<phi_.nbits()) ) return 2;
+    return 3;
 
   }
 
@@ -573,14 +582,10 @@ public:
 
   void setAllStubIndex(int nstub){
     if (nstub>=(1<<6)){
-      cout << "Warning too large stubindex : "<<nstub<<endl;
+      cout << "Warning too large stubindex!"<<endl;
       nstub=(1<<6)-1;
     }
-    if (stubindex_.value()!=63) {
-      cout << "FPGAStuf::setAllStubIndex is reseting index from "<<stubindex_.value()<<" to "<<nstub<<endl;
-    }
-    
-    
+
     stubindex_.set(nstub,6);
   }
   
@@ -648,8 +653,6 @@ private:
   double phitmp_;
   double phimin_;
 
-  int ilink_;
-  
 };
 
 

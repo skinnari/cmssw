@@ -26,6 +26,11 @@ public:
     if (subname=="F3") disk_=3;
     if (subname=="F4") disk_=4;
     if (subname=="F5") disk_=5;
+    if (subname=="D1") disk_=1;
+    if (subname=="D2") disk_=2;
+    if (subname=="D3") disk_=3;
+    if (subname=="D4") disk_=4;
+    if (subname=="D5") disk_=5;
     if (subname=="B1") disk_=-1;
     if (subname=="B2") disk_=-2;
     if (subname=="B3") disk_=-3;
@@ -59,7 +64,7 @@ public:
 	   << " to input "<<input<<endl;
     }
     if (input=="vmstubin") {
-      FPGAVMStubs* tmp=dynamic_cast<FPGAVMStubs*>(memory);
+      FPGAVMStubsME* tmp=dynamic_cast<FPGAVMStubsME*>(memory);
       assert(tmp!=0);
       vmstubs_=tmp;
       return;
@@ -79,51 +84,90 @@ public:
     unsigned int countall=0;
     unsigned int countpass=0;
 
-    for(unsigned int j=0;j<vmprojs_->nTracklets();j++){
-
-      FPGATracklet* proj=vmprojs_->getFPGATracklet(j);
-      for(unsigned int i=0;i<vmstubs_->nStubs();i++){
-	std::pair<FPGAStub*,L1TStub*> stub=vmstubs_->getStub(i);
-	if (layer_>0){
-	  //cout << "Stub: layer = "<<layer_<<" "<<stub.first->phivm().value()<<" "
-	  //	     <<stub.first->zvm().value()<<endl;
+    //FIXME - order should be changed. Loop over tracklets in outer loop!
+    for(unsigned int i=0;i<vmstubs_->nStubs();i++){
+      if (debug1) {
+	cout << "Found stub in "<<getName()<<endl;
+      }
+      std::pair<FPGAStub*,L1TStub*> stub=vmstubs_->getStub(i);
+      if (layer_>0){
+	for(unsigned int j=0;j<vmprojs_->nTracklets();j++){
+	  FPGATracklet* proj=vmprojs_->getFPGATracklet(j);
+	  //cout << "FPGAMatchEngine zproj = "<<proj->fpgazproj(layer_).value()<<" "<<stub.second->z()<<" layer_ = "<<layer_<<endl;
+	  if (fabs(proj->zproj(layer_)-stub.second->z())>20.0) continue;
+	  if (debug1) {
+	    cout << "Adding match in "<<getName()<<endl;
+	  }
+	  countall++;
+	  if (layer_>0) {
+	    //cout << "  Proj: "<<proj->phiprojvm(layer_)
+	    //     <<" "<<proj->zprojvm(layer_)<<" "<<proj->zproj(layer_)<<endl;
+	    if (doMEMatch){
+	      double zcut=10.0;
+	      if (layer_==1&&proj->layer()==5) zcut=20;
+	      if (layer_==1&&abs(proj->disk())==3) zcut=20;
+	      if (fabs(proj->zproj(layer_)-stub.second->z())>zcut) continue;
+	      double dphi=proj->phiproj(layer_)-stub.second->phi();
+	      double deltaphi=two_pi/NSector;
+	      dphi-=deltaphi/6.0;
+	      do {
+		if (dphi>0.5*deltaphi) dphi-=deltaphi;
+		if (dphi<-0.5*deltaphi) dphi+=deltaphi;
+	      }while (abs(dphi)>=0.5*deltaphi);
+	      //cout << "layer_ dphi r*dphi "<<layer_<<" "<<dphi<<" "
+	      //	   << dphi*stub.second->r() << endl;
+	      if (layer_==1&&abs(dphi*stub.second->r())>0.12) continue;
+	      if (layer_==2&&abs(dphi*stub.second->r())>0.15) continue;
+	      if (layer_==3&&abs(dphi*stub.second->r())>0.25) continue;
+	      if (abs(stub.first->phivm().value()-
+		      stub.first->phivm().value())>1) continue;
+	    }
+	  }
+	  countpass++;
+	  candmatches_->addMatch(proj,stub);
+	  if (countall>=MAXME) break;
 	}
 	if (countall>=MAXME) break;
-	countall++;
-	if (layer_>0){
-	  //cout << "Stub: layer = "<<layer_<<" "<<stub.first->phivm().value()<<" "
-	  //	     <<stub.first->zvm().value()<<endl;
-	}
-	//cout << "Adding match in "<<getName()<<endl;
-	if (layer_>0) {
-	  //cout << "  Proj: "<<proj->phiprojvm(layer_)
-	  //     <<" "<<proj->zprojvm(layer_)<<" "<<proj->zproj(layer_)<<endl;
-	  int iphivmdiff=stub.first->phivm().value()-proj->phiprojvm(layer_);
-	  int izvmdiff=stub.first->zvm().value()-proj->zprojvm(layer_);
-	  //cout << "ME diff : "<<layer_<<" "<<iphivmdiff<<" "<<izvmdiff<<endl;
-	  if (doMEMatch){
-	    if (abs(iphivmdiff)>1) continue;
-	    if (abs(izvmdiff)>1000) continue; //dummy for now
+      } else if (disk_!=0) {
+	for(unsigned int j=0;j<vmprojs_->nTracklets();j++){
+	  FPGATracklet* proj=vmprojs_->getFPGATracklet(j);
+	  int disk=disk_;
+	  if (proj->t()<0.0) disk=-disk_;
+	  if (debug1) {
+	    cout << " Found projection in "<<getName()<<" "
+		 << proj->rprojdisk(disk)<<" "<<stub.second->r()<<endl;
+	    
 	  }
-	}
-	if (disk_>0) {
-	  int iphivmdiff=stub.first->phivm().value()-proj->phiprojvmdisk(disk_);
-	  int irvmdiff=stub.first->rvm().value()-proj->rprojvmdisk(disk_);
-	  //cout << getName()<<" "<<disk_<<" "<<iphivmdiff<<" "<<irvmdiff<<endl;
-	  if (doMEMatch){
-	    if (abs(iphivmdiff)>1) continue;
-	    if (abs(irvmdiff)>1000) continue; //dummy for now
+	  //cout << "FPGAMatchEngine "<<getName()<<" disk = "<<disk<<" rproj = "<<proj->rprojdisk(disk)<<" "<<proj->fpgarprojdisk(disk).value()<<" stub r = "<<stub.second->r()<<endl;
+	  double rbin=10.0;
+	  if (proj->rprojdisk(disk)<40.0) rbin=5.0;
+	  if (fabs(proj->rprojdisk(disk)-stub.second->r())>rbin) continue;
+	  countall++;
+	  if (debug1) {
+	    cout << "Adding match in "<<getName()<<endl;
 	  }
-	  //cout << "FPGAMatchEngine::execute found candidate match in disk :"
-	  //     <<disk_<<endl;
+	  if (disk_!=0) {
+	    double rcut=5.0;
+	    if (proj->rprojdisk(disk)<60.0) rcut=2.0;
+	    if (fabs(proj->rprojdisk(disk)-stub.second->r())>rcut) continue;
+     
+	    //cout << "  Proj: "<<proj->phiprojvm(layer_)
+	    //     <<" "<<proj->zprojvm(layer_)<<" "<<proj->zproj(layer_)<<endl;
+	    if (doMEMatch){
+	      if (abs(stub.first->phivm().value()-
+		      stub.first->phivm().value())>1) continue;
+	    }
+	  }
+	  //cout << "FPGAMatchEngine "<<getName()<<" adding match to "<<candmatches_->getName()<<endl;
+	  countpass++;
+	  candmatches_->addMatch(proj,stub);
+	  if (countall>=MAXME) break;
 	}
-	if (debug1) {
-	  cout << "FPGAMatchEngine "<<getName()<<" stub.r "
-	       <<stub.second->r()<<" "<<vmstubs_->getName()<<endl;
-	}
-	candmatches_->addMatch(proj,stub);
-	countpass++;
+	if (countall>=MAXME) break;
+      } else {
+	assert(0);
       }
+      
     }
 
     if (writeME) {
@@ -136,7 +180,7 @@ public:
 
 private:
 
-  FPGAVMStubs* vmstubs_;
+  FPGAVMStubsME* vmstubs_;
   FPGAVMProjections* vmprojs_;
 
   FPGACandidateMatch* candmatches_;

@@ -8,7 +8,8 @@
 #include "FPGAStubLayer.hh"
 #include "FPGAStubDisk.hh"
 #include "FPGAAllStubs.hh"
-#include "FPGAVMStubs.hh"
+#include "FPGAVMStubsTE.hh"
+#include "FPGAVMStubsME.hh"
 #include "FPGAStubPairs.hh"
 #include "FPGATrackletParameters.hh"
 #include "FPGATrackletProjections.hh"
@@ -17,11 +18,11 @@
 #include "FPGACandidateMatch.hh"
 #include "FPGAFullMatch.hh"
 #include "FPGATrackFit.hh"
-#include "FPGACleanTrack.hh"
 
 #include "FPGALayerRouter.hh"
 #include "FPGADiskRouter.hh"
-#include "FPGAVMRouter.hh"
+#include "FPGAVMRouterME.hh"
+#include "FPGAVMRouterTE.hh"
 #include "FPGATrackletEngine.hh"
 #include "FPGATrackletCalculator.hh"
 #include "FPGAProjectionRouter.hh"
@@ -30,7 +31,6 @@
 #include "FPGAMatchCalculator.hh"
 #include "FPGAMatchTransceiver.hh"
 #include "FPGAFitTrack.hh"
-#include "FPGAPurgeDuplicate.hh"
 
 using namespace std;
 
@@ -51,100 +51,30 @@ public:
   void addStub(L1TStub stub) {
     double phi=stub.phi();
     int layer=stub.layer()+1;
-    //cout << "FPGASector trying to add stub in layer = "<<layer<<" in sector "<<isector_<<endl;
-    //cout << "phi phimin_ phimax_ : "<<phi<<" "<<phimin_<<" "<<phimax_<<endl;
+    //cout << "FPGASector::addStub phi phimin_ phimax_ : "<<phi<<" "<<phimin_<<" "<<phimax_<<endl;
     double dphi=two_pi/NSector/6.0;
     if (layer<999) {
-      if ((layer%2==1&&(phi>phimin_)&&(phi<phimax_))||
-	  (layer%2==0&&(((phi>phimin_-dphi)&&(phi<phimax_+dphi))
-			||((phi-two_pi>phimin_-dphi)&&(phi-two_pi<phimax_+dphi))
-			||((phi+two_pi>phimin_-dphi)&&(phi+two_pi<phimax_+dphi))
-			))) {
-	//cout << "FPGASector phi phimin_-dphi phimax_+dphi :"
-	//     << phi<<" "<<phimin_-dphi<<" "<<phimax_+dphi<<endl;
+      if ((layer%2==1&&(phi>phimin_-dphi)&&(phi<phimax_+dphi))||
+	  (layer%2==0&&(phi>phimin_-dphi)&&(phi<phimax_+dphi))) {
 	FPGAStub fpgastub(stub,phimin_,phimax_);
-	int dtcregion=fpgastub.fedregion()-1;
-	assert(dtcregion>=0);
-	assert(dtcregion<8);
-	assert(dtcregion<4);
-	inputStubs_[dtcregion].push_back(stub);
-	FPGAStub tmp(inputStubs_[dtcregion][inputStubs_[dtcregion].size()-1],phimin_,phimax_);
-	//FPGAStub fpgastub(stub,phimin_,phimax_);
-	//for (unsigned int i=0;i<IL_.size();i++){
-	//  IL_[i]->addStub(stub,fpgastub);
-	//}
+	//cout << "Trying to add stub in sector : "<<isector_<<" layer = "<<layer<<endl;
+	for (unsigned int i=0;i<IL_.size();i++){
+	  //cout << i<<" "<<IL_[i]->getName()<<" "<<isector_<<endl;
+	  IL_[i]->addStub(stub,fpgastub);
+	}
       }
     } else {
       int disk=stub.disk();
-      if ((abs(disk)%2==0&&(phi>phimin_)&&(phi<phimax_))||
-	  (abs(disk)%2==1&&(phi>phimin_-dphi)&&(phi<phimax_+dphi))) {
-	FPGAStub fpgastub(stub,phimin_,phimax_);
-	int dtcregion=fpgastub.fedregion()-1;
-	assert(dtcregion>=0);
-	assert(dtcregion<8);
-	assert(dtcregion>3);
-	inputStubs_[dtcregion].push_back(stub);
-	FPGAStub tmp(inputStubs_[dtcregion][inputStubs_[dtcregion].size()-1],phimin_,phimax_);
-	//for (unsigned int i=0;i<IL_.size();i++){
-	//  FPGAStub fpgastub(stub,phimin_,phimax_);
-	//  IL_[i]->addStub(stub,fpgastub);
-	//}      
-      }
-    }
-  }
-
-  void sortStubs(std::vector<L1TStub>& stubs){
-
-    if (stubs.size()<=1) return;
-    
-    bool more=false;
-    do {
-      more=false;
-      for(unsigned int i=0;i<stubs.size()-1;i++) {
-	if (fabs(stubs[i].pt())<fabs(stubs[i+1].pt())) {
-	  L1TStub tmp=stubs[i];
-	  stubs[i]=stubs[i+1];
-	  stubs[i+1]=tmp;
-	  more=true;
-	}
-      }	
-    } while (more);
-      
-    
-  }
-  
-  void fillInputLinks() {
-    
-    //first sort on PT
-    //cout << "In fillInputLinks"<<endl;
-    for(unsigned int i=0;i<8;i++) {
-      //cout << "Will sort "<<i<<endl;
-      sortStubs(inputStubs_[i]);
-      //cout << "Done sort "<<i<<endl;
-      //cout << "inputStubs_[i].size()="<<inputStubs_[i].size()<<endl;
-      for (unsigned int j=0;j<inputStubs_[i].size();j++){
-	//cout << "j = "<<j<<" "<<inputStubs_[i][j].r()<<endl;
-	FPGAStub fpgastub(inputStubs_[i][j],phimin_,phimax_);
-	int ilink=j/MAXSTUBSLINK;
-	ilink++;
-	if (ilink>3) ilink=3;
-	assert(ilink>0);
-	assert(ilink<4);
-	fpgastub.setilink(ilink);
-	for (unsigned int ii=0;ii<IL_.size();ii++){
-	  //cout << "Will call IL->addStub"<<endl;
-	  IL_[ii]->addStub(inputStubs_[i][j],fpgastub);
+      if ((abs(disk)%2==1&&(phi>phimin_-dphi)&&(phi<phimax_+dphi))||
+	  (abs(disk)%2==0&&(phi>phimin_-dphi)&&(phi<phimax_+dphi))) {
+	for (unsigned int i=0;i<IL_.size();i++){
+	  FPGAStub fpgastub(stub,phimin_,phimax_);
+	  IL_[i]->addStub(stub,fpgastub);
 	}      
-
       }
-      inputStubs_[i].clear();
     }
-
-    //cout << "Done"<<endl;
-    
-	
   }
-  
+
 
   void addMem(string memType,string memName){
     if (memType=="InputLink:") {
@@ -163,10 +93,14 @@ public:
       AS_.push_back(new FPGAAllStubs(memName,isector_,phimin_,phimax_));
       Memories_[memName]=AS_.back();
       MemoriesV_.push_back(AS_.back());
-    } else if (memType=="VMStubs:") {
-      VMS_.push_back(new FPGAVMStubs(memName,isector_,phimin_,phimax_));
-      Memories_[memName]=VMS_.back();
-      MemoriesV_.push_back(VMS_.back());
+    } else if (memType=="VMStubsTE:") {
+      VMSTE_.push_back(new FPGAVMStubsTE(memName,isector_,phimin_,phimax_));
+      Memories_[memName]=VMSTE_.back();
+      MemoriesV_.push_back(VMSTE_.back());
+    } else if (memType=="VMStubsME:") {
+      VMSME_.push_back(new FPGAVMStubsME(memName,isector_,phimin_,phimax_));
+      Memories_[memName]=VMSME_.back();
+      MemoriesV_.push_back(VMSME_.back());
     } else if (memType=="StubPairs:") {
       SP_.push_back(new FPGAStubPairs(memName,isector_,phimin_,phimax_));
       Memories_[memName]=SP_.back();
@@ -199,10 +133,6 @@ public:
       TF_.push_back(new FPGATrackFit(memName,isector_,phimin_,phimax_));
       Memories_[memName]=TF_.back();
       MemoriesV_.push_back(TF_.back());
-    } else if (memType=="CleanTrack:") {
-      CT_.push_back(new FPGACleanTrack(memName,isector_,phimin_,phimax_));
-      Memories_[memName]=CT_.back();
-      MemoriesV_.push_back(CT_.back());
     } else {
       cout << "Don't know of memory type: "<<memType<<endl;
       exit(0);
@@ -217,9 +147,12 @@ public:
     }else if (procType=="DiskRouter:") {
       DR_.push_back(new FPGADiskRouter(procName,isector_));
       Processes_[procName]=DR_.back();
-    } else if (procType=="VMRouter:") {
-      VMR_.push_back(new FPGAVMRouter(procName,isector_));
-      Processes_[procName]=VMR_.back();
+    } else if (procType=="VMRouterTE:") {
+      VMRTE_.push_back(new FPGAVMRouterTE(procName,isector_));
+      Processes_[procName]=VMRTE_.back();
+    } else if (procType=="VMRouterME:") {
+      VMRME_.push_back(new FPGAVMRouterME(procName,isector_));
+      Processes_[procName]=VMRME_.back();
     } else if (procType=="TrackletEngine:") {
       TE_.push_back(new FPGATrackletEngine(procName,isector_));
       Processes_[procName]=TE_.back();
@@ -236,8 +169,7 @@ public:
     } else if (procType=="MatchEngine:") {
       ME_.push_back(new FPGAMatchEngine(procName,isector_));
       Processes_[procName]=ME_.back();
-    } else if (procType=="MatchCalculator:"||
-	       procType=="DiskMatchCalculator:") {
+    } else if (procType=="MatchCalculator:") {
       MC_.push_back(new FPGAMatchCalculator(procName,isector_));
       Processes_[procName]=MC_.back();
     } else if (procType=="MatchTransceiver:") {
@@ -246,9 +178,6 @@ public:
     } else if (procType=="FitTrack:") {
       FT_.push_back(new FPGAFitTrack(procName,isector_));
       Processes_[procName]=FT_.back();
-    } else if (procType=="PurgeDuplicate:") {
-      PD_.push_back(new FPGAPurgeDuplicate(procName,isector_));
-      Processes_[procName]=PD_.back();
     } else {
       cout << "Don't know of processing type: "<<procType<<endl;
       exit(0);      
@@ -331,9 +260,15 @@ public:
     }
   }
 
-  void writeVMS(bool first) {
-    for (unsigned int i=0;i<VMS_.size();i++){
-      VMS_[i]->writeStubs(first);
+  void writeVMSTE(bool first) {
+    for (unsigned int i=0;i<VMSTE_.size();i++){
+      VMSTE_[i]->writeStubs(first);
+    }
+  }
+  
+  void writeVMSME(bool first) {
+    for (unsigned int i=0;i<VMSME_.size();i++){
+      VMSME_[i]->writeStubs(first);
     }
   }
 
@@ -372,21 +307,10 @@ public:
       FM_[i]->writeMC(first);
     }
   }
-  void writeCandidate(bool first) {
-    for (unsigned int i=0;i<CM_.size();i++){
-      CM_[i]->writeCandidate(first);
-    }
-  }
 
   void writeTF(bool first){
     for(unsigned int i=0; i<TF_.size(); ++i){
       TF_[i]->writeTF(first);
-    }
-  }
-
-  void writeCT(bool first) {
-    for(unsigned int i=0; i<CT_.size(); ++i){
-      CT_[i]->writeCT(first);
     }
   }
 
@@ -402,7 +326,7 @@ public:
       out <<matchesL1<<" "<<matchesL3<<" "<<matchesL5<<endl;
     }
     
-   
+    
     for(unsigned int i=0;i<MemoriesV_.size();i++) {
       MemoriesV_[i]->clean();
     }
@@ -422,8 +346,11 @@ public:
   }
 
   void executeVMR(){
-    for (unsigned int i=0;i<VMR_.size();i++){
-      VMR_[i]->execute();
+    for (unsigned int i=0;i<VMRTE_.size();i++){
+      VMRTE_[i]->execute();
+    }
+    for (unsigned int i=0;i<VMRME_.size();i++){
+      VMRME_[i]->execute();
     }
   }
 
@@ -462,23 +389,10 @@ public:
     for (unsigned int i=0;i<FT_.size();i++){
       FT_[i]->execute(fpgatracks_);
     }
-
-    if (writeTrackProjOcc) {
-      static ofstream out("trackprojocc.txt");
-      for (unsigned int i=0; i<TPROJ_.size();i++){
-	out << TPROJ_[i]->getName()<<" "<<TPROJ_[i]->nTracklets()<<endl;
-      }
-    }
-  }
-  
-  void executePD(std::vector<FPGATrack*>& tracks){
-    for (unsigned int i=0;i<PD_.size();i++){
-      PD_[i]->execute(tracks);
-    }
   }
 
   void executePT(FPGASector* sectorPlus,FPGASector* sectorMinus){
-
+    //For now the order is assumed
     for (unsigned int i=0;i<PT_.size();i++){
       string name=PT_[i]->getName();
       //cout << "FPGASector:executePT "<<name<<endl;
@@ -502,26 +416,35 @@ public:
       } else {
 	assert(0);
       }
+      
     }
-  }
+
+    if (writeTrackProjOcc) {
+      static ofstream out("trackprojocc.txt");
+      for (unsigned int i=0; i<TPROJ_.size();i++){
+	out << TPROJ_[i]->getName()<<" "<<TPROJ_[i]->nTracklets()<<endl;
+      }
+    }
     
 
+  }
+
+
   void executeMT(FPGASector* sectorPlus,FPGASector* sectorMinus){
+    //For now the order is assumed
     for (unsigned int i=0;i<MT_.size();i++){
       string name=MT_[i]->getName();
-      //cout << "FPGASector:executeMT "<<name<<endl;
+      //cout << "FPGASector:executePT "<<name<<endl;
       if (name.find("Minus")!=std::string::npos) {
-	name.replace(8,5,"Plus");
-	//cout << "FPGASector:executeMT New name : "<<name<<endl;
+	name.replace(6,5,"Plus");
+	//cout << "New name : "<<name<<endl;
 	for (unsigned int j=0;j<sectorMinus->MT_.size();j++){
-	  //cout << "FPGASector:executeMT compare name : "
-	  //   <<sectorMinus->MT_[j]->getName()<<endl;
 	  if (sectorMinus->MT_[j]->getName()==name) {
 	    MT_[i]->execute(sectorMinus->MT_[j]);
 	  }
 	}
       } else if (name.find("Plus")!=std::string::npos) {
-	name.replace(8,4,"Minus");
+	name.replace(6,4,"Minus");
 	//cout << "New name : "<<name<<endl;
 	for (unsigned int j=0;j<sectorPlus->MT_.size();j++){
 	  if (sectorPlus->MT_[j]->getName()==name) {
@@ -532,8 +455,152 @@ public:
 	assert(0);
       }
     }
-
   }
+
+  void findduplicates(std::vector<FPGATrack>& tracks) {
+  
+     unsigned int numTrk = fpgatracks_.size();
+
+     //cout << "numTrk = " << numTrk << endl;
+
+     if(fpgatracks_.size()==0) return;
+
+     //set the sector for FPGATrack, enabling the ability for adjacent sector removal
+     for(unsigned int itrk=0; itrk<numTrk; itrk++) {
+        fpgatracks_[itrk].setSector(isector_);
+     }
+
+     
+     // old (working) version of duplicate removal
+     if (0) {
+       for(unsigned int itrk=0; itrk<numTrk-1; itrk++){
+	 
+	 //if primary track is a duplicate, it cannot veto any...move on
+	 if(!fpgatracks_[itrk].duplicate()) {	  
+	   
+	   for(unsigned int jtrk=itrk+1; jtrk<numTrk; jtrk++){
+	     
+	     //get stub information	 
+	     int nShare=0;
+	     std::map<int, int> stubsTrk1 = fpgatracks_[itrk].stubID();
+	     std::map<int, int> stubsTrk2 = fpgatracks_[jtrk].stubID();
+	     
+	     //count shared stubs
+	     for(std::map<int, int>::iterator  st=stubsTrk1.begin(); st!=stubsTrk1.end(); st++) {
+	       if( stubsTrk2.find(st->first) != stubsTrk2.end() ) {
+		 //printf("First  %i   %i   Second  %i \n",st->first,st->second,stubsTrk2[st->first]);
+		 if(st->second == stubsTrk2[st->first] && st->second != 63) nShare++;
+               }   	  
+	     } //loop over stubs
+	     
+	     //Decide if we should flag either of the tracks as a duplicate
+	     if(stubsTrk1.size()>=stubsTrk2.size()) {
+	       //don't allow primary track to veto if it is already a duplicate
+	       if( (((int)stubsTrk2.size()-nShare)<minIndepStubs) & !fpgatracks_[itrk].duplicate())  fpgatracks_[jtrk].setDuplicate(true);				     
+	     } else {
+	       //don't allow second track to veto if it is already a duplicate
+	       if( (((int)stubsTrk1.size()-nShare)<minIndepStubs) & !fpgatracks_[jtrk].duplicate() ) fpgatracks_[itrk].setDuplicate(true);
+	     } 
+	     
+	   } //loop over second track
+	 }//if first track not a duplicate already  	  
+       } //loop over first track
+     }
+
+
+
+     // tony's duplicate removal 
+     if (0) {
+       for(unsigned int itrk=0; itrk<numTrk-1; itrk++) { // numTrk-1 since last track has no other to compare to
+	 
+	 //cout << "mebug1" << endl;
+	 // If primary track is a duplicate, it cannot veto any...move on
+	 if(!fpgatracks_[itrk].duplicate()) {	  
+	   
+	   //cout << "mebug2" << endl;
+	   int nStubP = 0;
+	   int nStubS[500] = {0};
+	   int nShare[500] = {0};
+	   
+	   //cout << "mebug3" << endl;
+	   // Get and count primary stubs
+	   std::map<int, int> stubsTrk1 = fpgatracks_[itrk].stubID();
+	   nStubP = stubsTrk1.size();
+	   
+	   //cout << "mebug4" << endl;
+	   for(unsigned int jtrk=itrk+1; jtrk<numTrk; jtrk++) {
+	     // Skip duplicate tracks
+	     if(!fpgatracks_[itrk].duplicate()) continue;
+	     
+	     //cout << "mebug5" << endl;
+	     // Get and count secondary stubs
+	     std::map<int, int> stubsTrk2 = fpgatracks_[jtrk].stubID();
+	     nStubS[jtrk] = stubsTrk2.size();
+	     
+	     //cout << "mebug6" << endl;
+	     // Count shared stubs
+	     for(std::map<int, int>::iterator  st=stubsTrk1.begin(); st!=stubsTrk1.end(); st++) {
+	       if(stubsTrk2.find(st->first) != stubsTrk2.end()) {
+		 //cout << "mebug7" << endl;
+		 if(st->second == stubsTrk2[st->first] && st->second != 63) nShare[jtrk]++;
+		 //cout << "mebug8" << endl;
+	       }
+	     }
+	   }
+	   //cout << "mebug9" << endl;
+	   
+	   // Tag duplicates
+	   for(unsigned int jtrk=itrk+1; jtrk<numTrk; jtrk++) {
+	     //cout << "mebug10" << endl;
+	     // Skip duplicate tracks
+	     if(fpgatracks_[jtrk].duplicate()==1) continue;
+	     //cout << "mebug11" << endl;
+	     
+	     // default duplicate removal
+	     if((nStubP-nShare[jtrk] < minIndepStubs) && (nStubP <  nStubS[jtrk])) {
+	       //cout << "mebug11" << endl;
+	       fpgatracks_[itrk].setDuplicate(true);
+	       //cout << "mebug12" << endl;
+	     }
+	     //cout << "mebug13" << endl;
+	     if((nStubS[jtrk]-nShare[jtrk] < minIndepStubs) && (nStubS[jtrk] <= nStubP)) {
+	       //cout << "mebug14" << endl;
+	       fpgatracks_[jtrk].setDuplicate(true);
+	       //cout << "mebug15" << endl;
+	     }
+	     
+	     //cout << "mebug16" << endl;
+	     // duplicate removal based on prioritizing L1L2 seeds
+	     //if((nStubP-nShare[jtrk] < minIndepStubs) || (nStubS[jtrk]-nShare[jtrk] < minIndepStubs)) {
+	     //  inputtracks_[jtrk]->setDuplicate(true);
+	     //}
+	   }
+	   
+	 } //loop over primary track
+	 //*/
+       }
+     }
+
+     //cout << "done with duplicate removal" << endl;
+
+
+
+
+
+
+
+
+
+
+//Now that we have the duplicate flag set, push the tracks out
+    for(unsigned int i=0;i<fpgatracks_.size();i++){
+      tracks.push_back(fpgatracks_[i]);
+    }
+  
+  }
+
+
+
 
   bool foundTrack(ofstream& outres, L1SimTrack simtrk){
     bool match=false;
@@ -567,10 +634,10 @@ public:
 
   std::vector<FPGAStub*> getDiskStubs(int disk){
     std::vector<FPGAStub*> tmp;
-    for(unsigned int i=0;i<SL_.size();i++){
-      for(unsigned int j=0;j<SL_[i]->nStubs();j++){
-	if (SL_[i]->getFPGAStub(j)->disk().value()==disk) {
-	  tmp.push_back(SL_[i]->getFPGAStub(j));
+    for(unsigned int i=0;i<SD_.size();i++){
+      for(unsigned int j=0;j<SD_[i]->nStubs();j++){
+	if (SD_[i]->getFPGAStub(j)->disk().value()==disk) {
+	  tmp.push_back(SD_[i]->getFPGAStub(j));
 	}
       }
     }
@@ -586,9 +653,8 @@ private:
   double phimin_;
   double phimax_;
 
-  std::vector<L1TStub> inputStubs_[8];
-  
-  std::vector<FPGATrack*> fpgatracks_;
+  std::vector<FPGATrack> fpgatracks_;
+
 
   std::map<string, FPGAMemoryBase*> Memories_;
   std::vector<FPGAMemoryBase*> MemoriesV_;
@@ -596,7 +662,8 @@ private:
   std::vector<FPGAStubLayer*> SL_;
   std::vector<FPGAStubDisk*> SD_;
   std::vector<FPGAAllStubs*> AS_;
-  std::vector<FPGAVMStubs*> VMS_;
+  std::vector<FPGAVMStubsTE*> VMSTE_;
+  std::vector<FPGAVMStubsME*> VMSME_;
   std::vector<FPGAStubPairs*> SP_;
   std::vector<FPGATrackletParameters*> TPAR_;
   std::vector<FPGATrackletProjections*> TPROJ_;
@@ -605,12 +672,12 @@ private:
   std::vector<FPGACandidateMatch*> CM_;
   std::vector<FPGAFullMatch*> FM_;
   std::vector<FPGATrackFit*> TF_;
-  std::vector<FPGACleanTrack*> CT_;
   
   std::map<string, FPGAProcessBase*> Processes_;
   std::vector<FPGALayerRouter*> LR_;
   std::vector<FPGADiskRouter*> DR_;
-  std::vector<FPGAVMRouter*> VMR_;
+  std::vector<FPGAVMRouterTE*> VMRTE_;
+  std::vector<FPGAVMRouterME*> VMRME_;
   std::vector<FPGATrackletEngine*> TE_;
   std::vector<FPGATrackletCalculator*> TC_;
   std::vector<FPGAProjectionRouter*> PR_;
@@ -619,7 +686,6 @@ private:
   std::vector<FPGAMatchCalculator*> MC_;
   std::vector<FPGAMatchTransceiver*> MT_;
   std::vector<FPGAFitTrack*> FT_;
-  std::vector<FPGAPurgeDuplicate*> PD_;
 
 
 

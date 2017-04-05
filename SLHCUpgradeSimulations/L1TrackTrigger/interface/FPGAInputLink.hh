@@ -10,6 +10,7 @@
 #include "L1TStub.hh"
 #include "FPGAStub.hh"
 #include "FPGAMemoryBase.hh"
+#include <math.h>
 #include <sstream>
 
 using namespace std;
@@ -26,40 +27,243 @@ public:
   }
 
   void addStub(L1TStub& al1stub, FPGAStub& stub) {
-    int dctregion=stub.fedregion();
-    int ilink=stub.ilink();
-    bool add=false;
-    //cout << "Stub candidate in "<<getName()<<" "<<al1stub.phi()<<" "
-    //	 <<al1stub.z()<<" "<<ilink<<" "<<dctregion<<endl;
-    if (ilink==1&&dctregion==1&&getName()=="IL1_D1") add=true;
-    if (ilink==2&&dctregion==1&&getName()=="IL2_D1") add=true;
-    if (ilink==3&&dctregion==1&&getName()=="IL3_D1") add=true;
-    if (ilink==1&&dctregion==2&&getName()=="IL1_D2") add=true;
-    if (ilink==2&&dctregion==2&&getName()=="IL2_D2") add=true;
-    if (ilink==3&&dctregion==2&&getName()=="IL3_D2") add=true;
-    if (ilink==1&&dctregion==3&&getName()=="IL1_D3") add=true;
-    if (ilink==2&&dctregion==3&&getName()=="IL2_D3") add=true;
-    if (ilink==3&&dctregion==3&&getName()=="IL3_D3") add=true;
-    if (ilink==1&&dctregion==4&&getName()=="IL1_D4") add=true;
-    if (ilink==2&&dctregion==4&&getName()=="IL2_D4") add=true;
-    if (ilink==3&&dctregion==4&&getName()=="IL3_D4") add=true;
-    if (ilink==1&&dctregion==5&&getName()=="IL1_D5") add=true;
-    if (ilink==2&&dctregion==5&&getName()=="IL2_D5") add=true;
-    if (ilink==3&&dctregion==5&&getName()=="IL3_D5") add=true;
-    if (ilink==1&&dctregion==6&&getName()=="IL1_D6") add=true;
-    if (ilink==2&&dctregion==6&&getName()=="IL2_D6") add=true;
-    if (ilink==3&&dctregion==6&&getName()=="IL3_D6") add=true;
-    if (ilink==1&&dctregion==7&&getName()=="IL1_D7") add=true;
-    if (ilink==2&&dctregion==7&&getName()=="IL2_D7") add=true;
-    if (ilink==3&&dctregion==7&&getName()=="IL3_D7") add=true;
-    if (ilink==1&&dctregion==8&&getName()=="IL1_D8") add=true;
-    if (ilink==2&&dctregion==8&&getName()=="IL2_D8") add=true;
-    if (ilink==3&&dctregion==8&&getName()=="IL3_D8") add=true;
 
+    bool add=false;
+    int iphivmRaw=stub.iphivmRaw();
+      
+    if (stub.layer().value()!=-1) {
+      //cout << "FPGAInputLink::addStub "<<stub.layer().value()<<endl;
+    
+
+      string subname=getName().substr(5,7);
+      string subnamelayer=getName().substr(3,2);
+      
+      int layer=stub.layer().value()+1;
+      
+      if (layer==2&&subnamelayer=="L2"&&(subname=="PHIW_ZP"||subname=="PHIQ_ZP")) {
+	if (al1stub.z()>25.0) {
+	  if (iphivmRaw>=4 && iphivmRaw<=15 && subname=="PHIW_ZP") add=true;     //overlap
+	  if (iphivmRaw>=16 && iphivmRaw<=27 && subname=="PHIQ_ZP") add=true;    //overlap
+	}
+      }
+      if (layer==2&&subnamelayer=="L2"&&(subname=="PHIW_ZM"||subname=="PHIQ_ZM")) {
+	if (al1stub.z()<-25.0) {
+	  if (iphivmRaw>=4 && iphivmRaw<=15 && subname=="PHIW_ZM") add=true;     //overlap
+	  if (iphivmRaw>=16 && iphivmRaw<=27 && subname=="PHIQ_ZM") add=true;    //overlap
+	}
+      }
+
+      //Special case --- L3 is grouped with D1 for overlap seeding
+	
+      if (layer==3&&subnamelayer=="L3"&&(subname=="PHIW_ZP"||subname=="PHIQ_ZP")) {
+	if (al1stub.z()>40.0) {
+	    if (iphivmRaw>=0 && iphivmRaw<=19 && subname=="PHIW_ZP") add=true;     //overlap
+	    if (iphivmRaw>=12 && iphivmRaw<=31 && subname=="PHIQ_ZP") add=true;    //overlap
+	  }
+      }
+
+      if (layer==3&&subnamelayer=="L3"&&(subname=="PHIW_ZM"||subname=="PHIQ_ZM")) {
+	if (al1stub.z()<-40.0) {
+	    if (iphivmRaw>=0 && iphivmRaw<=19 && subname=="PHIW_ZM") add=true;     //overlap
+	    if (iphivmRaw>=12 && iphivmRaw<=31 && subname=="PHIQ_ZM") add=true;    //overlap
+	  }
+      }
+
+	
+      if (!((layer==1&&subnamelayer=="L1")||
+	    (layer==2&&subnamelayer=="L2")||
+	    (layer==3&&subnamelayer=="L3")||
+	    (layer==4&&subnamelayer=="L4")||
+	    (layer==5&&subnamelayer=="L5")||
+	    (layer==6&&subnamelayer=="L6"))){
+	return;
+      }
+      
+      //cout << "Stub candidate in "<<getName()<<" "<<subnamelayer<<" "<<subname<<" "<<iphivmRaw<<" "
+      //	 <<al1stub.phi()<<" "
+      // 	 <<al1stub.z()<<endl;
+      
+      
+      if (subnamelayer=="L1"||subnamelayer=="L3"||subnamelayer=="L5"){
+	if (stub.z().value()>0) {
+	  if (subnamelayer=="L1") {
+	    if (iphivmRaw>=4 && iphivmRaw<=7 && subname=="PHI1_ZP") add=true;
+	    if (iphivmRaw>=8 && iphivmRaw<=11 && subname=="PHI2_ZP") add=true;
+	    if (iphivmRaw>=12 && iphivmRaw<=15 && subname=="PHI3_ZP") add=true;
+	    if (iphivmRaw>=16 && iphivmRaw<=19 && subname=="PHI4_ZP") add=true;
+	    if (iphivmRaw>=20 && iphivmRaw<=23 && subname=="PHI5_ZP") add=true;
+	    if (iphivmRaw>=24 && iphivmRaw<=27 && subname=="PHI6_ZP") add=true;
+	  } else {
+	    if (iphivmRaw>=4 && iphivmRaw<=11 && subname=="PHI1_ZP") add=true;
+	    if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHI2_ZP") add=true;
+	    if (iphivmRaw>=20 && iphivmRaw<=27 && subname=="PHI3_ZP") add=true;
+	  }
+	  //these are for TE
+	  if ((subnamelayer=="L1"&&fabs(al1stub.z())<85.0)||subnamelayer=="L3"||subnamelayer=="L5"){
+	    if (iphivmRaw>=4 && iphivmRaw<=9 && subname=="PHIA_ZP") add=true;
+	    if (iphivmRaw>=10 && iphivmRaw<=15 && subname=="PHIC_ZP") add=true;
+	    if (iphivmRaw>=16 && iphivmRaw<=21 && subname=="PHIE_ZP") add=true;
+	    if (iphivmRaw>=22 && iphivmRaw<=27 && subname=="PHIG_ZP") add=true;
+	    if (iphivmRaw>=4 && iphivmRaw<=9 && subname=="PHIB_ZP") add=true;
+	    if (iphivmRaw>=10 && iphivmRaw<=15 && subname=="PHID_ZP") add=true;
+	    if (iphivmRaw>=16 && iphivmRaw<=21 && subname=="PHIF_ZP") add=true;
+	    if (iphivmRaw>=22 && iphivmRaw<=27 && subname=="PHIH_ZP") add=true;
+	  }
+	  if ((subnamelayer=="L1"&&fabs(al1stub.z())>80.0)||subnamelayer=="L3"||subnamelayer=="L5"){
+	    if (iphivmRaw>=4 && iphivmRaw<=15 && subname=="PHIX_ZP") add=true;     //overlap
+	    if (iphivmRaw>=16 && iphivmRaw<=27 && subname=="PHIY_ZP") add=true;    //overlap
+	  }
+	} else {
+	  if (subnamelayer=="L1") {
+	    if (iphivmRaw>=4 && iphivmRaw<=7 && subname=="PHI1_ZM") add=true;
+	    if (iphivmRaw>=8 && iphivmRaw<=11 && subname=="PHI2_ZM") add=true;
+	    if (iphivmRaw>=12 && iphivmRaw<=15 && subname=="PHI3_ZM") add=true;
+	    if (iphivmRaw>=16 && iphivmRaw<=19 && subname=="PHI4_ZM") add=true;
+	    if (iphivmRaw>=20 && iphivmRaw<=23 && subname=="PHI5_ZM") add=true;
+	    if (iphivmRaw>=24 && iphivmRaw<=27 && subname=="PHI6_ZM") add=true;
+	  } else {
+	    if (iphivmRaw>=4 && iphivmRaw<=11 && subname=="PHI1_ZM") add=true;
+	    if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHI2_ZM") add=true;
+	    if (iphivmRaw>=20 && iphivmRaw<=27 && subname=="PHI3_ZM") add=true;
+	  }
+	  //these are for TE
+	  if ((subnamelayer=="L1"&&fabs(al1stub.z())<85.0)||subnamelayer=="L3"||subnamelayer=="L5"){
+	    if (iphivmRaw>=4 && iphivmRaw<=9 && subname=="PHIA_ZM") add=true;
+	    if (iphivmRaw>=10 && iphivmRaw<=15 && subname=="PHIC_ZM") add=true;
+	    if (iphivmRaw>=16 && iphivmRaw<=21 && subname=="PHIE_ZM") add=true;
+	    if (iphivmRaw>=22 && iphivmRaw<=27 && subname=="PHIG_ZM") add=true;
+	    if (iphivmRaw>=4  && iphivmRaw<=9 && subname=="PHIB_ZM") add=true;
+	    if (iphivmRaw>=10 && iphivmRaw<=15 && subname=="PHID_ZM") add=true;
+	    if (iphivmRaw>=16 && iphivmRaw<=21 && subname=="PHIF_ZM") add=true;
+	    if (iphivmRaw>=22 && iphivmRaw<=27 && subname=="PHIH_ZM") add=true;
+	  }
+	  if ((subnamelayer=="L1"&&fabs(al1stub.z())>80.0)||subnamelayer=="L3"||subnamelayer=="L5"){
+	    if (iphivmRaw>=4 && iphivmRaw<=15 && subname=="PHIX_ZM") add=true;   //overlap
+	    if (iphivmRaw>=16 && iphivmRaw<=27 && subname=="PHIY_ZM") add=true;	//overlap  
+	  }
+	}
+      }
+
+      
+      if (subnamelayer=="L2"||subnamelayer=="L4"||subnamelayer=="L6"){
+	if (stub.z().value()>0) {
+	  //remember that these are for ME
+	  if (iphivmRaw>=4 && iphivmRaw<=11 && subname=="PHI1_ZP") add=true;
+	  if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHI2_ZP") add=true;
+	  if (iphivmRaw>=20 && iphivmRaw<=27 && subname=="PHI3_ZP") add=true;
+	  //these are for TE
+	  if (iphivmRaw>=0 && iphivmRaw<=7 && subname=="PHIA_ZP") add=true;
+	  if (iphivmRaw>=6 && iphivmRaw<=13 && subname=="PHIC_ZP") add=true;
+	  if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHIE_ZP") add=true;
+	  if (iphivmRaw>=18 && iphivmRaw<=25 && subname=="PHIG_ZP") add=true;
+	  if (iphivmRaw>=6 && iphivmRaw<=13 && subname=="PHIB_ZP") add=true;
+	  if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHID_ZP") add=true;
+	  if (iphivmRaw>=18 && iphivmRaw<=25 && subname=="PHIF_ZP") add=true;
+	  if (iphivmRaw>=24 && iphivmRaw<=31 && subname=="PHIH_ZP") add=true;
+	} else {
+	  //remember that these are for ME
+	  if (iphivmRaw>=4 && iphivmRaw<=11 && subname=="PHI1_ZM") add=true;
+	  if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHI2_ZM") add=true;
+	  if (iphivmRaw>=20 && iphivmRaw<=27 && subname=="PHI3_ZM") add=true;
+	  //these are for TE
+	  if (iphivmRaw>=0 && iphivmRaw<=7 && subname=="PHIA_ZM") add=true;
+	  if (iphivmRaw>=6 && iphivmRaw<=13 && subname=="PHIC_ZM") add=true;
+	  if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHIE_ZM") add=true;
+	  if (iphivmRaw>=18 && iphivmRaw<=25 && subname=="PHIG_ZM") add=true;
+	  if (iphivmRaw>=6 && iphivmRaw<=13 && subname=="PHIB_ZM") add=true;
+	  if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHID_ZM") add=true;
+	  if (iphivmRaw>=18 && iphivmRaw<=25 && subname=="PHIF_ZM") add=true;
+	  if (iphivmRaw>=24 && iphivmRaw<=31 && subname=="PHIH_ZM") add=true;
+	}
+      }
+    }
+    else if (stub.disk().value()!=0) {
+      //cout << "FPGAInputLink::addStub in disk "<<stub.disk().value()<<endl;
+    
+      string subname=getName().substr(5,4);
+      string subnamelayer=getName().substr(3,2);
+      
+      int disk=stub.disk().value();
+
+      if (abs(disk)==1&&(subnamelayer=="F1"||subnamelayer=="B1")&&(subname=="PHIW"||subname=="PHIQ")) {
+	if (al1stub.r()>40.0) { 
+	  if (al1stub.z()>0.0&&subnamelayer=="F1") {
+	    if (iphivmRaw>=0 && iphivmRaw<=19 && subname=="PHIW") add=true;     //overlap
+	    if (iphivmRaw>=12 && iphivmRaw<=31 && subname=="PHIQ") add=true;    //overlap
+	  }
+	  if (al1stub.z()<0.0&&subnamelayer=="B1") {
+	    if (iphivmRaw>=0 && iphivmRaw<=19 && subname=="PHIW") add=true;     //overlap
+	    if (iphivmRaw>=12 && iphivmRaw<=31 && subname=="PHIQ") add=true;    //overlap
+	  }
+	}
+      }
+
+      
+      if (!((disk==1&&subnamelayer=="F1")||
+	    (disk==2&&subnamelayer=="F2")||
+	    (disk==3&&subnamelayer=="F3")||
+	    (disk==4&&subnamelayer=="F4")||
+	    (disk==5&&subnamelayer=="F5")||
+	    (disk==-1&&subnamelayer=="B1")||
+	    (disk==-2&&subnamelayer=="B2")||
+	    (disk==-3&&subnamelayer=="B3")||
+	    (disk==-4&&subnamelayer=="B4")||
+	    (disk==-5&&subnamelayer=="B5"))){
+	return;
+      }
+      
+      //cout << "Stub candidate in "<<getName()<<" "<<subnamelayer<<" "<<subname<<" "<<iphivmRaw<<" "
+      //	 <<al1stub.phi()<<" "
+      // 	 <<al1stub.z()<<endl;
+      
+      
+      if (subnamelayer=="F1"||subnamelayer=="F3"||subnamelayer=="F5"||
+	  subnamelayer=="B1"||subnamelayer=="B3"||subnamelayer=="B5"){
+	if (iphivmRaw>=4 && iphivmRaw<=11 && subname=="PHI1") add=true;
+	if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHI2") add=true;
+	if (iphivmRaw>=20 && iphivmRaw<=27 && subname=="PHI3") add=true;
+	//these are for TE
+	if ((subnamelayer=="F1"||subnamelayer=="B1")&&(subname=="PHIA"||subname=="PHIB"||subname=="PHIC"||subname=="PHID")){
+	  if (iphivmRaw>=4 && iphivmRaw<=17 && subname=="PHIA") add=true;
+	  if (iphivmRaw>=4 && iphivmRaw<=17 && subname=="PHIB") add=true;
+	  if (iphivmRaw>=14 && iphivmRaw<=27 && subname=="PHIC") add=true;
+	  if (iphivmRaw>=14 && iphivmRaw<=27 && subname=="PHID") add=true;
+	}else{
+	  if (iphivmRaw>=4 && iphivmRaw<=15 && subname=="PHIA") add=true;
+	  if (iphivmRaw>=16 && iphivmRaw<=27 && subname=="PHIB") add=true;
+	  if (iphivmRaw>=0 && iphivmRaw<=19 && subname=="PHIX") add=true;
+	  if (iphivmRaw>=12 && iphivmRaw<=31 && subname=="PHIY") add=true;
+	}
+      }
+
+      
+      if (subnamelayer=="F2"||subnamelayer=="F4"||
+	  subnamelayer=="B2"||subnamelayer=="B4"){
+	//remember that these are for ME
+	if (iphivmRaw>=4 && iphivmRaw<=11 && subname=="PHI1") add=true;
+	if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHI2") add=true;
+	if (iphivmRaw>=20 && iphivmRaw<=27 && subname=="PHI3") add=true;
+	//these are for TE
+	if ((subnamelayer=="F2"||subnamelayer=="B2")&&(subname=="PHIA"||subname=="PHIB"||subname=="PHIC"||subname=="PHID")){
+	  if (iphivmRaw>=0 && iphivmRaw<=13 && subname=="PHIA") add=true;
+	  if (iphivmRaw>=4 && iphivmRaw<=19 && subname=="PHIB") add=true;
+	  if (iphivmRaw>=12 && iphivmRaw<=27 && subname=="PHIC") add=true;
+	  if (iphivmRaw>=18 && iphivmRaw<=31 && subname=="PHID") add=true;
+	}else{
+	  if (iphivmRaw>=0 && iphivmRaw<=19 && subname=="PHIA") add=true;
+	  if (iphivmRaw>=12 && iphivmRaw<=31 && subname=="PHIB") add=true;
+	}
+      }
+    }
+  
+      
     if (!add) {
+      //cout << "Will not add stub" << endl;
       return;
     }
-    //cout << "Will add stub in "<<getName()<<endl;
+    if (debug1) {
+      cout << "Will add stub in "<<getName()<<" iphiwmRaw = "<<iphivmRaw<<" phi="<<al1stub.phi()<<" z="<<al1stub.z()<<" r="<<al1stub.r()<<endl;
+    }
     if (stubs_.size()<MAXSTUBSLINK) {
       L1TStub* l1stub=new L1TStub(al1stub);
       FPGAStub* stub=new FPGAStub(*l1stub,phimin_,phimax_);
@@ -102,15 +306,7 @@ public:
       nlay[i]=0;
     }
 
-    unsigned int maxstubslink=0;
-    if (TMUX==4) maxstubslink=21;
-    else if (TMUX==6) maxstubslink=33;
-    else if (TMUX==8) maxstubslink=45;
-    else {
-      cout << "ERROR! Only TMUX=4/6/8 are supported! Exiting..." << endl;
-      return;
-    }
-       
+    unsigned int maxstubslink=21;
 
     for (unsigned int i=0;i<stubs_.size();i++){
       if(stubs_[i].first->isBarrel()){
@@ -222,7 +418,7 @@ public:
 	}
       }
       if (padded) {
-	for (int k=0;k<(int)maxstubslink-scount;k++) {
+	for (int k=0;k<21-scount;k++) {
 	  xline = (xline+1)&15;
 	  out_<< std::hex << xline<<"0000000 "<< std::hex << xline<<"0000001";
 	  out_<<" 51000003 51000007\n";
@@ -350,14 +546,11 @@ public:
       out_<<(xword & 0xfffff);
       out_<<" 51000003 51000007\n";
       //the stubs      
-      int scount = 0;
       for (unsigned int i=0;i<5;i++) {
 	for (unsigned int j=0;j<stubs_.size();j++){
 	  if(stubs_[j].first->isDisk()&&stubs_[j].first->disk().value()>0){
 	    unsigned int lay=stubs_[j].first->disk().value()-1;
 	    if (lay==i) {
-	      scount++;
-	      if (scount>(int)maxstubslink) continue;
 	      string tmp=stubs_[j].first->strbareUNFLIPPED();
 	      bitset<36> btmp(tmp);
 	      xword = btmp.to_ulong();
@@ -371,13 +564,6 @@ public:
 	      out_<<" 51000003 51000007\n";
 	    }
 	  }
-	}
-      }
-      if (padded) {
-	for (int k=0;k<(int)maxstubslink-scount;k++) {
-	  xline = (xline+1)&15;
-	  out_<< std::hex << xline<<"0000000 "<< std::hex << xline<<"0000001";
-	  out_<<" 51000003 51000007\n";
 	}
       }
 
@@ -502,14 +688,11 @@ public:
       out_<<(xword & 0xfffff);
       out_<<" 51000003 51000007\n";
       //the stubs      
-      int scount = 0;
       for (unsigned int i=0;i<5;i++) {
 	for (unsigned int j=0;j<stubs_.size();j++){
 	  if(stubs_[j].first->isDisk()&&stubs_[j].first->disk().value()<0){
 	    unsigned int lay=-stubs_[j].first->disk().value()-1;
 	    if (lay==i) {
-	      scount++;
-	      if (scount>(int)maxstubslink) continue;
 	      string tmp=stubs_[j].first->strbareUNFLIPPED();
 	      bitset<36> btmp(tmp);
 	      xword = btmp.to_ulong();
@@ -523,13 +706,6 @@ public:
 	      out_<<" 51000003 51000007\n";
 	    }
 	  }
-	}
-      }
-      if (padded) {
-	for (int k=0;k<(int)maxstubslink-scount;k++) {
-	  xline = (xline+1)&15;
-	  out_<< std::hex << xline<<"0000000 "<< std::hex << xline<<"0000001";
-	  out_<<" 51000003 51000007\n";
 	}
       }
 

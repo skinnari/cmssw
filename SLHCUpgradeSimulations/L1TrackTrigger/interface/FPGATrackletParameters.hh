@@ -24,6 +24,7 @@ public:
     //count++;
     //cout <<"count = "<<count<<" "<<sizeof(FPGATracklet)
     //	 <<" "<<count*sizeof(FPGATracklet)<<endl;
+    //cout << "Adding tracklet : "<<getName()<<" "<<tracklet<<endl;
     tracklets_.push_back(tracklet);
   }
 
@@ -55,7 +56,7 @@ public:
 
   void writeTPAR(bool first) {
 
-    std::string fname="./MemPrints/TrackletParameters/TrackletParameters_";
+    std::string fname="TrackletParameters_";
     fname+=getName();
     fname+="_";
     ostringstream oss;

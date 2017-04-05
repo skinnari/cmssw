@@ -332,14 +332,7 @@ public:
     }
     if (tmp!="Event:") {
       cout << "Expected to read 'Event:' but found:"<<tmp<<endl;
-      if (tmp=="") {
-	cout << "WARNING: fewer events to process than specified!" << endl;
-	return;
-      }
-      else {
-	cout << "ERROR, aborting reading file" << endl;
-	abort();
-      }
+      abort();
     }
     in >> eventnum_;
 
@@ -461,6 +454,13 @@ public:
 
       in >> layer >> ladder >> module >> strip >> simtrk >> pt >> x >> y >> z >> bend;
 
+      if (layer>999&&layer<1999&& z<0.0) {
+	//cout << "Will change layer by addding 1000 "<<endl;
+	layer+=1000;
+      }
+
+
+      //layer--;   //need two of these for new file format
       layer--;   
       x-=x_offset;
       y-=y_offset;
@@ -487,7 +487,7 @@ public:
 
       bool foundclose=false;
 
-      if(1) {
+      if(0) {
 
 	for (unsigned int i=0;i<stubs_.size();i++) {
 	  if (layer<10) {
@@ -514,14 +514,16 @@ public:
       //if (foundclose) cout << "Found close " <<foundclose<<" "<<layer<<endl;
 
       double fact=1.0;
-      if (ptcut>=3.0) fact=1.4;
-      fact=1.0;
-
+      if (ptcut>=2.7) fact=-1.2;
+      fact=0.0;
+      
       if (!foundclose) {
 	if (((fabs(stub.pt())>1.8*fact)&&(fabs(eta)<2.0))||
 	    ((fabs(stub.pt())>1.4*fact)&&(fabs(eta)>2.0))||
 	    ((fabs(stub.pt())>1.0*fact)&&(fabs(eta)>2.3))) {
-	  stubs_.push_back(stub);
+	  if (fabs(eta)<2.6) {
+	    stubs_.push_back(stub);
+	  }
 	}
       }
     }

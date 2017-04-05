@@ -243,7 +243,7 @@ public:
   unsigned int strip() const { return strip_; }
 
   double alpha() const {
-    if (r()<60.0) return 0.0;
+    if (r()<57.0) return 0.0;
     if (z_>0.0) {
       return ((int)strip_-480.5)*0.009/r2();
     }
@@ -251,7 +251,7 @@ public:
   }
 
   double alphatruncated() const {
-    if (r()<60.0) return 0.0;
+    if (r()<57.0) return 0.0;
     int striptruncated=strip_/1;
     striptruncated*=1;
     if (z_>0.0) {

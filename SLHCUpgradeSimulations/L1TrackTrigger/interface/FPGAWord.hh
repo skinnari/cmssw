@@ -115,6 +115,10 @@ public:
     return ((value_==(-(1<<(nbits_-1))))||(value_==((1<<(nbits_-1))-1)));
   }
 
+  bool operator==(const FPGAWord& other) const{
+    return (value_==other.value_)&&(nbits_==other.nbits_)&&(positive_==other.positive_);
+  }
+  
 private:
 
   int value_;

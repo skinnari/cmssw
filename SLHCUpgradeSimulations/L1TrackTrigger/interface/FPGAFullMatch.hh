@@ -32,6 +32,11 @@ public:
     if (subname=="F3") disk_=3;
     if (subname=="F4") disk_=4;
     if (subname=="F5") disk_=5;
+    if (subname=="D1") disk_=1;
+    if (subname=="D2") disk_=2;
+    if (subname=="D3") disk_=3;
+    if (subname=="D4") disk_=4;
+    if (subname=="D5") disk_=5;
     if (subname=="B1") disk_=-1;
     if (subname=="B2") disk_=-2;
     if (subname=="B3") disk_=-3;
@@ -76,10 +81,7 @@ public:
 
   void writeMC(bool first) {
 
-    //cout << "Write FM : "<<getName()<< " iSector = "<<iSector_<< " " 
-    //	 << matches_.size()<<endl;
-
-    std::string fname="./MemPrints/Matches/FullMatches_";
+    std::string fname="FullMatches_";
     fname+=getName();
     fname+="_";
     ostringstream oss;
@@ -99,10 +101,10 @@ public:
 
     for (unsigned int j=0;j<matches_.size();j++){
       string match= (layer_>0)? matches_[j].first->fullmatchstr(layer_)
-	: matches_[j].first->fullmatchstrdisk(disk_);
+	: matches_[j].first->fullmatchstr(disk_);
 	if (j<16) out_ <<"0";
 	out_ << hex << j << dec ;
-	out_ << " "<< match<<endl;
+	out_ << " "<< match <<endl;
     }
     out_.close();
 

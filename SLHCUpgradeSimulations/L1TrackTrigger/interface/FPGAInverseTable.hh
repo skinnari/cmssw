@@ -26,15 +26,14 @@ public:
   void initR(int nbits,
 	     int offset,
 	     int invbits,
-	     bool pos,
-	     int shift
+	     bool pos
 	    ) {
 
     nbits_=nbits;
     entries_=(1<<nbits);
     
     for(int i=0;i<entries_;i++) {
-      int idrrel=i<<shift;
+      int idrrel=i;
       if(!pos){
 	if (i>((1<<(nbits-1))-1)) {
 	  idrrel=i-(1<<nbits);
@@ -81,6 +80,7 @@ public:
 
   int lookup(int drrel) const {
     assert(drrel>=0);
+    //cout << "nbits = "<<nbits_<<endl;
     assert(drrel<(1<<nbits_));
     return table_[drrel];
   }

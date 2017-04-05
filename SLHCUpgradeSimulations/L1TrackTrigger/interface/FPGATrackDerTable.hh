@@ -19,12 +19,12 @@ public:
     Nlay_=6;
     Ndisk_=5;
 
-    LayerMemBits_=5;
+    LayerMemBits_=6;
     DiskMemBits_=7;
     
     LayerDiskMemBits_=15;
 
-    alphaBits_=alphaBitsTable;
+    alphaBits_=3;
 
     nextLayerValue_=0;
     nextDiskValue_=0;
@@ -108,6 +108,8 @@ public:
 
   void addEntry(unsigned int layermask, unsigned int diskmask, int multiplicity){
 
+    //cout << "layermask diskmatch "<<layermask<<" "<<diskmask<<endl;
+    
     assert(multiplicity<=(1<<(3*alphaBits_)));
 
     assert(layermask<(unsigned int)(1<<Nlay_));
@@ -125,7 +127,6 @@ public:
     int diskcode=DiskMem_[diskmask];
 
     assert(layercode>=0);
-    //cout << "layercode : "<<layercode<<endl;
     assert(layercode<(1<<LayerMemBits_));
     assert(diskcode>=0);
     assert(diskcode<(1<<DiskMemBits_));
@@ -170,19 +171,6 @@ public:
       int multiplicity;
 
       in >>layerstr>>diskstr>>multiplicity;
-
-      if (alphaBits_==2) {
-	if (multiplicity==8) multiplicity=4;
-	if (multiplicity==64) multiplicity=16;
-	if (multiplicity==512) multiplicity=64;
-      }
-
-      if (alphaBits_==1) {
-	if (multiplicity==8) multiplicity=2;
-	if (multiplicity==64) multiplicity=4;
-	if (multiplicity==512) multiplicity=8;
-      }
-
 
       if (!in.good()) continue;
       
@@ -252,30 +240,16 @@ public:
 	  z[ndisks]=zmean[d];
 	  alpha[ndisks]=0.0;
 	  if (diskmask&(1<<(2*(4-d)))) {
-	    if (alphaBits_==3) {
-	      int ialpha=alphamask&7;
-	      alphamask=alphamask>>3;
-	      double r=zmean[d]/t;
-	      alpha[ndisks]=480*0.009*(ialpha-3.5)/(4.0*r*r);
-	    }
-	    if (alphaBits_==2) {
-	      int ialpha=alphamask&3;
-	      alphamask=alphamask>>2;
-	      double r=zmean[d]/t;
-	      alpha[ndisks]=480*0.009*(ialpha-1.5)/(4.0*r*r);
-	    }
-	    if (alphaBits_==1) {
-	      int ialpha=alphamask&1;
-	      alphamask=alphamask>>1;
-	      double r=zmean[d]/t;
-	      alpha[ndisks]=480*0.009*(ialpha-0.5)/(4.0*r*r);
-	    }
+	    int ialpha=alphamask&7;
+	    alphamask=alphamask>>3;
+	    double r=zmean[d]/t;
+	    alpha[ndisks]=480*0.009*(ialpha-3.5)/(4.0*r*r);
 	    //if (d==0) alpha[ndisks]=-0.000220;
 	    //if (d==1) alpha[ndisks]=0.000244;
-	    //if (print) {
-	    //  cout << "Hit in disk "<<z[ndisks]<<" "
-	    //	   <<ialpha<<" "<<alpha[ndisks]<<endl;
-	    //}
+	    if (print) {
+	      cout << "Hit in disk "<<z[ndisks]<<" "
+		   <<ialpha<<" "<<alpha[ndisks]<<endl;
+	    }
 	  }
 	  ndisks++;  
 	}
@@ -349,7 +323,7 @@ public:
 
     }
 
-	/*    
+    
     if (writeFitDerTable) {
       for (unsigned int seedlayer=1;seedlayer<=5;seedlayer+=2) {
 	for(unsigned int j=0;j<8;j++) {
@@ -430,513 +404,7 @@ public:
 	}
       }
     }
-	*/
 
-
-    //New table format with disks
-	/*
-	if (writeFitDerTable) {
-
-      ofstream outL("FitDerTableNew_LayerMem.txt");
-      for (unsigned int i=0;i<LayerMem_.size();i++){
-	FPGAWord tmp;
-	int tmp1=LayerMem_[i];
-	if (tmp1<0) tmp1=(1<<6)-1;
-	cout << "i LayerMem_ : "<<i<<" "<<tmp1<<endl;
-	tmp.set(tmp1,6,true,__LINE__,__FILE__);
-	outL << tmp.str() <<endl;
-      }
-      outL.close();
-
-
-      ofstream outD("FitDerTableNew_DiskMem.txt");
-      for (unsigned int i=0;i<DiskMem_.size();i++){
-	int tmp1=DiskMem_[i];
-	if (tmp1<0) tmp1=(1<<10)-1;
-	FPGAWord tmp;
-	tmp.set(tmp1,10,true,__LINE__,__FILE__);
-	outD << tmp.str() <<endl;
-      }
-      outD.close();
-
-
-      ofstream outLD("FitDerTableNew_LayerDiskMem.txt");
-      for (unsigned int i=0;i<LayerDiskMem_.size();i++){
-	int tmp1=LayerDiskMem_[i];
-	if (tmp1<0) tmp1=(1<<15)-1;
-	FPGAWord tmp;
-	tmp.set(tmp1,15,true,__LINE__,__FILE__);
-	outLD << tmp.str() <<endl;
-      }
-      outLD.close();
-
-
-      unsigned int nderivatives=derivatives_.size();
-
-      cout << "nderivatives = "<<nderivatives<<endl;
-
-      ofstream outrinvdphi[6];
-      outrinvdphi[0].open("FitDerTableNew_Rinvdphi_1.txt");
-      outrinvdphi[1].open("FitDerTableNew_Rinvdphi_2.txt");
-      outrinvdphi[2].open("FitDerTableNew_Rinvdphi_3.txt");
-      outrinvdphi[3].open("FitDerTableNew_Rinvdphi_4.txt");
-      outrinvdphi[4].open("FitDerTableNew_Rinvdphi_5.txt");
-      outrinvdphi[5].open("FitDerTableNew_Rinvdphi_6.txt");
-
-      ofstream outrinvdzordr[6];
-      outrinvdzordr[0].open("FitDerTableNew_Rinvdzordr_1.txt");
-      outrinvdzordr[1].open("FitDerTableNew_Rinvdzordr_2.txt");
-      outrinvdzordr[2].open("FitDerTableNew_Rinvdzordr_3.txt");
-      outrinvdzordr[3].open("FitDerTableNew_Rinvdzordr_4.txt");
-      outrinvdzordr[4].open("FitDerTableNew_Rinvdzordr_5.txt");
-      outrinvdzordr[5].open("FitDerTableNew_Rinvdzordr_6.txt");
-
-      ofstream outphi0dphi[6];
-      outphi0dphi[0].open("FitDerTableNew_Phi0dphi_1.txt");
-      outphi0dphi[1].open("FitDerTableNew_Phi0dphi_2.txt");
-      outphi0dphi[2].open("FitDerTableNew_Phi0dphi_3.txt");
-      outphi0dphi[3].open("FitDerTableNew_Phi0dphi_4.txt");
-      outphi0dphi[4].open("FitDerTableNew_Phi0dphi_5.txt");
-      outphi0dphi[5].open("FitDerTableNew_Phi0dphi_6.txt");
-
-      ofstream outphi0dzordr[6];
-      outphi0dzordr[0].open("FitDerTableNew_Phi0dzordr_1.txt");
-      outphi0dzordr[1].open("FitDerTableNew_Phi0dzordr_2.txt");
-      outphi0dzordr[2].open("FitDerTableNew_Phi0dzordr_3.txt");
-      outphi0dzordr[3].open("FitDerTableNew_Phi0dzordr_4.txt");
-      outphi0dzordr[4].open("FitDerTableNew_Phi0dzordr_5.txt");
-      outphi0dzordr[5].open("FitDerTableNew_Phi0dzordr_6.txt");
-
-      ofstream outtdphi[6];
-      outtdphi[0].open("FitDerTableNew_Tdphi_1.txt");
-      outtdphi[1].open("FitDerTableNew_Tdphi_2.txt");
-      outtdphi[2].open("FitDerTableNew_Tdphi_3.txt");
-      outtdphi[3].open("FitDerTableNew_Tdphi_4.txt");
-      outtdphi[4].open("FitDerTableNew_Tdphi_5.txt");
-      outtdphi[5].open("FitDerTableNew_Tdphi_6.txt");
-
-      ofstream outtdzordr[6];
-      outtdzordr[0].open("FitDerTableNew_Tdzordr_1.txt");
-      outtdzordr[1].open("FitDerTableNew_Tdzordr_2.txt");
-      outtdzordr[2].open("FitDerTableNew_Tdzordr_3.txt");
-      outtdzordr[3].open("FitDerTableNew_Tdzordr_4.txt");
-      outtdzordr[4].open("FitDerTableNew_Tdzordr_5.txt");
-      outtdzordr[5].open("FitDerTableNew_Tdzordr_6.txt");
-
-      ofstream outz0dphi[6];
-      outz0dphi[0].open("FitDerTableNew_Z0dphi_1.txt");
-      outz0dphi[1].open("FitDerTableNew_Z0dphi_2.txt");
-      outz0dphi[2].open("FitDerTableNew_Z0dphi_3.txt");
-      outz0dphi[3].open("FitDerTableNew_Z0dphi_4.txt");
-      outz0dphi[4].open("FitDerTableNew_Z0dphi_5.txt");
-      outz0dphi[5].open("FitDerTableNew_Z0dphi_6.txt");
-
-      ofstream outz0dzordr[6];
-      outz0dzordr[0].open("FitDerTableNew_Z0dzordr_1.txt");
-      outz0dzordr[1].open("FitDerTableNew_Z0dzordr_2.txt");
-      outz0dzordr[2].open("FitDerTableNew_Z0dzordr_3.txt");
-      outz0dzordr[3].open("FitDerTableNew_Z0dzordr_4.txt");
-      outz0dzordr[4].open("FitDerTableNew_Z0dzordr_5.txt");
-      outz0dzordr[5].open("FitDerTableNew_Z0dzordr_6.txt");
-
-
-      for (unsigned int i=0;i<nderivatives;i++){
-
-	FPGATrackDer der=derivatives_[i];
-	
-	for (unsigned int j=0;j<6;j++){
-	  FPGAWord tmprinvdphi;
-	  int itmprinvdphi=der.getirinvdphi(j);
-	  if (itmprinvdphi>(1<<13)) itmprinvdphi=(1<<13)-1;
-	  tmprinvdphi.set(itmprinvdphi,14,false,__LINE__,__FILE__);
-	  outrinvdphi[j] << tmprinvdphi.str() <<endl;
-	  FPGAWord tmprinvdzordr;
-	  int itmprinvdzordr=der.getirinvdzordr(j);
-	  if (itmprinvdzordr>(1<<15)) itmprinvdzordr=(1<<15)-1;
-	  tmprinvdzordr.set(itmprinvdzordr,16,false,__LINE__,__FILE__);
-	  outrinvdzordr[j] << tmprinvdzordr.str() <<endl;
-
-	  FPGAWord tmpphi0dphi;
-	  int itmpphi0dphi=der.getiphi0dphi(j);
-	  if (itmpphi0dphi>(1<<13)) itmpphi0dphi=(1<<13)-1;
-	  tmpphi0dphi.set(itmpphi0dphi,14,false,__LINE__,__FILE__);
-	  outphi0dphi[j] << tmpphi0dphi.str() <<endl;
-	  FPGAWord tmpphi0dzordr;
-	  int itmpphi0dzordr=der.getiphi0dzordr(j);
-	  if (itmpphi0dzordr>(1<<15)) itmpphi0dzordr=(1<<15)-1;
-	  tmpphi0dzordr.set(itmpphi0dzordr,16,false,__LINE__,__FILE__);
-	  outphi0dzordr[j] << tmpphi0dzordr.str() <<endl;
-
-	  FPGAWord tmptdphi;
-	  int itmptdphi=der.getitdphi(j);
-	  if (itmptdphi>(1<<13)) itmptdphi=(1<<13)-1;
-	  tmptdphi.set(itmptdphi,14,false,__LINE__,__FILE__);
-	  outtdphi[j] << tmptdphi.str() <<endl;
-	  FPGAWord tmptdzordr;
-	  int itmptdzordr=der.getitdzordr(j);
-	  if (itmptdzordr>(1<<15)) itmptdzordr=(1<<15)-1;
-	  tmptdzordr.set(itmptdzordr,16,false,__LINE__,__FILE__);
-	  outtdzordr[j] << tmptdzordr.str() <<endl;
-
-	  FPGAWord tmpz0dphi;
-	  int itmpz0dphi=der.getiz0dphi(j);
-	  if (itmpz0dphi>(1<<13)) itmpz0dphi=(1<<13)-1;
-	  tmpz0dphi.set(itmpz0dphi,14,false,__LINE__,__FILE__);
-	  outz0dphi[j] << tmpz0dphi.str() <<endl;
-	  FPGAWord tmpz0dzordr;
-	  int itmpz0dzordr=der.getiz0dzordr(j);
-	  if (itmpz0dzordr>(1<<15)) itmpz0dzordr=(1<<15)-1;
-	  tmpz0dzordr.set(itmpz0dzordr,16,false,__LINE__,__FILE__);
-	  outz0dzordr[j] << tmpz0dzordr.str() <<endl;
-
-	}
-
-      }
-
-      for (unsigned int j=0;j<6;j++){
-	outrinvdphi[j].close();
-	outrinvdzordr[j].close();
-
-	outphi0dphi[j].close();
-	outphi0dzordr[j].close();
-
-	outtdphi[j].close();
-	outtdzordr[j].close();
-
-	outz0dphi[j].close();
-	outz0dzordr[j].close();
-
-      }
-
-    }
-	*/
-		
-	// -------------------------------------------------------------
-	// Modified new table format with disks
-
-	if (writeFitDerTable) {
-
-		ofstream outL("FitDerTableNew_LayerMem.txt");
-		for (unsigned int i=0;i<LayerMem_.size();i++){
-			FPGAWord tmp;
-			int tmp1=LayerMem_[i];
-			if (tmp1<0) tmp1=(1<<5)-1;
-			cout << "i LayerMem_ : "<<i<<" "<<tmp1<<endl;
-			tmp.set(tmp1,5,true,__LINE__,__FILE__);
-			outL << tmp.str() <<endl;
-		}
-		outL.close();
-
-		ofstream outD("FitDerTableNew_DiskMem.txt");
-		for (unsigned int i=0;i<DiskMem_.size();i++){
-			int tmp1=DiskMem_[i];
-			if (tmp1<0) tmp1=(1<<7)-1;
-			FPGAWord tmp;
-			tmp.set(tmp1,7,true,__LINE__,__FILE__);
-			outD << tmp.str() <<endl;
-		}
-		outD.close();
-
-		ofstream outLD("FitDerTableNew_LayerDiskMem.txt");
-		for (unsigned int i=0;i<LayerDiskMem_.size();i++){
-			int tmp1=LayerDiskMem_[i];
-			if (tmp1<0) tmp1=(1<<15)-1;
-			FPGAWord tmp;
-			tmp.set(tmp1,15,true,__LINE__,__FILE__);
-			outLD << tmp.str() <<endl;
-		}
-		outLD.close();
-
-		unsigned int nderivatives = derivatives_.size();
-
-		cout << "nderivatives = " << nderivatives << endl;
-
-		// 6(+3) seeding pairs; each pair has max 4 inputs
-		// if (some global parameter == "Forward")
-		string seedings[] = {"L1L2", "L3L4", "L5L6", "F1F2", "F3F4", "L1F1"};
-		// else
-		// seedings = {"L1L2", "L3L4", "L5L6", "B1B2", "B3B4", "L1B1"};
-		
-		string prefix = "FitDerTableNewer_";
-		
-		ofstream outrinvdphi[6];
-		for (unsigned int i = 0; i < 6; ++i) {
-			string seed = seedings[i];
-			string fname = prefix + "Rinvdphi_" + seed + ".txt";
-			outrinvdphi[i].open(fname.c_str());
-		}
-		
-		ofstream outrinvdzordr[6];
-		for (unsigned int i = 0; i < 6; ++i) {
-			string seed = seedings[i];
-			string fname = prefix + "Rinvdzordr_" + seed + ".txt";
-			outrinvdzordr[i].open(fname.c_str());
-		}
-
-		ofstream outphi0dphi[6];
-		for (unsigned int i = 0; i < 6; ++i) {
-			string seed = seedings[i];
-			string fname = prefix + "Phi0dphi_"+seed+".txt";
-			outphi0dphi[i].open(fname.c_str());
-		}
-		
-		ofstream outphi0dzordr[6];
-		for (unsigned int i = 0; i < 6; ++i) {
-			string seed = seedings[i];
-			string fname = prefix + "Phi0dzordr_" + seed + ".txt";
-			outphi0dzordr[i].open(fname.c_str());
-		}
-
-		ofstream outtdphi[6];
-		for (unsigned int i = 0; i < 6; ++i) {
-			string seed = seedings[i];
-			string fname = prefix + "Tdphi_" + seed + ".txt";
-			outtdphi[i].open(fname.c_str());
-		}
-
-		ofstream outtdzordr[6];
-		for (unsigned int i = 0; i < 6; ++i) {
-			string seed = seedings[i];
-			string fname = prefix + "Tdzordr_" + seed + ".txt";
-			outtdzordr[i].open(fname.c_str());
-		}
-		
-		ofstream outz0dphi[6];
-		for (unsigned int i = 0; i < 6; ++i) {
-			string seed = seedings[i];
-			string fname = prefix + "Z0dphi_" + seed + ".txt";
-			outz0dphi[i].open(fname.c_str());
-		}
-
-		ofstream outz0dzordr[6];
-		for (unsigned int i = 0; i < 6; ++i) {
-			string seed = seedings[i];
-			string fname = prefix + "Z0dzordr_" + seed + ".txt";
-			outz0dzordr[i].open(fname.c_str());
-		}
-		
-		for (auto & der : derivatives_) {
-				  
-			unsigned int layerhits = der.getLayerMask();
-			unsigned int diskmask = der.getDiskMask();
-			unsigned int diskhits = 0;
-			if ( diskmask&(3<<8) ) diskhits += 16;
-			if ( diskmask&(3<<6) ) diskhits += 8;
-			if ( diskmask&(3<<4) ) diskhits += 4;
-			if ( diskmask&(3<<2) ) diskhits += 2;
-			if ( diskmask&(3<<0) ) diskhits += 1;
-			assert(diskhits < 32);
-			unsigned int hits = (layerhits<<5) + diskhits;
-			assert(hits < 4096);
-
-			// loop over all seedings
-			for (unsigned int i = 0; i < 6; ++i) {
-
-				string seed = seedings[i];
-				
-				int itmprinvdphi[4] = {9999999,9999999,9999999,9999999};
-				int itmprinvdzordr[4] = {9999999,9999999,9999999,9999999};
-				int itmpphi0dphi[4] = {9999999,9999999,9999999,9999999};
-				int itmpphi0dzordr[4] = {9999999,9999999,9999999,9999999};
-				int itmptdphi[4] = {9999999,9999999,9999999,9999999};
-				int itmptdzordr[4] = {9999999,9999999,9999999,9999999};
-				int itmpz0dphi[4] = {9999999,9999999,9999999,9999999};
-				int itmpz0dzordr[4] = {9999999,9999999,9999999,9999999};
-				
-				// check if current hit pattern is possible for the seeding pairs
-				bool goodseed = false;
-				unsigned int iseed1, iseed2;
-				if (seed == "L1L2") {
-					goodseed = (layerhits&(1<<5)) and (layerhits&(1<<4));
-					iseed1 = 0;
-					iseed2 = 1;
-				}
-				else if (seed == "L3L4") {
-					goodseed = (layerhits&(1<<3)) and (layerhits&(1<<2));
-					iseed1 = 2;
-					iseed2 = 3;
-				}
-				else if (seed == "L5L6") {
-					goodseed = (layerhits&(1<<1)) and (layerhits&(1<<0));
-					iseed1 = 4;
-					iseed2 = 5;
-				}
-				else if (seed == "F1F2" or seed == "B1B2") {
-					goodseed = (diskmask&(1<<9)) and (diskmask&(1<<7));
-					iseed1 = 6;
-					iseed2 = 7;
-				}
-				else if (seed == "F3F4" or seed == "B3B4") {
-					goodseed = (diskmask&(1<<5)) and (diskmask&(1<<3));
-					iseed1 = 8;
-					iseed2 = 9;
-				}
-				else if (seed == "L1F1" or seed == "L1B1") {
-					goodseed = (layerhits&(1<<5)) and (diskmask&(1<<9));
-					iseed1 = 0;
-					iseed2 = 6;
-				}
-				else {
-					cerr << "Not valid seeding pairs" << endl;
-					return;
-				}
-				
-				// loop over each bit in the hit pattern
-				int ider = 0;
-				int inputI = 99;
-				if (goodseed) {
-					for (unsigned int ihit = 0; ihit < 11; ++ihit) {
-						// skip seeding layers
-						if (ihit == iseed1 or ihit == iseed2) {
-							ider++;
-							continue;
-						}
-						
-						if ( hits&(1<<(10-ihit)) ) {
-							//
-							if (seed == "L1L2") {
-								if (ihit == 2 or ihit == 9) inputI = 0;//L3 or D4
-								if (ihit == 3 or ihit == 8) inputI = 1;//L4 or D3
-								if (ihit == 4 or ihit == 7) inputI = 2;//L5 or D2
-								if (ihit == 5 or ihit == 6) inputI = 3;//L6 or D1
-							}
-							else if (seed == "L3L4") {
-								if (ihit == 0) inputI = 0; //L1
-								if (ihit == 1) inputI = 1; //L2
-								if (ihit == 4 or ihit == 7) inputI = 2;//L5 or D2
-								if (ihit == 5 or ihit == 6) inputI = 3;//L6 or D1
-							}
-							else if (seed == "L5L6") {
-								if (ihit == 0) inputI = 0; //L1
-								if (ihit == 1) inputI = 1; //L2
-								if (ihit == 2) inputI = 2; //L3
-								if (ihit == 3) inputI = 3; //L4
-							}
-							else if (seed == "F1F2" or seed == "B1B2") {
-								if (ihit == 0) inputI = 0; //L1
-								if (ihit == 8) inputI = 1; //D3
-								if (ihit == 9) inputI = 2; //D4
-								if (ihit == 1 or ihit == 10) inputI = 3;//L2 or D5
-							}
-							else if (seed == "F3F4" or seed == "B3B4") {
-								if (ihit == 0) inputI = 0; //L1
-								if (ihit == 6) inputI = 1; //D1
-								if (ihit == 7) inputI = 2; //D2
-								if (ihit == 1 or ihit == 10) inputI = 3;//L2 or D5
-							}
-							else if (seed == "L1F1" or seed == "L1B1") {
-								if (ihit == 7) inputI = 0; //D2
-								if (ihit == 8) inputI = 1; //D3
-								if (ihit == 9) inputI = 2; //D4
-								if (ihit == 10) inputI = 3; //D5
-							}
-
-							itmprinvdphi[inputI] = der.getirinvdphi(ider);
-							itmprinvdzordr[inputI] = der.getirinvdzordr(ider);
-							itmpphi0dphi[inputI] = der.getiphi0dphi(ider);
-							itmpphi0dzordr[inputI] = der.getiphi0dzordr(ider);
-							itmptdphi[inputI] = der.getitdphi(ider);
-							itmptdzordr[inputI] = der.getitdzordr(ider);
-							itmpz0dphi[inputI] = der.getiz0dphi(ider);
-							itmpz0dzordr[inputI] = der.getiz0dzordr(ider);
-							
-							ider++;
-						} // end if (hits&(1<<(10-ihit)))
-						
-					} // end of hit loop
-				} // end if (goodseed)
-				
-				FPGAWord tmprinvdphi[4];
-				for (unsigned int j = 0; j < 4; ++j) {
-					if (itmprinvdphi[j]>(1<<13)) itmprinvdphi[j]=(1<<13)-1;
-					tmprinvdphi[j].set(itmprinvdphi[j],14,false,__LINE__,__FILE__);
-				}
-				outrinvdphi[i] << tmprinvdphi[0].str() << tmprinvdphi[1].str()
-							   << tmprinvdphi[2].str() << tmprinvdphi[3].str()
-							   << endl;
-				
-				FPGAWord tmprinvdzordr[4];
-				for (unsigned int j = 0; j < 4; ++j) {
-					if (itmprinvdzordr[j]>(1<<15)) itmprinvdzordr[j]=(1<<15)-1;
-					tmprinvdzordr[j].set(itmprinvdzordr[j],16,false,__LINE__,__FILE__);
-				}
-				outrinvdzordr[i] << tmprinvdzordr[0].str() << tmprinvdzordr[1].str()
-								 << tmprinvdzordr[2].str() << tmprinvdzordr[3].str()
-								 << endl;
-				
-				FPGAWord tmpphi0dphi[4];
-				for (unsigned int j = 0; j < 4; ++j) {
-					if (itmpphi0dphi[j]>(1<<13)) itmpphi0dphi[j]=(1<<13)-1;
-					tmpphi0dphi[j].set(itmpphi0dphi[j],14,false,__LINE__,__FILE__);
-				}
-				outphi0dphi[i] << tmpphi0dphi[0].str() << tmpphi0dphi[1].str()
-							   << tmpphi0dphi[2].str() << tmpphi0dphi[3].str()
-							   << endl;
-				
-				FPGAWord tmpphi0dzordr[4];
-				for (unsigned int j = 0; j < 4; ++j) {
-					if (itmpphi0dzordr[j]>(1<<15)) itmpphi0dzordr[j]=(1<<15)-1;
-					tmpphi0dzordr[j].set(itmpphi0dzordr[j],16,false,__LINE__,__FILE__);
-				}
-				outphi0dzordr[i] << tmpphi0dzordr[0].str() << tmpphi0dzordr[1].str()
-								 << tmpphi0dzordr[2].str() << tmpphi0dzordr[3].str()
-								 << endl;
-				
-				FPGAWord tmptdphi[4];
-				for (unsigned int j = 0; j < 4; ++j) {
-					if (itmptdphi[j]>(1<<13)) itmptdphi[j]=(1<<13)-1;
-					tmptdphi[j].set(itmptdphi[j],14,false,__LINE__,__FILE__);
-				}
-				outtdphi[i] << tmptdphi[0].str() << tmptdphi[1].str()
-							<< tmptdphi[2].str() << tmptdphi[3].str()
-							<< endl;
-				
-				FPGAWord tmptdzordr[4];
-				for (unsigned int j = 0; j < 4; ++j) {
-					if (itmptdzordr[j]>(1<<15)) itmptdzordr[j]=(1<<15)-1;
-					tmptdzordr[j].set(itmptdzordr[j],16,false,__LINE__,__FILE__);
-				}
-				outtdzordr[i] << tmptdzordr[0].str() << tmptdzordr[1].str()
-							  << tmptdzordr[2].str() << tmptdzordr[3].str()
-							  << endl;
-			
-				FPGAWord tmpz0dphi[4];
-				for (unsigned int j = 0; j < 4; ++j) {
-					if (itmpz0dphi[j]>(1<<13)) itmpz0dphi[j]=(1<<13)-1;
-					tmpz0dphi[j].set(itmpz0dphi[j],14,false,__LINE__,__FILE__);
-				}
-				outz0dphi[i] << tmpz0dphi[0].str() << tmpz0dphi[1].str()
-							 << tmpz0dphi[2].str() << tmpz0dphi[3].str()
-							 << endl;
-				
-				FPGAWord tmpz0dzordr[4];
-				for (unsigned int j = 0; j < 4; ++j) {
-					if (itmpz0dzordr[j]>(1<<15)) itmpz0dzordr[j]=(1<<15)-1;
-					tmpz0dzordr[j].set(itmpz0dzordr[j],16,false,__LINE__,__FILE__);
-				}
-				outz0dzordr[i] << tmpz0dzordr[0].str() << tmpz0dzordr[1].str()
-							   << tmpz0dzordr[2].str() << tmpz0dzordr[3].str()
-							   << endl;
-								
-			} // end of seeding loop
-			
-			
-		} // end of derivatives_ loop
-
-		// close files
-		for (unsigned int i = 0; i < 6; ++i) {
-			outrinvdphi[i].close();
-			outrinvdzordr[i].close();
-			outphi0dphi[i].close();
-			outphi0dzordr[i].close();
-			outtdphi[i].close();
-			outtdzordr[i].close();
-			outz0dphi[i].close();
-			outz0dzordr[i].close();
-		}
-		
-	} // end of if(writeFitDerTable)
-	// --------------------------------------------------------
 
   }
 
@@ -1164,7 +632,7 @@ public:
 	iMinvDt[2][2*i]=(1<<fittbitshift)*MinvDt[2][2*i]*kphi1/ktpars;
 	iMinvDt[3][2*i]=(1<<fitz0bitshift)*MinvDt[3][2*i]*kphi1/kzpars;
 
-	if (rnew[i]<60.0) {
+	if (rnew[i]<57.0) {
 	  MinvDt[0][2*i+1]/=sigmaz;
 	  MinvDt[1][2*i+1]/=sigmaz;
 	  MinvDt[2][2*i+1]/=sigmaz;
@@ -1191,7 +659,7 @@ public:
       else {
 
 
-	if (fabs(alpha[i-nlayers])<1e-10) {
+	if (fabs(alpha[i])<1e-10) {
 	  MinvDt[0][2*i]*=(rnew[i]/sigmax);
 	  MinvDt[1][2*i]*=(rnew[i]/sigmax);
 	  MinvDt[2][2*i]*=(rnew[i]/sigmax);
@@ -1212,7 +680,7 @@ public:
 	iMinvDt[2][2*i]=(1<<fittbitshift)*MinvDt[2][2*i]*kphiprojdisk/ktparsdisk;
 	iMinvDt[3][2*i]=(1<<fitz0bitshift)*MinvDt[3][2*i]*kphiprojdisk/kzdisk;
 
-	if (alpha[i-nlayers]==0.0) {
+	if (alpha[i]==0.0) {
 	  MinvDt[0][2*i+1]/=sigmaz;
 	  MinvDt[1][2*i+1]/=sigmaz;
 	  MinvDt[2][2*i+1]/=sigmaz;

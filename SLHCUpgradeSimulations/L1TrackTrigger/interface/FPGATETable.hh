@@ -44,8 +44,7 @@ public:
 	    int i1,
 	    int i2,
 	    int j1,
-	    int j2,
-	    double thez0cut
+	    int j2
 	    ) {
 
     //cout << "In FPGATETable::init()"<<endl;
@@ -274,9 +273,9 @@ public:
 		     <<z0<<endl;
 	      }
 	      */
-	      if (fabs(z0)<thez0cut) center=true;
-	      if (z0<-thez0cut) below=true;
-	      if (z0>thez0cut) above=true;
+	      if (fabs(z0)<15.0) center=true;
+	      if (z0<-15.0) below=true;
+	      if (z0>15.0) above=true;
 	    }
 	  }
 	}
@@ -335,7 +334,7 @@ public:
       FPGAWord entry;
       //cout << "ztablebits_ : "<<ztablebits_<<endl;
       entry.set(i,ztablebits_);
-      out <<tablez_[i]<<endl;
+      out << entry.str()<<" "<<tablez_[i]<<endl;
     }
     out.close();
       

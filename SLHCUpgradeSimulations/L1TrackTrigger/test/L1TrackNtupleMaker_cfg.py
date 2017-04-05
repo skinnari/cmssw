@@ -30,22 +30,29 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgradePLS3', '')
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1000))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(200))
 Source_Files = cms.untracked.vstring(
-    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/04F2D7A8-4D9E-E611-93C2-00266CFFC948.root",
-    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/063FD7BE-4D9E-E611-B688-047D7B881D40.root",
-    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/064A07F6-769E-E611-A389-6CC2173BC1A0.root",
-    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/06CB7BED-4D9E-E611-8B74-0025907DCA72.root",
-    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/06EED2D7-4D9E-E611-B291-0025907FD2DC.root",
-    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/08D3BAA4-4D9E-E611-8D4A-AC162DACC3F8.root",
-    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/08F5A858-4D9E-E611-8DFC-E41D2D08DDE0.root",
-    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/0A5DE411-4E9E-E611-A83E-00266CFFC7B0.root",
-    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/0A63DDD8-699E-E611-8A36-008CFA052C0C.root",
-    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/0AF38CA6-4D9E-E611-8B10-00266CFFCD50.root"    
+#    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/MuGunFlatPt8to100/GEN-SIM-DIGI-RAW/DES23_62_V1-v2/60000/BABE9D93-80AB-E611-A348-0025905A60A6.root",
+#    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/MuGunFlatPt8to100/GEN-SIM-DIGI-RAW/DES23_62_V1-v2/60000/BE20831B-80AB-E611-9E99-FA163E9B36F5.root",
+#    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/MuGunFlatPt8to100/GEN-SIM-DIGI-RAW/DES23_62_V1-v2/60000/C66D15DE-80AB-E611-8415-0CC47A7E6A4E.root",
+    
+#    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/06CB7BED-4D9E-E611-8B74-0025907DCA72.root",
+#    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/06EED2D7-4D9E-E611-B291-0025907FD2DC.root",
+#    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/04F2D7A8-4D9E-E611-93C2-00266CFFC948.root",
+#    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/063FD7BE-4D9E-E611-B688-047D7B881D40.root",
+#    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/064A07F6-769E-E611-A389-6CC2173BC1A0.root",
+#    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/08D3BAA4-4D9E-E611-8D4A-AC162DACC3F8.root",
+#    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/08F5A858-4D9E-E611-8DFC-E41D2D08DDE0.root",
+#    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/0A5DE411-4E9E-E611-A83E-00266CFFC7B0.root",
+#    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/0A63DDD8-699E-E611-8A36-008CFA052C0C.root",
+#    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/0AF38CA6-4D9E-E611-8B10-00266CFFCD50.root"    
+
+    "root://xrootd.unl.edu//store/mc/TTI2023Upg14D/PYTHIA6_Tauola_TTbar_TuneZ2star_14TeV/GEN-SIM-DIGI-RAW/PU200_DES23_62_V1-v1/110000/004C20AB-4D9E-E611-AE77-00266CFFBDAC.root"
     )
 process.source = cms.Source("PoolSource", fileNames = Source_Files)
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('ntuple_ttbar_PU200.root'), closeFileFast = cms.untracked.bool(True))
+#process.TFileService = cms.Service("TFileService", fileName = cms.string('ntuple_ttbar_PU200_nodupl.root'), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string('ntuple_ttbar_PU200_2gev.root'), closeFileFast = cms.untracked.bool(True))
 
 
 ############################################################
@@ -61,9 +68,9 @@ process.TTAssociator_step = cms.Path(process.TrackTriggerAssociatorTracks)
 # run tracklet integer emulation instead 
 process.TTTracksFromPixelDigisInteger = cms.EDProducer("L1FPGATrackProducer",
                                                        fitPatternFile  = cms.FileInPath('SLHCUpgradeSimulations/L1TrackTrigger/test/fitpattern.txt'),
-                                                       memoryModulesFile  = cms.FileInPath('SLHCUpgradeSimulations/L1TrackTrigger/test/memorymodules_full.dat'),
-                                                       processingModulesFile  = cms.FileInPath('SLHCUpgradeSimulations/L1TrackTrigger/test/processingmodules_full.dat'),
-                                                       wiresFile  = cms.FileInPath('SLHCUpgradeSimulations/L1TrackTrigger/test/wires_full.dat')
+                                                       memoryModulesFile  = cms.FileInPath('SLHCUpgradeSimulations/L1TrackTrigger/test/memorymodules_new.dat'),
+                                                       processingModulesFile  = cms.FileInPath('SLHCUpgradeSimulations/L1TrackTrigger/test/processingmodules_new.dat'),
+                                                       wiresFile  = cms.FileInPath('SLHCUpgradeSimulations/L1TrackTrigger/test/wires_new.dat')
 )
 process.TrackTriggerTTTracksInteger = cms.Sequence(process.BeamSpotFromSim*process.TTTracksFromPixelDigisInteger)
 process.TT_step_Integer = cms.Path(process.TrackTriggerTTTracksInteger)

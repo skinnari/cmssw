@@ -43,7 +43,7 @@ public:
       layer1_=name[4]-'0';
       z1_=name[12]-'0';
     }
-    if (name[3]=='F') {
+    if (name[3]=='D') {
       disk1_=name[4]-'0';
       r1_=name[12]-'0';
     }
@@ -51,16 +51,28 @@ public:
       disk1_=-(name[4]-'0');
       r1_=name[12]-'0';
     }
-    if (name[14]=='L') {
-      layer2_=name[15]-'0';
+    if (name[11]=='L') {
+      layer2_=name[12]-'0';
       z2_=name[23]-'0';
     }
-    if (name[14]=='F') {
-      disk2_=name[15]-'0';
+    if (name[11]=='D') {
+      disk2_=name[12]-'0';
       r2_=name[23]-'0';
     }
-    if (name[14]=='B') {
-      disk2_=-(name[15]-'0');
+    if (name[11]=='B') {
+      disk2_=-(name[12]-'0');
+      r2_=name[23]-'0';
+    }
+    if (name[12]=='L') {
+      layer2_=name[13]-'0';
+      z2_=name[23]-'0';
+    }
+    if (name[12]=='D') {
+      disk2_=name[13]-'0';
+      r2_=name[23]-'0';
+    }
+    if (name[12]=='B') {
+      disk2_=-(name[13]-'0');
       r2_=name[23]-'0';
     }
     
@@ -71,263 +83,6 @@ public:
     dct2_=name[17]-'0';
 
 
-    if (layer1_!=0 && layer2_!=0) {
-
-      int index=1000000*layer1_
-	+100000*dct1_
-	+10000*dct2_
-	+1000*phi1_
-	+100*phi2_
-	+10*z1_
-	+z2_;
-
-      static map<int, FPGATETable*> tetables_;
-
-      map<int, FPGATETable*>::iterator it=tetables_.find(index);
-
-      if (it!=tetables_.end()){
-	table_=it->second;
-      }
-      else {
-        // cout << "name : "<<name<<" "<<layer1_<<"/"<<disk1_<<" "<<dct1_<<" "
-      	//    <<phi1_<<" "<<z1_<<"/"<<r1_<<" _  "<<layer2_<<"/"<<disk2_<<" "
-        //    <<dct2_<<" "<<phi2_<<" "<<z2_<<"/"<<r2_<<endl;
-	// cout << "Building table for "<<getName()<<endl;
-      
-
-	int i1=phi1_;
-	int i2=phi2_;
-
-	int j1=(dct1_-1)*2+z1_-1;
-	int j2=(dct2_-1)*2+z2_-1;
-	
-	assert(i2==i1||i2==i1+1);
-	double phioffset=-0.5*(phimax_-phimin_)/3.0;
-	if (i2==i1+1) phioffset=-phioffset;
-
-	double thez0cut=z0cutL1;
-	if (layer1_==3) thez0cut=z0cutL3;
-	if (layer1_==5) thez0cut=z0cutL5;
-	
-	table_=new FPGATETable();
-	table_->init(3,3,4,3,
-		     4,4,2,2,
-		     (phimax_-phimin_)/3.0,
-		     phioffset,
-		     -zlength+j1*(2*zlength)/L1Nz,
-		     -zlength+(j1+1)*(2*zlength)/L1Nz,
-		     -zlength+j2*(2*zlength)/L2Nz,
-		     -zlength+(j2+1)*(2*zlength)/L2Nz,
-		     rmin[layer1_-1],
-		     rmin[layer1_-1]+2*drmax,
-		     rmin[layer2_-1],
-		     rmin[layer2_-1]+2*drmax,
-		     i1,
-		     i2,
-		     j1,
-		     j2,
-		     thez0cut);
-	
-	tetables_[index]=table_;
-
-	if(writeTETables){
-	  std::ostringstream oss;
-	  oss << "TETable_"<<getName();
-	  std::string fnamephi=oss.str();
-	  fnamephi+="_phi.dat";
-	  std::string fnamez=oss.str();
-	  fnamez+="_z.dat";
-	  table_->writephi(fnamephi);
-	  table_->writez(fnamez);
-	}
-
-      }
-    }
-
-
-
-
-    if (disk1_!=0 && disk2_!=0) {
-
-      int index=1000000*disk1_
-	+100000*dct1_
-	+10000*dct2_
-	+1000*phi1_
-	+100*phi2_
-	+10*r1_
-	+r2_;
-
-      static map<int, FPGATETableDisk*> tetablesdisk_;
-
-      map<int, FPGATETableDisk*>::iterator it=tetablesdisk_.find(index);
-
-      if (it!=tetablesdisk_.end()){
-	tabledisk_=it->second;
-      }
-      else {
-         // cout << "name : "<<name<<" "<<layer1_<<"/"<<disk1_<<" "<<dct1_<<" "
-      	 //   <<phi1_<<" "<<z1_<<"/"<<r1_<<" _  "<<layer2_<<"/"<<disk2_<<" "
-         //   <<dct2_<<" "<<phi2_<<" "<<z2_<<"/"<<r2_<<endl;
-
-	 // cout << "Building table for "<<getName()<<endl;
-      
-
-	assert(dct1_==5||dct1_==7);
-	assert(dct2_==5||dct2_==7);
-
-	int i1=phi1_;
-	int i2=phi2_;
-
-	int j1=r1_-1;
-	int j2=r2_-1;
-	
-	assert(i1==i2||i1==i2+1);
-	double phioffset=0.5*(phimax_-phimin_)/3.0;
-	if (i1==i2+1) phioffset=-phioffset;
-
-	int sign=1;
-	if (disk1_<0) sign=-1;
-
-	tabledisk_=new FPGATETableDisk();
-	if (disk1_>0) {
-	  tabledisk_->init(3,3,4,4,
-			   nzbitsdiskvm,nzbitsdiskvm,nrbitsdiskvm,nrbitsdiskvm,
-			   (phimax_-phimin_)/3.0,
-			   phioffset,
-			   sign*(zmean[abs(disk1_)-1]-dzmax),
-			   sign*(zmean[abs(disk1_)-1]+dzmax),
-			   sign*(zmean[abs(disk2_)-1]-dzmax),
-			   sign*(zmean[abs(disk2_)-1]+dzmax),
-			   rmindisk+j1*drdisk/L1Nr,
-			   rmindisk+(j1+1)*drdisk/L1Nr,
-			   rmindisk+j2*drdisk/L1Nr,
-			   rmindisk+(j2+1)*drdisk/L1Nr,
-			   i1,
-			   i2,
-			   j1,
-			   j2);
-	} else {
-	  tabledisk_->init(3,3,4,4,
-			   nzbitsdiskvm,nzbitsdiskvm,nrbitsdiskvm,nrbitsdiskvm,
-			   (phimax_-phimin_)/3.0,
-			   phioffset,
-			   sign*(zmean[abs(disk1_)-1]+dzmax),
-			   sign*(zmean[abs(disk1_)-1]-dzmax),
-			   sign*(zmean[abs(disk2_)-1]+dzmax),
-			   sign*(zmean[abs(disk2_)-1]-dzmax),
-			   rmindisk+j1*drdisk/L1Nr,
-			   rmindisk+(j1+1)*drdisk/L1Nr,
-			   rmindisk+j2*drdisk/L1Nr,
-			   rmindisk+(j2+1)*drdisk/L1Nr,
-			   i1,
-			   i2,
-			   j1,
-			   j2);
-	}
-
-	tetablesdisk_[index]=tabledisk_;
-
-	if(writeTETables){
-	  std::ostringstream oss;
-	  oss << "TETable_"<<getName();
-	  std::string fnamephi=oss.str();
-	  fnamephi+="_phi.dat";
-	  std::string fnamez=oss.str();
-	  fnamez+="_z.dat";
-	  tabledisk_->writephi(fnamephi);
-	  tabledisk_->writer(fnamez);
-	}
-
-      }
-    }
-
-
-
-
-
-    if (disk1_!=0 && layer2_!=0) {
-
-
-      assert(abs(disk1_)==1);
-      assert(layer2_==1||layer2_==2);
-
-      int index=10000000*disk1_
-	+1000000*layer2_
-	+100000*dct1_
-	+10000*dct2_
-	+1000*phi1_
-	+100*phi2_
-	+10*r1_
-	+z2_;
-
-      static map<int, FPGATETableOverlap*> tetablesoverlap_;
-
-      map<int, FPGATETableOverlap*>::iterator it=tetablesoverlap_.find(index);
-
-      if (it!=tetablesoverlap_.end()){
-	tableoverlap_=it->second;
-      }
-      else {
-        // cout << "name : "<<name<<" "<<layer1_<<"/"<<disk1_<<" "<<dct1_<<" "
-       	//    <<phi1_<<" "<<z1_<<"/"<<r1_<<" _  "<<layer2_<<"/"<<disk2_<<" "
-        //    <<dct2_<<" "<<phi2_<<" "<<z2_<<"/"<<r2_<<endl;     
-	// cout << "Building table for "<<getName()<<endl;
-
-
-	assert(dct1_==5||dct1_==7);
-	
-	int j1=r1_-1;
-	int j2=(dct2_-1)*2+z2_-1;
-
-	
-	int i1=phi1_;
-	int i2=phi2_;
-
-	assert(i1==i2||i1==i2+1);
-	double phioffset=0.5*(phimax_-phimin_)/3.0;
-	if (i1==i2+1) phioffset=-phioffset;
-	assert(layer2_==1); //have not debugged layer2_==2!
-	if (layer2_==2) phioffset=0.0; //both have four phi divisions
-	
-	int sign=1;
-	if (disk1_<0) sign=-1;
-
-	tableoverlap_=new FPGATETableOverlap();
-	tableoverlap_->init(3,3,4,3,
-			    nrbitsdiskvm,nzbitsdiskvm,4,2,
-			    (phimax_-phimin_)/3.0,
-			    phioffset,
-			    rmindisk+j1*drdisk/L1Nr,
-			    rmindisk+(j1+1)*drdisk/L1Nr,
-			    sign*(zmean[abs(disk1_)-1]-dzmax),
-			    sign*(zmean[abs(disk1_)-1]+dzmax),
-			    -zlength+j2*(2*zlength)/L2Nz,
-			    -zlength+(j2+1)*(2*zlength)/L2Nz,
-			    rmin[layer2_-1],
-			    rmin[layer2_-1]+2*drmax,
-			    i1,
-			    i2,
-			    j1,
-			    j2);
-	
-	tetablesoverlap_[index]=tableoverlap_;
-	if(writeTETables){
-	  std::ostringstream oss;
-	  oss << "TETable_"<<getName();
-	  std::string fnamephi=oss.str();
-	  fnamephi+="_phi.dat";
-	  std::string fnamez=oss.str();
-	  fnamez+="_z.dat";
-	  tableoverlap_->writephi(fnamephi);
-	  tableoverlap_->writer(fnamez);
-	}
-
-      }
-    }
-
-
-
-    
   }
 
   void addOutput(FPGAMemoryBase* memory,string output){
@@ -350,13 +105,13 @@ public:
 	   << " to input "<<input<<endl;
     }
     if (input=="innervmstubin") {
-      FPGAVMStubs* tmp=dynamic_cast<FPGAVMStubs*>(memory);
+      FPGAVMStubsTE* tmp=dynamic_cast<FPGAVMStubsTE*>(memory);
       assert(tmp!=0);
       innervmstubs_=tmp;
       return;
     }
     if (input=="outervmstubin") {
-      FPGAVMStubs* tmp=dynamic_cast<FPGAVMStubs*>(memory);
+      FPGAVMStubsTE* tmp=dynamic_cast<FPGAVMStubsTE*>(memory);
       assert(tmp!=0);
       outervmstubs_=tmp;
       return;
@@ -366,6 +121,8 @@ public:
   }
 
   void execute() {
+
+    //cout << getName()<<" "<<disk1_<<" "<<disk2_<<endl;
     
     if (!((doL1L2&&(layer1_==1)&&(layer2_==2))||
 	  (doL3L4&&(layer1_==3)&&(layer2_==4))||
@@ -375,10 +132,9 @@ public:
 	  (doB1B2&&(disk1_==-1)&&(disk2_==-2))||
 	  (doB3B4&&(disk1_==-3)&&(disk2_==-4))||
 	  (doL1F1&&(disk1_==1)&&(layer2_==1))||
-	  //(doL2F1&&(disk1_==1)&&(layer2_==2))||
-	  (doL1B1&&(disk1_==-1)&&(layer2_==1))
-	  //(doL2B1&&(disk1_==-1)&&(layer2_==2))
-	  )) return;
+	  (doL2F1&&(disk1_==1)&&(layer2_==2))||
+	  (doL1B1&&(disk1_==-1)&&(layer2_==1))||
+	  (doL2B1&&(disk1_==-1)&&(layer2_==2)))) return;
 
     
 
@@ -390,13 +146,18 @@ public:
     //if (getName().substr(0,5)!="TE_L1") return;
 
    
-    //cout << "In FPGATrackletEngine::execute : "<<getName()<<endl;
-    //cout <<" "<<innervmstubs_->nStubs()
-    // 	 <<" "<<outervmstubs_->nStubs()
-    //	 <<endl;
 
     unsigned int countall=0;
     unsigned int countpass=0;
+
+    bool print=false&&(getName()=="TE_L1PHIC7_L2PHIC5");
+
+    if (print) {
+      cout << "In FPGATrackletEngine::execute : "<<getName()
+	   <<" "<<innervmstubs_->nStubs()
+	   <<" "<<outervmstubs_->nStubs()
+	   <<endl;
+    }
 
     //cout << "layer/disk : "<<layer1_<<" "<<layer2_<<" "
     //	 <<disk1_<<" "<<disk2_<<endl;
@@ -405,209 +166,231 @@ public:
     assert(outervmstubs_!=0);
     for(unsigned int i=0;i<innervmstubs_->nStubs();i++){
       std::pair<FPGAStub*,L1TStub*> innerstub=innervmstubs_->getStub(i);
+      if (debug1) {
+	cout << "In "<<getName()<<" have inner stub"<<endl;
+      }
       for(unsigned int j=0;j<outervmstubs_->nStubs();j++){
 	std::pair<FPGAStub*,L1TStub*> outerstub=outervmstubs_->getStub(j);
-	if (countall>=MAXTE) break;
 	countall++;
+
+	
 	if (layer1_!=0 && layer2_!=0) {
-	  assert(table_!=0);
-
+	  
 	  if (debug1) {
-	    cout << "In FPGATrackletEngine::execute : "<<getName()
-		 <<" has stub pair in barrel seeding"<<endl;
-	  }
-	    
-	  int istubpt1=innerstub.first->stubpt().value();
-	  int iphivm1=innerstub.first->phivm().value();
-	  FPGAWord iphi1=innerstub.first->phi();
-	  FPGAWord iz1=innerstub.first->z();
-	  FPGAWord ir1=innerstub.first->r();
-	  int irvm1=innerstub.first->rvm().value();
-	  int izvm1=innerstub.first->zvm().value();
-
-	  int istubpt2=outerstub.first->stubpt().value();
-	  int iphivm2=outerstub.first->phivm().value();
-	  FPGAWord iphi2=outerstub.first->phi();
-	  FPGAWord iz2=outerstub.first->z();
-	  FPGAWord ir2=outerstub.first->r();
-	  int irvm2=outerstub.first->rvm().value();
-	  int izvm2=outerstub.first->zvm().value();
-
-	  int ideltaphi=(iphivm2-iphivm1) & 15;
-	  int ideltar=(irvm2-irvm1) & 7;
-
-	  //cout << "ideltar irvm2 irvm1 : "
-	  //     <<ideltar<<" "<<irvm2<<" "<<irvm1<<endl;
-
-	  int urvm1 = irvm1 &3;
-	  int urvm2 = irvm2 &3;
-
-	  assert(istubpt1>=0);
-	  assert(istubpt2>=0);
-
-
-	  int address=(istubpt1<<10)+(istubpt2<<7)+(ideltaphi<<3)+ideltar;
-	  int zaddress=(izvm1<<8)+(izvm2<<4)+(urvm1<<2)+urvm2;
-
-	  //cout << "phi address : "<<hex<<address<<dec<<endl;
-
-	  bool phimatch=table_->phicheck(address);
-	  bool zmatch=table_->zcheck(zaddress);
-
-
-	  if (debug1) {
-	    cout <<getName()<<" layer matches "<<layer1_<<"  "
-		 <<phimatch<<" (0x"<<hex<<address<<dec<<")  "
-		 <<zmatch<<" (0x"<<hex<<zaddress<<dec<<")"
-		 <<endl;
+	    cout << "In "<<getName()<<" have barrel candidate stub pair"<<endl;
 	  }
 
-	  if (!(phimatch&&zmatch)) {
-	    //cout << "Failed TE table "<<phimatch<<" "<<zmatch<<endl;
+	  
+	  double r1=innerstub.second->r();
+	  double z1=innerstub.second->z();
+	  
+	  double r2=outerstub.second->r();
+	  double z2=outerstub.second->z();
+
+	  double z2avg=z1*r2/r1;
+
+	  //cout << "z2avg z1 z2 : "<<z2avg<<" "<<z1<<" "<<z2<<endl;
+	  
+	  if (fabs(z2avg-z2)>30.0) {
+	    countall--; //undo the count since in the proper implementation this will be binned
 	    continue;
 	  }
+	  
+	  double z0=z1-(z1-z2)*r1/(r1-r2);
+
+	  //cout << "z0 : "<<z0<<endl;
+
+	  
+	  if (layer1_==1&&fabs(z0)>20.0) continue;
+	  if (layer1_==3&&fabs(z0)>30.0) continue;
+	  if (layer1_==5&&fabs(z0)>40.0) continue;
+	  
+	  //cout << "FPGATrackletEngine z0 = "<<z0<<endl;
+
+	  double rinv=2*sin(outerstub.second->phi()-innerstub.second->phi())/
+	    (innerstub.second->r()-outerstub.second->r());
+
+	  double pt=0.00299792*3.8/rinv;
+
+	  if (fabs(pt)<ptcut-0.3) continue;
+	  
+	  double pt1=innerstub.second->pt();
+	  double pt2=outerstub.second->pt();
+	  
+	  if (fabs(1.0/pt-1.0/pt1)>teptconsistency||
+	      fabs(1.0/pt-1.0/pt2)>teptconsistency) {
+	    if (debug1) {
+	      cout << "FPGATrackletEngine Rejected1 pt pt1 pt2 : "<<pt<<" "
+		   <<pt1<<" "<<pt2<<endl;
+	    }
+	    continue;
+	  }
+
 
 	} else if (disk1_!=0 && disk2_!=0) {
-	  assert(tabledisk_!=0);
 	  
-	  //cout << "disk trying "
-	  //     <<innerstub.second->phi()<<" "
-	  //     <<innerstub.second->r()<<" "
-	  //     <<outerstub.second->phi()<<" "
-	  //     <<outerstub.second->r()<<" "
-	  //     <<2*sin(outerstub.second->phi()-innerstub.second->phi())/
-	  //  (innerstub.second->r()-outerstub.second->r())<<endl;
+	  if (debug1) {
+	    cout << "In "<<getName()<<" have endcap candidate stub pair"<<endl;
+	  }
 
+	  double z1=innerstub.second->z();
+	  double z2=outerstub.second->z();
 
-	  int istubpt1=innerstub.first->stubpt().value();
-	  int iphivm1=innerstub.first->phivm().value();
-	  FPGAWord iphi1=innerstub.first->phi();
-	  FPGAWord iz1=innerstub.first->z();
-	  FPGAWord ir1=innerstub.first->r();
-	  int irvm1=innerstub.first->rvm().value();
-	  int izvm1=innerstub.first->zvm().value();
-
-	  int istubpt2=outerstub.first->stubpt().value();
-	  int iphivm2=outerstub.first->phivm().value();
-	  FPGAWord iphi2=outerstub.first->phi();
-	  FPGAWord iz2=outerstub.first->z();
-	  FPGAWord ir2=outerstub.first->r();
-	  int irvm2=outerstub.first->rvm().value();
-	  int izvm2=outerstub.first->zvm().value();
-
-          int ideltar=irvm2-irvm1;
-          ideltar>>=2;
-          ideltar = ideltar & 15;
-
-          int ideltaphi=iphivm2-iphivm1;
-          ideltaphi = ideltaphi & 15;
-
-          assert(istubpt1>=0);
-          assert(istubpt2>=0);
-
-	  int address=(istubpt1<<11)+(istubpt2<<8)+(ideltaphi<<4)+ideltar;
-
-	  bool phimatch=tabledisk_->phicheck(address);
-	  bool zmatch=tabledisk_->zcheck(izvm1,izvm2,irvm1,irvm2);
-
-	  //cout << "disk " << getName()<<" "<<ideltaphi<<" "<<ideltar 
-	  //     <<" "<<irvm1<<" "<<irvm2<<" "<<outerstub.first->rvm().nbits()
-	  //     <<endl;
-	  //cout << "disk matches "<<address<<" "<<disk1_<<" "<<phimatch<<" "<<zmatch<<endl;
-
-	  //if (!phimatch) continue;
-
-	  if (!(phimatch&&zmatch)) continue;
-
-	  //cout << "FPGATrackletEngine::execute found stub pair in disks"<<endl;
-
-	} else if (disk1_!=0 && layer2_!=0) {
-
-
-	  //cout << "overlap trying "
-	  //     <<innerstub.second->phi()<<" "
-	  //     <<innerstub.second->r()<<" "
-	  //     <<outerstub.second->phi()<<" "
-	  //     <<outerstub.second->r()<<" "
-	  //     <<2*sin(outerstub.second->phi()-innerstub.second->phi())/
-	  //       (innerstub.second->r()-outerstub.second->r())<<endl;
-
-
-
-      
-	  assert(tableoverlap_!=0);
-
-	  //disk
-	  int istubpt1=innerstub.first->stubpt().value();
-	  int iphivm1=innerstub.first->phivm().value();
-	  FPGAWord iphi1=innerstub.first->phi();
-	  FPGAWord iz1=innerstub.first->z();
-	  FPGAWord ir1=innerstub.first->r();
-	  int irvm1=innerstub.first->rvm().value();
-	  int izvm1=innerstub.first->zvm().value();
-
-	  assert(innerstub.first->rvm().nbits()==5);
-
-	  //barrel
-	  int istubpt2=outerstub.first->stubpt().value();
-	  int iphivm2=outerstub.first->phivm().value();
-	  FPGAWord iphi2=outerstub.first->phi();
-	  FPGAWord iz2=outerstub.first->z();
-	  FPGAWord ir2=outerstub.first->r();
-	  int irvm2=outerstub.first->rvm().value();
-	  int izvm2=outerstub.first->zvm().value();
-
-	  //cout << "outerstub.first->rvm().nbits() : "
-	  //     << outerstub.first->rvm().nbits()<<endl;
-
-	  assert(outerstub.first->rvm().nbits()==2);
-
-	  
-	  int ideltaphi=iphivm2-iphivm1; //phivm has 3 bits in both disk and barrel
-
-	  //cout << "overlap phi :"<<ideltaphi<<" "<<iphivm2<<" "<<iphivm1<<endl;
-
-          // disk has 5 bits (unsigned), barrel has 2 bits (signed), 
-          // need to fit the difference into 3 bits
-          // 
-          //int ideltar=(irvm1>>2)-(irvm2>>1);  
-          // (irvm2>>1) can be 0 or -1. Add 1 so it's 1 or 0.
-          int ideltar = (irvm1>>2)-((irvm2>>1)+1);
-          if (ideltar<0) ideltar=0; // so ideltar now is between 7 and 0.
-          assert (ideltar < 8);
-
-          //cout << "overlap :"<<ideltar<<" "<<irvm2<<" "<<irvm1<<endl;
-
-          ideltaphi = ideltaphi & 15;
-
-          assert(istubpt1>=0);
-          assert(istubpt2>=0);
-
-	  int address=(istubpt1<<10)+(istubpt2<<7)+(ideltaphi<<3)+ideltar;
-
-	  bool phimatch=tableoverlap_->phicheck(address);
-	  bool zmatch=tableoverlap_->zcheck(izvm1,izvm2,irvm1,irvm2);
-
-	  //cout << "overlap matches "<<getName()<<" "<<disk1_<<" "<<layer2_
-	  //     <<" "<<phimatch<<" "<<zmatch
-	  //     <<" | "<<address<<" "<<istubpt1<<" "<<istubpt2
-	  //     <<" "<<ideltaphi<<" "<<ideltar<<endl;
-
-	  if (!(phimatch&&zmatch)) {
-	    //cout << "Failed : "<<phimatch<<" "<<zmatch<<endl;
+	  if (z1*z2<0.0) {
+	    countall--; //undo the count since in the proper implementation this will be binned
 	    continue;
 	  }
 
-	  //cout << "FPGATrackletEngine::execute found stub pair in overlap"<<endl;
+	  double r1=innerstub.second->r();
+	  double r2=outerstub.second->r();
 
+	  double rproj=(r1/z1)*z2;
+
+	  if (fabs(r2-rproj)>5.0) {
+	    if (debug1) {
+	      cout << "FPGATrackletEngine failed rproj cut"<<endl;
+	    }
+	    countall--; //undo the count since in the proper implementation this will be binned
+	    continue;
+	  }
+
+	  double z0=z1-(z1-z2)*r1/(r1-r2);
+
+	  if (fabs(z0)>25.0) {
+	    if (debug1) {
+	      cout << "FPGATrackletEngine failed z0 cut"<<endl;
+	    }
+	    continue;
+	  }
+	  
+	  //cout << "FPGATrackletEngine z0 = "<<z0<<endl;
+
+	  double rinv=2*sin(outerstub.second->phi()-innerstub.second->phi())/
+	    (innerstub.second->r()-outerstub.second->r());
+
+	  double pt=0.00299792*3.8/rinv;
+
+	  if (fabs(pt)<ptcut-0.3) {
+	    if (debug1) {
+	      cout << "FPGATrackletEngine failed min pt cut"<<endl;
+	    }
+	    continue;
+	  }
+	    
+	  //cout << "pt = "<<pt<<endl;
+	  
+	  double pt1=innerstub.second->pt();
+	  double pt2=outerstub.second->pt();
+
+	  if (z1<0) {   //HACK
+	    pt1=-pt1;
+	    pt2=-pt2;
+	  }
+
+	  
+	  if (fabs(1.0/pt-1.0/pt1)>teptconsistencydisk||
+	      fabs(1.0/pt-1.0/pt2)>teptconsistencydisk) {
+	    if (debug1) {
+	      cout << "FPGATrackletEngine Rejected2 pt pt1 pt2 : "
+		   <<pt<<" "<<pt1<<" "<<pt2<<endl;
+	    }
+	    continue;
+	  }
+
+	} else if (disk1_!=0 && layer2_!=0) {
+	  
+	  if (debug1) {
+	    cout << "In "<<getName()<<" have overlap candidate stub pair"<<endl;
+	  }
+
+
+	  double z1=innerstub.second->z();
+	  
+	  double z2=outerstub.second->z();
+
+	  //cout << "z1 = "<<z1<<endl;
+	  //cout << "r1 = "<<innerstub.second->r()<<endl;
+
+	  //cout << "z2 = "<<z2<<endl;
+	  //cout << "r2 = "<<outerstub.second->r()<<endl;
+	  
+	  //if (fabs(z2)<57.0) {
+	  //  countall--; //undo the count since in the proper implementation only stubs in correct z range will be includes
+	  //  continue;
+	  //}
+
+	  
+	  if (z1*z2<0.0) {
+	    countall--; //undo the count since in the proper implementation this will be binned
+	    continue;
+	  }
+
+
+	  double r1=innerstub.second->r();
+	  
+	  double r2=outerstub.second->r();
+
+	  if (fabs(r1)>42.0&&layer2_==1) {
+	    countall--; //undo the count since in the proper implementation only stubs in correct z range will be includes
+	    continue;
+	  }
+
+	  
+	  if (r2>r1) continue;
+
+	  double rproj=(r2/z2)*z1;
+
+	  if (fabs(r1-rproj)>5.0) {
+	    countall--; //undo the count since in the proper implementation this will be binned
+	    continue;
+	  }
+
+
+	  double z0=z1-(z1-z2)*r1/(r1-r2);
+
+	  if (fabs(z0)>25.0) continue;
+
+	  
+	  //cout << "FPGATrackletEngine z0 = "<<z0<<endl;
+
+	  double rinv=2*sin(outerstub.second->phi()-innerstub.second->phi())/
+	    (innerstub.second->r()-outerstub.second->r());
+
+	  double pt=0.00299792*3.8/rinv;
+
+	  if (fabs(pt)<ptcut-0.3) continue;
+	  
+	  double pt1=innerstub.second->pt();
+	  double pt2=outerstub.second->pt();
+	  
+	  if (z1<0) {   //HACK
+	    pt1=-pt1;
+	  }
+
+	  
+	  if (fabs(1.0/pt-1.0/pt1)>teptconsistencyoverlap||
+	      fabs(1.0/pt-1.0/pt2)>teptconsistencyoverlap) {
+	    if (debug1) {
+	      cout << "FPGATrackletEngine Rejected3 pt pt1 pt2 : "<<pt<<" "
+		   <<pt1<<" "<<pt2<<endl;
+	    }
+	    continue;
+	  }
+
+	  if (debug1) {
+	    cout << "Found overlap stub pair "<<getName()<<endl;
+	  }
+	    
 	} else {
 	  assert(0);
 	}
 
-	//cout << "Adding stub pair in "<<getName()<<endl;
+	if (debug1) {
+	  cout << "Adding stub pair in "<<getName()<<endl;
+	}
 	assert(stubpairs_!=0);
 	countpass++;
-	//cout << "Adding stub pair"<<endl;
+	//cout << "FPGATrackletEngine : "<<getName()<<" Adding stub pair"<<endl;
 	stubpairs_->addStubPair(innerstub,outerstub);
 
 	if (countall>=MAXTE) break;
@@ -615,6 +398,32 @@ public:
       if (countall>=MAXTE) break;
     }
 
+    if (countall>5000) {
+      cout << "In FPGATrackletEngine::execute : "<<getName()
+	   <<" "<<innervmstubs_->nStubs()
+	   <<" "<<outervmstubs_->nStubs()
+	   <<" "<<countall<<" "<<countpass
+	   <<endl;
+      for(unsigned int i=0;i<innervmstubs_->nStubs();i++){
+	std::pair<FPGAStub*,L1TStub*> innerstub=innervmstubs_->getStub(i);
+	cout << "In FPGATrackletEngine::execute inner stub : "
+	     << innerstub.second->r()<<" "
+	     << innerstub.second->phi()<<" "
+	     << innerstub.second->r()*innerstub.second->phi()<<" "
+	     << innerstub.second->z()<<endl;
+      }
+      for(unsigned int i=0;i<outervmstubs_->nStubs();i++){
+	std::pair<FPGAStub*,L1TStub*> outerstub=outervmstubs_->getStub(i);
+	cout << "In FPGATrackletEngine::execute outer stub : "
+	     << outerstub.second->r()<<" "
+	     << outerstub.second->phi()<<" "
+	     << outerstub.second->r()*outerstub.second->phi()<<" "
+	     << outerstub.second->z()<<endl;
+      }
+
+    }
+
+    
     if (writeTE) {
       static ofstream out("trackletengine.txt");
       out << getName()<<" "<<countall<<" "<<countpass<<endl;
@@ -628,8 +437,7 @@ private:
   double phimin_;
 
   FPGATETable* table_;
-  FPGATETableDisk* tabledisk_;
-  FPGATETableOverlap* tableoverlap_;
+
   int layer1_;
   int layer2_;
   int disk1_;
@@ -643,8 +451,8 @@ private:
   int r1_;
   int r2_;
 
-  FPGAVMStubs* innervmstubs_;
-  FPGAVMStubs* outervmstubs_;
+  FPGAVMStubsTE* innervmstubs_;
+  FPGAVMStubsTE* outervmstubs_;
 
   FPGAStubPairs* stubpairs_;
 

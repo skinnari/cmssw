@@ -24,10 +24,6 @@ public:
 
   unsigned int nTracks() const {return tracks_.size();}
 
-  FPGATracklet* getTrack(unsigned int i) const {
-    return tracks_[i];
-  }
-  
   void clean() {
     //cout << "Cleaning tracks : "<<tracks_.size()<<endl;
     tracks_.clear();
@@ -90,7 +86,7 @@ public:
   }
   void writeTF(bool first) {
 
-    std::string fname="./MemPrints/TrackFit/TrackFit_";
+    std::string fname="TrackFit_";
     fname+=getName();
     fname+="_";
     ostringstream oss;

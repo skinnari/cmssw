@@ -282,7 +282,7 @@ public:
       FPGAWord entry;
       //cout << "ztablebits_ : "<<ztablebits_<<endl;
       entry.set(i,ztablebits_);
-      out <<tablez_[i]<<endl;
+      out << entry.str()<<" "<<tablez_[i]<<endl;
     }
       
     out.close();

@@ -16,13 +16,7 @@ public:
     FPGAMemoryBase(name,iSector){
     phimin_=phimin;
     phimax_=phimax;
-    string subname=name.substr(name.size()-4,2);
-    if (!(subname[0]=='L'||subname[0]=='F'||subname[0]=='B')) {
-      subname=name.substr(name.size()-2,2);
-    }
-    if (!(subname[0]=='L'||subname[0]=='F'||subname[0]=='B')) {
-      subname=name.substr(name.size()-10,2);
-    }
+    string subname=name.substr(7,2);
     layer_ = 0;
     disk_  = 0;
     if (subname=="L1") layer_=1;
@@ -31,6 +25,11 @@ public:
     if (subname=="L4") layer_=4;
     if (subname=="L5") layer_=5;
     if (subname=="L6") layer_=6;
+    if (subname=="D1") disk_=1;
+    if (subname=="D2") disk_=2;
+    if (subname=="D3") disk_=3;
+    if (subname=="D4") disk_=4;
+    if (subname=="D5") disk_=5;
     if (subname=="F1") disk_=1;
     if (subname=="F2") disk_=2;
     if (subname=="F3") disk_=3;
@@ -57,9 +56,10 @@ public:
   FPGATracklet* getFPGATracklet(unsigned int i) const {return tracklets_[i].first;}
 
   void writeVMPROJ(bool first) {
+
     //cout << "In writeTPROJ "<<tracklets_.size()<<"\t"<<name_<<" "<<layer_<<" "<<disk_<<endl;
 
-    std::string fname="./MemPrints/VMProjections/VMProjections_";
+    std::string fname="VMProjections_";
     fname+=getName();
     //get rid of duplicates
     int len = fname.size();
@@ -79,16 +79,17 @@ public:
     else
       out_.open(fname.c_str(),std::ofstream::app);
 
-
     out_ << "BX = "<<(bitset<3>)bx_ << " Event : " << event_ << endl;
+
     for (unsigned int j=0;j<tracklets_.size();j++){
       string vmproj=(layer_>0)? tracklets_[j].first->vmstrlayer(layer_,tracklets_[j].second)
-	: tracklets_[j].first->vmstrdisk(disk_,tracklets_[j].second);
+	: tracklets_[j].first->vmstrlayer(disk_,tracklets_[j].second);
       if (j<16) out_ <<"0";
       out_ << hex << j << dec ;
       out_ <<" "<<vmproj<< endl;
     }
     out_.close();
+
     bx_++;
     event_++;
     if (bx_>7) bx_=0;
