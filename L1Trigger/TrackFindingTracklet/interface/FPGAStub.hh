@@ -24,6 +24,8 @@ public:
 
   FPGAStub(const L1TStub& stub,double phiminsec, double phimaxsec) {
 
+    //cout << "FPGASTub : making stub"<<endl;
+    
     double r=stub.r();
     double z=stub.z();
     double ptinv=1.0/stub.pt();
@@ -161,9 +163,15 @@ public:
 
       //cout << "phi phimin phimax : "<<stubphi_<<" "<<phiminsec
       //	   <<" "<<phimaxsec<<endl;
-      
-      int iphi=(1<<iphibits)*(0.125+0.75*(stubphi_-phiminsec)/(phimaxsec-phiminsec));
 
+      double deltaphi=stubphi_-phiminsec;
+      if (deltaphi>0.5*two_pi) deltaphi-=two_pi;
+      
+      int iphi=(1<<iphibits)*(0.125+0.75*(deltaphi)/(phimaxsec-phiminsec));
+      
+      //double dphi=stubphi_-phiminsec+(phimaxsec-phiminsec)/6.0-iphi*kphi;
+
+      //cout << "FPGAStub: "<<deltaphi<<" "<<phiminsec<<" "<<phimaxsec<<" "<<kphi<<endl;
 
       phitmp_=stubphi_-phiminsec+(phimaxsec-phiminsec)/6.0;
 
@@ -310,8 +318,11 @@ public:
       int iphibits=nbitsphistubL123;
       //if (layer>=4) iphibits=nbitsphistubL456; //Need to figure out this...
       //cout << "phimax-phimin : "<<phimax-phimin<<" "<<two_pi/NSector<<endl;
+
+      double deltaphi=stubphi_-phiminsec;
+      if (deltaphi>0.5*two_pi) deltaphi-=two_pi;
       
-      int iphi=(1<<iphibits)*(0.125+0.75*(stubphi_-phiminsec)/(phimaxsec-phiminsec));
+      int iphi=(1<<iphibits)*(0.125+0.75*(deltaphi)/(phimaxsec-phiminsec));
 
       double rmin=rmindisk;
       double rmax=rmaxdisk;
@@ -430,7 +441,20 @@ public:
     
     std::ostringstream oss;
     oss << stubpt_.str()<<"|"<<r_.str()<<"|"
-	<< z_.str()<<"|"<< phi_.str();
+        << z_.str()<<"|"<< phi_.str();
+
+    return oss.str();
+
+  }
+  std::string strdisk() const {
+   
+    std::ostringstream oss;
+    if (isPSmodule())
+      oss << stubpt_.str()<<"||"<<r_.str()<<"|"
+          << z_.str()<<"|"<< phi_.str();
+    else
+      oss << stubpt_.str()<<"|"<<alpha_.str()<<"|0"<<r_.str()<<"|"
+          << z_.str()<<"|"<< phi_.str();
 
     return oss.str();
 

@@ -49,6 +49,9 @@ public:
       }
       fpgaphiprojvm_.set(iphivm,3,true,__LINE__,__FILE__);
       fpgazproj_.set(izproj,nbitszprojL123,false,__LINE__,__FILE__);
+      //if (fpgazproj_.atExtreme()) {
+      //	cout << "FPGALayerProjection fpgazproj at extreme (case1)" << endl;
+      //}
       int izvm=izproj>>(12-7)&0xf;
       fpgazprojvm_.set(izvm,4,true,__LINE__,__FILE__);
       fpgaphiprojder_.set(iphider,nbitsphiprojderL123,false,__LINE__,__FILE__);
@@ -61,6 +64,9 @@ public:
       }
       fpgaphiprojvm_.set(iphivm,3,true,__LINE__,__FILE__);
       fpgazproj_.set(izproj,nbitszprojL456,false,__LINE__,__FILE__);
+      //if (fpgazproj_.atExtreme()) {
+      //cout << "FPGALayerProjection fpgazproj at extreme (case2)" << endl;
+      //}
       int izvm=izproj>>(8-7)&0xf;
       fpgazprojvm_.set(izvm,4,true,__LINE__,__FILE__);
       fpgaphiprojder_.set(iphider,nbitsphiprojderL456,false,__LINE__,__FILE__);

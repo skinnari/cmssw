@@ -36,6 +36,8 @@ public:
       phimin-=dphi/6.0;
       phimax+=dphi/6.0;
     }
+    //cout << "FPGADTCLink::inRange phi : "<<phi
+    // 	 <<" phi min max "<<phimin<<" "<<phimax<<endl;
     return (phi<phimax&&phi>phimin)||(phi+two_pi<phimax&&phi+two_pi>phimin);
   }
   

@@ -70,7 +70,7 @@ public:
 
     //cout << "In writeTPROJ "<<tracklets_.size()<<"\t"<<name_<<" "<<layer_<<" "<<disk_<<endl;
 
-    std::string fname="TrackletProjections_";
+    std::string fname="MemPrints/TrackletProjections/TrackletProjections_";
     fname+=getName();
     fname+="_";
     ostringstream oss;

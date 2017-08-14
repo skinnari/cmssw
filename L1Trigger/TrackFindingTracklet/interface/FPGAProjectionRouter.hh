@@ -138,7 +138,7 @@ public:
     if (layer_!=0) {
       for (unsigned int j=0;j<inputproj_.size();j++){
 	//cout << "FPGAPRojectionRouter Inputproj : "<<inputproj_[j]->getName()<<" "
-	//    <<inputproj_[j]->nTracklets()<<endl;
+	//   <<inputproj_[j]->nTracklets()<<endl;
 	for (unsigned int i=0;i<inputproj_[j]->nTracklets();i++){
 	  //cout << "FPGAPRojectionRouter i : "<<i<<" "<<layer_<<endl;
 	  count++;
@@ -224,6 +224,9 @@ public:
       }
     } else {
       for (unsigned int j=0;j<inputproj_.size();j++){
+	//cout << "FPGAPRojectionRouter Inputproj : "<<inputproj_[j]->getName()<<" "
+	//   <<inputproj_[j]->nTracklets()<<endl;
+
 	for (unsigned int i=0;i<inputproj_[j]-> nTracklets();i++){
 	  count++;
 	  if (count>MAXPROJROUTER) continue;

@@ -152,19 +152,30 @@ public:
     //cout << "FPGAProjectionTransceiver::execute "<<getName()<<endl;
 
     if (!doProjections) return;
+
+    FPGATracklet* oldTracklet=0;
     
     unsigned int count=0;
     //cout << "in FPGAProjectionTransceiver "<<otherSector->inputprojections_.size()<<endl;
     for(unsigned int i=0;i<otherSector->inputprojections_.size();i++){
       FPGATrackletProjections* otherProj=otherSector->inputprojections_[i];
       for (unsigned int l=0;l<otherProj->nTracklets();l++){
+	//if (l==0) cout << otherProj->getName()<<endl;
 	count++;
 	FPGATracklet* tracklet=otherProj->getFPGATracklet(l);
+	//Check that TCID is correctly ordered
+	if (oldTracklet!=0) {
+	  //cout << "PT::exectute: "<<oldTracklet->TCID()<<" "<<tracklet->TCID()<<endl;
+	  assert(oldTracklet->TCID()<=tracklet->TCID());
+	}
+	oldTracklet=tracklet;
+
 	FPGAWord fpgaphi;
 	bool layer=false;
 	bool disk=false;
 	//cout << "FPGAProjectionTransceiver otherProj->name() = "<<otherProj->getName()
-	//     <<" layer "<<layer_<<" disk "<<disk_<<" tracklet layer disk : "<<tracklet->layer()<<" "<<tracklet->disk()<<endl;
+	//    <<" layer "<<layer_<<" disk "<<disk_<<" tracklet layer disk : "
+	//   <<tracklet->layer()<<" "<<tracklet->disk()<<endl;
 	int disk1=disk_;
 	if (tracklet->t()<0.0) disk1=-disk_;
 	//Handle PT that handles both disk and layer
@@ -182,13 +193,13 @@ public:
 	    }
 	  } else {
 	    //cout << "FPGAProjectionTransceiver "<<tracklet<<" layer_ = "<<layer_<<endl;
-	    if (!tracklet->fpgazproj(layer_).atExtreme()){
+	    if (tracklet->validProj(layer_)&&(!tracklet->fpgazproj(layer_).atExtreme())){
 	      fpgaphi=tracklet->fpgaphiproj(layer_);
 	      if (!(tracklet->minusNeighbor(layer_)||tracklet->plusNeighbor(layer_))) continue;
 	      layer=true;
 	    } else {
 	      fpgaphi=tracklet->fpgaphiprojdisk(disk1);
-	      if (!tracklet->fpgarprojdisk(disk1).atExtreme()){
+	      if (tracklet->validProjDisk(disk1)){
 		assert(tracklet->minusNeighborDisk(disk1)||tracklet->plusNeighborDisk(disk1));
 		disk=true;
 	      }
@@ -243,7 +254,9 @@ public:
 	      cout << "FPGAProjectionTransceiver in : "<<getName()<< " outputprojLPHI1 is zero"<<endl;
 	    }
 	    assert(outputprojLPHI1!=0);
-	    //cout << "Adding tracklet "<<otherProj->getFPGATracklet(l)<<" to "<<outputprojLPHI1->getName()<<endl;
+	    if (debug1) {
+	      cout << "Adding tracklet "<<otherProj->getFPGATracklet(l)<<" to "<<outputprojLPHI1->getName()<<endl;
+	    }
 	    outputprojLPHI1->addTracklet(otherProj->getFPGATracklet(l));
 	  }
 	  if (disk) {
@@ -252,8 +265,9 @@ public:
 	    }
 	    //cout << "In getName = "<<getName()<<endl;
 	    assert(outputprojDPHI1!=0);
-	    //cout << "Adding tracklet "<<otherProj->getFPGATracklet(l)<<" to "<<outputprojDPHI1->getName()<<endl;
-	    //cout << "FPGAProjectionTransceiver add projection to : "<<outputprojDPHI1->getName()<<endl;
+	    if (debug1) {
+	      cout << "Adding tracklet "<<otherProj->getFPGATracklet(l)<<" to "<<outputprojDPHI1->getName()<<endl;
+	    }
 	    outputprojDPHI1->addTracklet(otherProj->getFPGATracklet(l));
 	  }
 	}
@@ -264,7 +278,9 @@ public:
 	      cout << "FPGAProjectionTransceiver in : "<<getName()<< " outputprojLPHI2 is zero"<<endl;
 	    }
 	    assert(outputprojLPHI2!=0);
-	    //cout << "Adding tracklet "<<otherProj->getFPGATracklet(l)<<" to "<<outputprojLPHI2->getName()<<endl;
+	    if (debug1) {
+	      cout << "Adding tracklet "<<otherProj->getFPGATracklet(l)<<" to "<<outputprojLPHI2->getName()<<endl;
+	    }
 	    outputprojLPHI2->addTracklet(otherProj->getFPGATracklet(l));
 	  }
 	  if (disk) {
@@ -272,7 +288,9 @@ public:
 	      cout << "FPGAProjectionTransceiver in : "<<getName()<< " outputprojDPHI2 is zero"<<endl;
 	    }
 	    assert(outputprojDPHI2!=0);
-	    //cout << "Adding tracklet "<<otherProj->getFPGATracklet(l)<<" to "<<outputprojDPHI2->getName()<<endl;
+	    if (debug1) {
+	      cout << "Adding tracklet "<<otherProj->getFPGATracklet(l)<<" to "<<outputprojDPHI2->getName()<<endl;
+	    }
 	    outputprojDPHI2->addTracklet(otherProj->getFPGATracklet(l));
 	  }
 	}
@@ -281,19 +299,23 @@ public:
 	  if (layer) {
 	    //cout << "In getName = "<<getName()<<endl;
 	    if (outputprojLPHI3==0) {
-	      cout << "FPGAProjectionTransceiver in : "<<getName()<< " outputprojLPHI3 is zero"<<endl;
+	      cout << "FPGAProjectionTransceiver in : "<<getName()<< " outputprojLPHI3 is zero  - will skip"<<endl;
+	      //assert(outputprojLPHI3!=0);
+	    } else {
+	      if (debug1) {
+		cout << "Adding tracklet "<<otherProj->getFPGATracklet(l)<<" to "<<outputprojLPHI3->getName()<<endl;
+	      }
+	      outputprojLPHI3->addTracklet(otherProj->getFPGATracklet(l));
 	    }
-	    assert(outputprojLPHI3!=0);
-	    //cout << "Adding tracklet "<<otherProj->getFPGATracklet(l)<<" to "<<outputprojLPHI3->getName()<<endl;
-	    outputprojLPHI3->addTracklet(otherProj->getFPGATracklet(l));
 	  }
 	  if (disk) {
 	    if (outputprojDPHI3==0) {
 	      cout << "FPGAProjectionTransceiver in : "<<getName()<< " outputprojDPHI3 is zero"<<endl;
 	    }
 	    assert(outputprojDPHI3!=0);
-	    //cout << "FPGAProjectionTransceiver add projection to : "<<outputprojDPHI3->getName()<<endl;
-	    //cout << "Adding tracklet "<<otherProj->getFPGATracklet(l)<<" to "<<outputprojDPHI3->getName()<<endl;
+	    if (debug1) {
+	      cout << "FPGAProjectionTransceiver add projection to : "<<outputprojDPHI3->getName()<<endl;
+	    }
 	    outputprojDPHI3->addTracklet(otherProj->getFPGATracklet(l));
 	  }
 	}

@@ -47,10 +47,6 @@ public:
       disk1_=name[4]-'0';
       r1_=name[12]-'0';
     }
-    if (name[3]=='B') {
-      disk1_=-(name[4]-'0');
-      r1_=name[12]-'0';
-    }
     if (name[11]=='L') {
       layer2_=name[12]-'0';
       z2_=name[23]-'0';
@@ -59,20 +55,12 @@ public:
       disk2_=name[12]-'0';
       r2_=name[23]-'0';
     }
-    if (name[11]=='B') {
-      disk2_=-(name[12]-'0');
-      r2_=name[23]-'0';
-    }
     if (name[12]=='L') {
       layer2_=name[13]-'0';
       z2_=name[23]-'0';
     }
     if (name[12]=='D') {
       disk2_=name[13]-'0';
-      r2_=name[23]-'0';
-    }
-    if (name[12]=='B') {
-      disk2_=-(name[13]-'0');
       r2_=name[23]-'0';
     }
     
@@ -126,14 +114,10 @@ public:
     if (!((doL1L2&&(layer1_==1)&&(layer2_==2))||
 	  (doL3L4&&(layer1_==3)&&(layer2_==4))||
 	  (doL5L6&&(layer1_==5)&&(layer2_==6))||
-	  (doF1F2&&(disk1_==1)&&(disk2_==2))||
-	  (doF3F4&&(disk1_==3)&&(disk2_==4))||
-	  (doB1B2&&(disk1_==-1)&&(disk2_==-2))||
-	  (doB3B4&&(disk1_==-3)&&(disk2_==-4))||
-	  (doL1F1&&(disk1_==1)&&(layer2_==1))||
-	  (doL2F1&&(disk1_==1)&&(layer2_==2))||
-	  (doL1B1&&(disk1_==-1)&&(layer2_==1))||
-	  (doL2B1&&(disk1_==-1)&&(layer2_==2)))) return;
+	  (doD1D2&&(disk1_==1)&&(disk2_==2))||
+	  (doD3D4&&(disk1_==3)&&(disk2_==4))||
+	  (doL1D1&&(disk1_==1)&&(layer2_==1))||
+	  (doL2D1&&(disk1_==1)&&(layer2_==2)))) return;
 
     //cout << getName()<<" "<<layer1_<<" "<<layer2_<<" "<<disk1_<<" "<<disk2_<<endl;
     

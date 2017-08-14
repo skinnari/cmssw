@@ -126,6 +126,16 @@ public:
 
   std::vector<std::pair<FPGATracklet*,std::pair<FPGAStub*,L1TStub*> > > mergeMatches(vector<FPGACandidateMatch*>& candmatch) {
 
+    /*
+   for (unsigned int i=0;i<candmatch.size();i++) {
+      for (unsigned int j=0;j<candmatch[i]->nMatches();j++) {
+	cout << candmatch[i]->getName()<<" "
+	     << candmatch[i]->getFPGATracklet(j)->TCID()<<" "
+	     << candmatch[i]->getFPGATracklet(j)->homeSector()<<endl;
+      }
+    }
+    */
+    
     std::vector<std::pair<FPGATracklet*,std::pair<FPGAStub*,L1TStub*> > >  tmp;
 
 	//cout << "FPGAMatchCalcultor::mergedMatches inputs"<<endl;
@@ -212,9 +222,9 @@ public:
 
     for(unsigned int j=0;j<mergedMatches.size();j++){
 	
-      //if (debug1) {
-      //  cout << getName() <<" has match from "<<matches_[j]->getName()<<endl;
-      //}
+      if (debug1&&j==0) {
+        cout << getName() <<" has "<<mergedMatches.size()<<" candidate matches"<<endl;
+      }
 	
 	countall++;
 	
@@ -238,7 +248,12 @@ public:
 	  double pttracklet=0.3*3.8/(tracklet->rinv()*100);
 	  bool keep=fabs(1.0/pttracklet-1.0/stub->pt())<ptstubconsistencymatching;
             
-	  if (!keep) continue;
+	  if (!keep) {
+	    if (debug1) {
+	      cout << "FPGAMatchCalculator::executed pt not matching"<<endl;
+	    }
+	    continue;
+	  }
       
 	  int seedlayer=tracklet->layer();
 	
@@ -281,7 +296,8 @@ public:
 	  int izcor=0;
 
 	  if (layer_<4) {
-	    izcor=(ir*tracklet->fpgazprojder(layer_).value())>>(idrinvbits-1-zderbitshift-tbitshift);
+	    izcor=(ir*tracklet->fpgazprojder(layer_).value())>>(idrinvbits-zderbitshift-tbitshift);
+	    //cout << "izcor : "<<ir<<" "<<tracklet->fpgazprojder(layer_).value()<<endl;
 	  } else {
 	    izcor=(ir*tracklet->fpgazprojder(layer_).value())>>(idrinvbits-zderbitshift-tbitshift+(nbitszprojL123-nbitszprojL456));
 	  }
@@ -373,6 +389,13 @@ public:
 	  if (layer_<4){
 	    if (seedlayer==1) {
 	      imatch=(fabs(ideltaphi)<0.1/(kphi1*rmean[layer_-1]))&&(fabs(ideltaz)<0.5/kz);
+	      if (debug1) {  
+		cout << "ideltaphi ideltaz :"<<ideltaphi<<" "<<ideltaz<<endl;
+		cout << "deltaphi r :"<<ideltaphi*kphi1*rmean[layer_-1]<<" "<<rmean[layer_-1]<<endl;
+		cout << "deltaz dzapprox:"<<ideltaz*kz<<" "<<dzapprox<<endl;
+		cout << "izcor zcor: "<<izcor<<" "<<izcor*kz<<" "<<dr*tracklet->zprojderapprox(layer_)<<endl;
+		cout << "imatch : "<<imatch<<endl;
+	      }
 	    }
 	    else {
 	      imatch=(fabs(ideltaphi)<0.095/(kphi1*rmean[layer_-1]))&&(fabs(ideltaz)<14.0/kz);
@@ -384,7 +407,7 @@ public:
 	      imatch=(fabs(ideltaphi)<0.30/(kphi1*rmean[layer_-1]))&&(fabs(fact*ideltaz)<4.0/kz);
 	      if (debug1) {  
 		cout << "ideltaphi ideltaz :"<<ideltaphi<<" "<<ideltaz<<endl;
-		cout << "deltaphi :"<<ideltaphi*kphi1*rmean[layer_-1]<<endl;
+		cout << "deltaphi r :"<<ideltaphi*kphi1*rmean[layer_-1]<<" "<<rmean[layer_-1]<<endl;
 		cout << "deltaz :"<<fact*ideltaz*kz<<endl;
 		cout << "imatch : "<<imatch<<endl;
 	      }
@@ -588,7 +611,7 @@ public:
 	  double drphicut=0.20;
 	  double drcut=0.75; 
 	  if (!stub->isPSmodule()) {
-	    drcut=3.0; //1.9
+	    drcut=3.7; //1.9
 	    drphicut=0.5; 
 	  }
 
@@ -683,7 +706,11 @@ public:
 				   stub->alphatruncated(),
 				   fpgastub->stubindex().value()+((fpgastub->fedregion()-1)<<6),
 				   stub->z(),tmp);
-
+	    if (debug1) {
+	      cout << "Accepted full match in disk " <<getName()
+		   << " "<<tracklet
+		   << " "<<iSector_<<endl;	   
+	    }
 	    
 	    if (tracklet->plusNeighborDisk(disk)){
 	      fullmatchesToMinus_->addMatch(tracklet,tmp);

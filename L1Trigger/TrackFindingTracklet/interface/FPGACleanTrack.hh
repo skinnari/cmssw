@@ -1,17 +1,17 @@
 //This class stores the track fit
-#ifndef FPGATRACKFIT_H
-#define FPGATRACKFIT_H
+#ifndef FPGACLEANTRACK_H
+#define FPGACLEANTRACK_H
 
 #include "FPGATracklet.hh"
 #include "FPGAMemoryBase.hh"
 
 using namespace std;
 
-class FPGATrackFit:public FPGAMemoryBase{
+class FPGACleanTrack:public FPGAMemoryBase{
 
 public:
 
-  FPGATrackFit(string name, unsigned int iSector, 
+  FPGACleanTrack(string name, unsigned int iSector, 
 	       double phimin, double phimax):
     FPGAMemoryBase(name,iSector){
     phimin_=phimin;
@@ -23,10 +23,6 @@ public:
   }
 
   unsigned int nTracks() const {return tracks_.size();}
-
-  FPGATracklet* getTrack(unsigned int i) const {
-    return tracks_[i];
-  }
 
   void clean() {
     //cout << "Cleaning tracks : "<<tracks_.size()<<endl;
@@ -52,47 +48,46 @@ public:
 	} else {
 	  layerordisk=tracklet->disk();
 	}
-	if (writeResEff) {
-	  outres << layerordisk
-		 <<" "<<tracklet->nMatches()
-		 <<" "<<simtrk.pt()*charge
-		 <<" "<<simphi
-		 <<" "<<simtrk.eta()
-		 <<" "<<simtrk.vz()
+	outres << layerordisk
+	       <<" "<<tracklet->nMatches()
+	       <<" "<<simtrk.pt()*charge
+	       <<" "<<simphi
+	       <<" "<<simtrk.eta()
+	       <<" "<<simtrk.vz()
+	       <<"   "
+	       <<(0.3*3.8/100.0)/tracklet->rinvfit()
+	       <<" "<<tracklet->phi0fit()+phioffset
+	       <<" "<<asinh(tracklet->tfit())
+	       <<" "<<tracklet->z0fit()
+	       <<"   "
+	       <<(0.3*3.8/100.0)/tracklet->rinvfitexact()
+	       <<" "<<tracklet->phi0fitexact()+phioffset
+	       <<" "<<asinh(tracklet->tfitexact())
+	       <<" "<<tracklet->z0fitexact()
 		 <<"   "
-		 <<(0.3*3.8/100.0)/tracklet->rinvfit()
-		 <<" "<<tracklet->phi0fit()+phioffset
-		 <<" "<<asinh(tracklet->tfit())
-		 <<" "<<tracklet->z0fit()
-		 <<"   "
-		 <<(0.3*3.8/100.0)/tracklet->rinvfitexact()
-		 <<" "<<tracklet->phi0fitexact()+phioffset
-		 <<" "<<asinh(tracklet->tfitexact())
-		 <<" "<<tracklet->z0fitexact()
-		 <<"   "
-		 <<(0.3*3.8/100.0)/(irinv*krinvpars)
-		 <<" "<<tracklet->iphi0fit().value()*kphi0pars+phioffset
-		 <<" "<<asinh(tracklet->itfit().value()*ktpars)
-		 <<" "<<tracklet->iz0fit().value()*kz
-		 <<"   "
-		 <<(0.3*3.8/100.0)/(1e-20+tracklet->fpgarinv().value()*krinvpars)
-		 <<" "<<tracklet->fpgaphi0().value()*kphi0pars+phioffset
-		 <<" "<<asinh(tracklet->fpgat().value()*ktpars)
-		 <<" "<<tracklet->fpgaz0().value()*kz
-		 <<"               "
-		 <<(0.3*3.8/100.0)/(1e-20+tracklet->rinvapprox())
-		 <<" "<<tracklet->phi0approx()+phioffset
-		 <<" "<<asinh(tracklet->tapprox())
-		 <<" "<<tracklet->z0approx()
-		 <<endl;
-	}
+	       <<(0.3*3.8/100.0)/(irinv*krinvpars)
+	       <<" "<<tracklet->iphi0fit().value()*kphi0pars+phioffset
+	       <<" "<<asinh(tracklet->itfit().value()*ktpars)
+	       <<" "<<tracklet->iz0fit().value()*kz
+	       <<"   "
+	       <<(0.3*3.8/100.0)/(1e-20+tracklet->fpgarinv().value()*krinvpars)
+	       <<" "<<tracklet->fpgaphi0().value()*kphi0pars+phioffset
+	       <<" "<<asinh(tracklet->fpgat().value()*ktpars)
+	       <<" "<<tracklet->fpgaz0().value()*kz
+	       <<"               "
+	       <<(0.3*3.8/100.0)/(1e-20+tracklet->rinvapprox())
+	       <<" "<<tracklet->phi0approx()+phioffset
+	       <<" "<<asinh(tracklet->tapprox())
+	       <<" "<<tracklet->z0approx()
+	       <<endl;
       }
     }
     return match;
   }
-  void writeTF(bool first) {
 
-    std::string fname="MemPrints/FitTrack/TrackFit_";
+  void writeCT(bool first) {
+
+    std::string fname="./MemPrints/CleanTrack/CleanTrack_";
     fname+=getName();
     fname+="_";
     ostringstream oss;

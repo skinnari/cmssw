@@ -48,6 +48,13 @@ public:
 
   void addTracklet(FPGATracklet* tracklet,unsigned int allprojindex) {
     std::pair<FPGATracklet*,unsigned int> tmp(tracklet,allprojindex);
+    //Check that order of TCID is correct
+    if (tracklets_.size()>0) {
+      if (tracklets_[tracklets_.size()-1].first->homeSector()==tracklet->homeSector()) {
+	//cout << tracklets_[tracklets_.size()-1].first->TCID()<<" "<<tracklet->TCID()<<endl;
+	assert(tracklets_[tracklets_.size()-1].first->TCID()<=tracklet->TCID());
+      }
+    }
     tracklets_.push_back(tmp);
   }
 
@@ -59,7 +66,7 @@ public:
 
     //cout << "In writeTPROJ "<<tracklets_.size()<<"\t"<<name_<<" "<<layer_<<" "<<disk_<<endl;
 
-    std::string fname="VMProjections_";
+    std::string fname="MemPrints/VMProjections/VMProjections_";
     fname+=getName();
     //get rid of duplicates
     int len = fname.size();

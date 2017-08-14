@@ -99,7 +99,7 @@ public:
 	    if (iphivmRaw>=20 && iphivmRaw<=27 && subname=="PHI3_ZP") add=true;
 	  }
 	  //these are for TE
-	  if ((subnamelayer=="L1"&&fabs(al1stub.z())<85.0)||subnamelayer=="L3"||subnamelayer=="L5"){
+	  if ((subnamelayer=="L1"&&fabs(al1stub.z())<87.0)||subnamelayer=="L3"||subnamelayer=="L5"){
 	    if (iphivmRaw>=4 && iphivmRaw<=9 && subname=="PHIA_ZP") add=true;
 	    if (iphivmRaw>=10 && iphivmRaw<=15 && subname=="PHIC_ZP") add=true;
 	    if (iphivmRaw>=16 && iphivmRaw<=21 && subname=="PHIE_ZP") add=true;
@@ -127,7 +127,7 @@ public:
 	    if (iphivmRaw>=20 && iphivmRaw<=27 && subname=="PHI3_ZM") add=true;
 	  }
 	  //these are for TE
-	  if ((subnamelayer=="L1"&&fabs(al1stub.z())<85.0)||subnamelayer=="L3"||subnamelayer=="L5"){
+	  if ((subnamelayer=="L1"&&fabs(al1stub.z())<87.0)||subnamelayer=="L3"||subnamelayer=="L5"){
 	    if (iphivmRaw>=4 && iphivmRaw<=9 && subname=="PHIA_ZM") add=true;
 	    if (iphivmRaw>=10 && iphivmRaw<=15 && subname=="PHIC_ZM") add=true;
 	    if (iphivmRaw>=16 && iphivmRaw<=21 && subname=="PHIE_ZM") add=true;
@@ -281,7 +281,7 @@ public:
   void writeStubs(bool first, bool w2, bool padded) {
 
     //Barrel
-    std::string fname="InputStubs_";
+    std::string fname="MemPrints/InputStubs/InputStubs_";
     fname+=getName();
     fname+="_";
     ostringstream oss;
@@ -306,7 +306,14 @@ public:
       nlay[i]=0;
     }
 
-    unsigned int maxstubslink=21;
+    unsigned int maxstubslink=0;
+    if (TMUX==4) maxstubslink=21;
+    else if (TMUX==6) maxstubslink=33;
+    else if (TMUX==8) maxstubslink=45;
+    else {
+      cout << "ERROR! Only TMUX=4/6/8 are supported! Exiting..." << endl;
+      return;
+    }
 
     for (unsigned int i=0;i<stubs_.size();i++){
       if(stubs_[i].first->isBarrel()){
@@ -402,7 +409,7 @@ public:
 	    if (lay==i) {
 	      scount++;
 	      if (scount>(int)maxstubslink) continue;
-	      string tmp=stubs_[j].first->strbareUNFLIPPED();
+	      string tmp=stubs_[j].first->strbare();
 	      bitset<36> btmp(tmp);
 	      xword = btmp.to_ulong();
 	      xline = (xline+1)&15;
@@ -418,7 +425,7 @@ public:
 	}
       }
       if (padded) {
-	for (int k=0;k<21-scount;k++) {
+    for (int k=0;k<(int)maxstubslink-scount;k++) {
 	  xline = (xline+1)&15;
 	  out_<< std::hex << xline<<"0000000 "<< std::hex << xline<<"0000001";
 	  out_<<" 51000003 51000007\n";
@@ -442,7 +449,7 @@ public:
 
     //forward
 
-    fname="InputStubsDiskF_";
+    fname="MemPrints/InputStubs/InputStubsDiskF_";
     fname+=getName();
     fname+="_";
     ostringstream ossF;
@@ -551,7 +558,7 @@ public:
 	  if(stubs_[j].first->isDisk()&&stubs_[j].first->disk().value()>0){
 	    unsigned int lay=stubs_[j].first->disk().value()-1;
 	    if (lay==i) {
-	      string tmp=stubs_[j].first->strbareUNFLIPPED();
+	      string tmp=stubs_[j].first->strbare();
 	      bitset<36> btmp(tmp);
 	      xword = btmp.to_ulong();
 	      xline = (xline+1)&15;
@@ -584,7 +591,7 @@ public:
 
     //back
 
-    fname="InputStubsDiskB_";
+    fname="MemPrints/InputStubs/InputStubsDiskB_";
     fname+=getName();
     fname+="_";
     ostringstream ossB;
@@ -693,7 +700,7 @@ public:
 	  if(stubs_[j].first->isDisk()&&stubs_[j].first->disk().value()<0){
 	    unsigned int lay=-stubs_[j].first->disk().value()-1;
 	    if (lay==i) {
-	      string tmp=stubs_[j].first->strbareUNFLIPPED();
+	      string tmp=stubs_[j].first->strbare();
 	      bitset<36> btmp(tmp);
 	      xword = btmp.to_ulong();
 	      xline = (xline+1)&15;

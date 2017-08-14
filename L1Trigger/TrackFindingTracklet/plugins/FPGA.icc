@@ -6,9 +6,11 @@
     for (unsigned int k=0;k<NSector;k++) {
       sectors[k]->clean();
     }
-    //for (unsigned int i=0;i<ndtcs;i++) {
-    //  dtcs[i].clean();
+    
+    //for (std::map<string,FPGADTC>::iterator it=dtcs.begin();it!=dtcs.end();it++){
+    //	it->second.clean();
     //}
+    
     cleanTimer.stop();
 
     bool hitlayer[6];
@@ -88,88 +90,95 @@
         sectors[k]->addStub(stub);	  
       }
 
-      /*
+      
       //cout << "stub layer : "<<stub.layer()<<endl;
-      if (stub.layer()<10000) {
+      /*
+      if (writeDTCLinks) {
 
-         int layer=stub.layer()+1;
-	 int ladder=stub.ladder();  //-1
-	 int module=stub.module();
-
-         double dphi=two_pi/NSector;
-         double phitmp=stub.phi();
-         while (fabs(phitmp)>0.75*dphi) {
-           if (phitmp>0.0) {
-	     phitmp-=dphi;
-           }
-           else {
-	     phitmp+=dphi;
-           }
-         }
-         bool overlapregion=(fabs(phitmp)<dphi/6.0);
-         bool overlaplayer=(layer%2==0);
-
-         //cout << "Will add stub layer="<<layer<<" ladder="<<ladder
-	 //     <<" module="<<module<<" "<<stub.phi()<<endl;
-
-	 std::map<int, std::map<int, std::map<int, int> > >::const_iterator it1=modules.find(layer);
-	 assert(it1!=modules.end());
-	 std::map<int, std::map<int, int> >::const_iterator it2=it1->second.find(ladder);
-	 assert(it2!=it1->second.end());
-	 std::map<int, int>::const_iterator it3=it2->second.find(module);
-         if (it3==it2->second.end()) {
-	    cout << "Could not add stub "<<layer<<" "<<ladder<<" "
-	        <<module<<" "<<stub.phi()<<endl;
-         } else {
-	   int dtc=it3->second;
-	   //cout << "layer ladder module dtc :"<<layer<<" "<<ladder<<" "
-	   //   <<module<<" "<<dtc<<endl;
-	   std::pair<FPGAStub*,L1TStub*> stubpair(0,&stub);
-	   int added=dtcs[dtc].addStub(stubpair);
-	   if (overlapregion&&overlaplayer) {
-             if (added!=2) {
-   	        cout << "Warning: In overlap region add stub "<<layer<<" "
-		     <<ladder<<" "
-	             <<module<<" "<<stub.phi()<<"  to "<<added<<" links for dtc = "<<dtc<<endl;
-             }
-           } else {
-             if (added!=1) {
-   	        cout << "Warning: In non-overlap region add stub "<<layer<<" "
-		     <<ladder<<" "
-	             <<module<<" "<<stub.phi()<<"  to "<<added<<" links for dtc = "<<dtc<<endl;
-             }
-           }
-  	 }
-	 //cout << "Done add stub"<<endl;	
+	int layer=stub.layer()+1;
+	int ladder=stub.ladder(); 
+	int module=stub.module();
+	
+	//HACK for mistake in ASCII files
+	if (layer==3&&module==40) module=39;
+	if (layer==1&&module>31) module=31;
+	
+	double dphi=two_pi/NSector;
+	double phitmp=stub.phi();
+	while (fabs(phitmp)>0.75*dphi) {
+	  if (phitmp>0.0) {
+	    phitmp-=dphi;
+	  }
+	  else {
+	    phitmp+=dphi;
+	  }
+	}
+	bool overlapregion=(fabs(phitmp)<dphi/6.0);
+	bool overlaplayer=(layer%2==0);
+	
+	//cout << "Will add stub layer="<<layer<<" ladder="<<ladder
+	//     <<" module="<<module<<" "<<stub.phi()<<endl;
+	
+	std::map<int, std::map<int, std::map<int, string> > >::const_iterator it1=modules.find(layer);
+	assert(it1!=modules.end());
+	std::map<int, std::map<int, string> >::const_iterator it2=it1->second.find(ladder);
+	assert(it2!=it1->second.end());
+	std::map<int, string>::const_iterator it3=it2->second.find(module);
+	if (it3==it2->second.end()) {
+	  cout << "Could not add stub "<<layer<<" "<<ladder<<" "
+	       <<module<<" "<<stub.phi()<<endl;
+	} else {
+	  //cout << "Found DTC named "<<it3->second<<endl;
+	  string dtc=it3->second;
+	  //cout << "layer ladder module dtc :"<<layer<<" "<<ladder<<" "
+	  //   <<module<<" "<<dtc<<endl;
+	  std::pair<FPGAStub*,L1TStub*> stubpair(0,&stub);
+	  //cout << "In dtcs look for:'"<<dtc<<"'"<<endl; 
+	  assert(dtcs.find(dtc)!=dtcs.end());
+	  int added=dtcs[dtc].addStub(stubpair);
+	  if (overlapregion&&overlaplayer) {
+	    if (added!=2) {
+	      cout << "Warning: In overlap region add stub "<<layer<<" "
+		   <<ladder<<" "
+		   <<module<<" "<<stub.phi()<<"  to "<<added<<" links for dtc = "<<dtc<<endl;
+	    }
+	  } else {
+	    if (added!=1) {
+	      cout << "Warning: In non-overlap region add stub "<<layer<<" "
+		   <<ladder<<" "
+		   <<module<<" "<<stub.phi()<<"  to "<<added<<" links for dtc = "<<dtc<<endl;
+	    }
+	  }
+	}
+	//cout << "Done add stub"<<endl;	
       }
-
       */
 
     }
 
-    /*
-    if (writeDTCLinks) {
-      //cout << "Will write DTC links"<<endl;
-      static ofstream out("dtclinks.txt");
-      for (unsigned int i=0;i<ndtcs;i++) {
-        for (unsigned int j=0;j<dtcs[i].nLinks();j++) {
-	   //cout << i << " " << j << " " << dtcs[i].link(j).nStubs() << endl;    
-	   out << i << " " << j << " " << dtcs[i].link(j).nStubs() << endl;    
-        }	 
-      }
-      //cout << "Done write DTC links"<<endl;
-    }
-    */
+/*
+if (writeDTCLinks) {
+  //cout << "Will write DTC links"<<endl;
+  static ofstream out("dtclinks.txt");
+  for (std::map<string,FPGADTC>::iterator iter=dtcs.begin();iter!=dtcs.end();iter++) {
+    for (unsigned int j=0;j<iter->second.nLinks();j++) {
+      out << iter->first << " " << j << " " << iter->second.link(j).nStubs() << endl;    
+    }	 
+  }
+  //cout << "Done write DTC links"<<endl;
+ }
+*/
 
-    if (writestubs || writestubs_in2) {
-      for (unsigned int k=0;k<NSector;k++) {
-        sectors[k]->writeInputStubs(first);
-      }
-    }
+if (writestubs || writestubs_in2) {
+  for (unsigned int k=0;k<NSector;k++) {
+    if(k==writememsect)
+      sectors[k]->writeInputStubs(first);
+  }
+ }
 
-    if (writeHitEff) {
+if (writeHitEff) {
         static ofstream outhit("hiteff.txt");
-    	outhit << hitlayer[0] << " " << hitlayer[1] << " "
+    	outhit << simtrk.eta()<<" "<<hitlayer[0] << " " << hitlayer[1] << " "
                   << hitlayer[2] << " " << hitlayer[3] << " "	  
 		  << hitlayer[4] << " " << hitlayer[5] << endl;
     }
@@ -277,6 +286,7 @@
       sectors[k]->executePR();	
       if(writemem&&k==writememsect){
         sectors[k]->writeVMPROJ(first);
+        sectors[k]->writeAP(first);
       }
     }
     PRTimer.stop();
@@ -284,7 +294,10 @@
     
     METimer.start();
     for (unsigned int k=0;k<NSector;k++) {
-      sectors[k]->executeME();	 
+      sectors[k]->executeME();	
+      if(writemem&&k==writememsect){
+        sectors[k]->writeCM(first);
+      } 
     }
     METimer.stop();
 
@@ -315,17 +328,26 @@
     FTTimer.start();
     for (unsigned int k=0;k<NSector;k++) {
       sectors[k]->executeFT();	 
-      if(writeifit&&k==writememsect){
+      if((writemem||writeifit)&&k==writememsect){
          sectors[k]->writeTF(first);
       }
     }
     FTTimer.stop();
 
-    DuplicateTimer.start();
+
+    PDTimer.start();
+    for (unsigned int k=0;k<NSector;k++) {
+      sectors[k]->executePD(tracks);	  
+      if(writeifit&&(k==1||k==2||k==3||k==4||k==5)){
+         sectors[k]->writeCT(first);
+      }
+    }
+    PDTimer.stop();
+
     bool match=false;
     for (unsigned int k=0;k<NSector;k++) {
       //cout << "FPGA.icc " << k << " " << tracks.size() << endl;
-      sectors[k]->findduplicates(tracks);
+      //sectors[k]->findduplicates(tracks);
       if (selectmu==1) {
 	if (ev.nsimtracks()>0) {
 	  match=match||sectors[k]->foundTrack(outres,simtrk);
@@ -336,38 +358,38 @@
 
 
     //Tag adjacent sector duplicates
-    for (int itrk=0; itrk<(int)tracks.size(); itrk++) {
-        //if primary track is a duplicate, it cannot veto any...move on
-        if(!tracks[itrk].duplicate()) {	  
-	
-            for(int jtrk=itrk+1; jtrk<(int)tracks.size(); jtrk++){
-	            //if secondary track is a duplicate or not in an adjacent sector, it cannot veto any...move on
-                if(!tracks[jtrk].duplicate() && ( abs(tracks[itrk].isector()-tracks[jtrk].isector())==1 || abs(tracks[itrk].isector()-tracks[jtrk].isector())==27)) {
+    if(AdjacentRemoval) {
+        for (int itrk=0; itrk<(int)tracks.size(); itrk++) {
+            //if primary track is a duplicate, it cannot veto any...move on
+            if(!tracks[itrk]->duplicate()) {          
+        
+                for(int jtrk=itrk+1; jtrk<(int)tracks.size(); jtrk++){
+                //if secondary track is a duplicate or not in an adjacent sector, it cannot veto any...move on
+                    if(!tracks[jtrk]->duplicate() && ( abs(tracks[itrk]->isector()-tracks[jtrk]->isector())==1 || abs(tracks[itrk]->isector()-tracks[jtrk]->isector())==27)) {
 
-                    //get stub information
-		            int nShare=0;
-		            std::map<int, int> stubsTrk1 = tracks[itrk].stubID();
-		            std::map<int, int> stubsTrk2 = tracks[jtrk].stubID();
+                        //get stub information
+                        int nShare=0;
+                        std::map<int, int> stubsTrk1 = tracks[itrk]->stubID();
+                        std::map<int, int> stubsTrk2 = tracks[jtrk]->stubID();
 
-                    //count shared stubs
-                    for(std::map<int, int>::iterator  st=stubsTrk1.begin(); st!=stubsTrk1.end(); st++) {
-                        if( stubsTrk2.find(st->first) != stubsTrk2.end() ) {
-                            if(st->second == stubsTrk2[st->first] && st->second != 63) { nShare++; }
-                        }   	  
-                    } //loop over stubs
+                        //count shared stubs
+                        for(std::map<int, int>::iterator  st=stubsTrk1.begin(); st!=stubsTrk1.end(); st++) {
+                            if( stubsTrk2.find(st->first) != stubsTrk2.end() ) {
+                                if(st->second == stubsTrk2[st->first] && st->second != 63) { nShare++; }
+                            }             
+                        } //loop over stubs
 
-	           	    //Decide if we should flag either of the tracks as a duplicate
-			        if(stubsTrk1.size()>=stubsTrk2.size()) {
-			            if( (((int)stubsTrk2.size()-nShare)<minIndepStubs) && !tracks[itrk].duplicate() ) tracks[jtrk].setDuplicate(true);
-			        } else {
-			            if( (((int)stubsTrk1.size()-nShare)<minIndepStubs) && !tracks[jtrk].duplicate() ) tracks[itrk].setDuplicate(true);
-                    }
-                } //if second track not a duplicate already
-            } //loop over second track
-        } //if first track not a duplicate already  	  
-    } //loop over first track
-
-    DuplicateTimer.stop();
+                        //Decide if we should flag either of the tracks as a duplicate
+                        if(stubsTrk1.size()>=stubsTrk2.size()) {
+                            if( (((int)stubsTrk2.size()-nShare)<minIndStubs) && !tracks[itrk]->duplicate() ) tracks[jtrk]->setDuplicate(true);
+                        } else {
+                            if( (((int)stubsTrk1.size()-nShare)<minIndStubs) && !tracks[jtrk]->duplicate() ) tracks[itrk]->setDuplicate(true);
+                        }
+                    } //if second track not a duplicate already
+                } //loop over second track
+            } //if first track not a duplicate already
+        } //loop over first track
+    } // Adjacent Removal
 
     if (writeResEff) {
        outeff << simtrk.pt()*simtrk.id()/fabs(simtrk.id())<<" "<<simtrk.eta()

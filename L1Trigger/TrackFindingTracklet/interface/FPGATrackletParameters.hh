@@ -56,7 +56,7 @@ public:
 
   void writeTPAR(bool first) {
 
-    std::string fname="TrackletParameters_";
+    std::string fname="MemPrints/TrackletParameters/TrackletParameters_";
     fname+=getName();
     fname+="_";
     ostringstream oss;

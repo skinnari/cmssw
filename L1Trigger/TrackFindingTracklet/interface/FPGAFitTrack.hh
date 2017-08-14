@@ -191,7 +191,8 @@ public:
 			       double rinv,
 			       double D[4][12],
 			       double MinvDt[4][12],
-			       int iMinvDt[4][12]){
+			       int iMinvDt[4][12],
+			       double sigma[12]){
 
 
 
@@ -226,6 +227,7 @@ public:
       D[1][j]=ri/sigmax;
       D[2][j]=0.0;
       D[3][j]=0.0;
+      sigma[j]=sigmax;
       j++;
       //second the z position
       D[0][j]=0.0;
@@ -233,9 +235,11 @@ public:
       if (ri<60.0) {
 	D[2][j]=(2/rinv)*asin(0.5*ri*rinv)/sigmaz;
 	D[3][j]=1.0/sigmaz;
+        sigma[j]=sigmaz;
       } else {
 	D[2][j]=(2/rinv)*asin(0.5*ri*rinv)/sigmaz2;
 	D[3][j]=1.0/sigmaz2;
+        sigma[j]=sigmaz2;
       }
 
       //cout << "0 D "<<ri<<" "<<rinv<<" "
@@ -295,6 +299,7 @@ public:
       D[1][j]=(phimultiplier*dphidphi0+rmultiplier*drdphi0)/sigmaxtmp;
       D[2][j]=(phimultiplier*dphidt+rmultiplier*drdt)/sigmaxtmp;
       D[3][j]=(phimultiplier*dphidz0+rmultiplier*drdz0)/sigmaxtmp;
+      sigma[j]=sigmaxtmp;
 
       //cout << "1 D "<<D[0][j]<<" "<<D[1][j]<<" "<<D[2][j]<<" "<<D[3][j]<<endl;
 
@@ -306,12 +311,14 @@ public:
 	D[1][j]=drdphi0/sigmaz;
 	D[2][j]=drdt/sigmaz;
 	D[3][j]=drdz0/sigmaz;
+        sigma[j]=sigmaz;
       }
       else {
 	D[0][j]=drdrinv/sigmaz2;
 	D[1][j]=drdphi0/sigmaz2;
 	D[2][j]=drdt/sigmaz2;
 	D[3][j]=drdz0/sigmaz2;
+        sigma[j]=sigmaz2;
       }
 
       //cout << "2 D "<<D[0][j]<<" "<<D[1][j]<<" "<<D[2][j]<<" "<<D[3][j]<<endl;
@@ -534,7 +541,7 @@ public:
 	  matches[l-1]='1';
 	  //cout << "Hit in layer "<<l<<endl;
 	  layermask|=(1<<(6-l));
-          layers[nlayers++]=l;
+        layers[nlayers++]=l;
 	  continue;
 	}
 	if (tracklet->match(l)) {
@@ -759,10 +766,12 @@ public:
       //}
 
 
+      //cout << "t, match disk 3 "
+      //	   <<tracklet->fpgat().value()<<" "<<tracklet->matchdisk(3)<<endl;
 
       for (unsigned int d1=1;d1<=5;d1++) {
 	//cout << "d1 diskmask : "<<d1<<" "<<diskmask<<endl;
-		  if (mult==1<<(3*alphaBitsTable)) continue;
+	if (mult==1<<(3*alphaBitsTable)) continue;
 	int d=d1;
 	if (tracklet->fpgat().value()<0.0) d=-d1;
 	if (d==tracklet->disk()){  //All seeds in PS modules
@@ -775,11 +784,13 @@ public:
 	}
 
 
-	if (ndisks+nlayers>=6) continue;	
+	if (ndisks+nlayers>=6) continue;
 	if (tracklet->matchdisk(d)) {
 	  if (fabs(tracklet->alphadisk(d))<1e-20) {
-	    matches2[2*(5-d1)]='1';
+	    matches2[2*(d1-1)]='1';
 	    diskmask|=(1<<(2*(5-d1)+1));
+	    FPGAWord tmp;
+	    tmp.set(diskmask,10);
 	  }
 	  else{
 		// double alphastub=tracklet->alphadisk(d);
@@ -801,6 +812,8 @@ public:
 	    power=power<<alphaBitsTable;
 	    matches2[2*(d1-1)+1]='1';
 	    diskmask|=(1<<(2*(5-d1)));
+	    FPGAWord tmp;
+	    tmp.set(diskmask,10);
 	    mult=mult<<alphaBitsTable;
 	  }
 	  
@@ -833,8 +846,11 @@ public:
     FPGATrackDer* derivatives=derTable.getDerivatives(layermask, diskmask,alphaindex);
 
     if (derivatives==0) {
+      FPGAWord tmpl,tmpd;
+      tmpl.set(layermask,6);
+      tmpd.set(diskmask,10);
       cout << "No derivative for layermask, diskmask : "
-	   <<layermask<<" "<<diskmask<<" eta = "<<asinh(t)<<endl;
+	   <<layermask<<" "<<tmpl.str()<<" "<<diskmask<<" "<<tmpd.str()<<" eta = "<<asinh(t)<<endl;
       return;
     }
 
@@ -879,6 +895,7 @@ public:
     double D[4][12];
     double MinvDt[4][12];
     int iMinvDt[4][12];
+    double sigma[12];
 
     unsigned int n=nlayers+ndisks;
    
@@ -894,7 +911,7 @@ public:
     */
 
     if (exactderivatives) {
-      calculateDerivativesNew(nlayers,r,ndisks,z,alpha,t,rinv,D,MinvDt,iMinvDt);
+      calculateDerivativesNew(nlayers,r,ndisks,z,alpha,t,rinv,D,MinvDt,iMinvDt,sigma);
 
       /*
       cout << "Normal : "<<nlayers<<" "<<ndisks<<endl;
@@ -926,7 +943,7 @@ public:
 	*/
 	int iMinvDtDummy[4][12];
 	calculateDerivativesNew(nlayers,r,ndisks,z,alpha,t,rinv,
-				D,MinvDt,iMinvDtDummy);
+				D,MinvDt,iMinvDtDummy,sigma);
       } else {
 	derivatives->fill(tracklet->fpgat().value(),MinvDt,iMinvDt);
       }
@@ -1109,8 +1126,6 @@ public:
 
 
     }
-    
-    double deltaChisq=drinv*drinv_cov+dphi0*dphi0_cov+dt*dt_cov+dz0*dz0_cov;
 
     double deltaChisqexact=drinvexact*drinv_covexact+
       dphi0exact*dphi0_covexact+
@@ -1132,8 +1147,6 @@ public:
     int itfit=itseed-(idt>>fittbitshift);
     int iz0fit=iz0seed-(idz0>>fitz0bitshift);
 
-    int ichisqfit=0;
-
     double rinvfit=rinvseed-drinv;
     double phi0fit=phi0seed-dphi0;
 
@@ -1151,8 +1164,6 @@ public:
     double tfit=tseed-dt;
     double z0fit=z0seed-dz0;
 
-    double chisqfit=chisqseed+deltaChisq;
-
     double rinvfitexact=rinvseedexact-drinvexact;
     double phi0fitexact=phi0seedexact-dphi0exact;
 
@@ -1161,6 +1172,73 @@ public:
 
     double chisqfitexact=chisqseedexact+deltaChisqexact;
 
+////////////// NEW CHISQ /////////////////////
+    bool NewChisqDebug=false;
+    double chisqfit=0.0;
+    int ichisqfit=0;
+
+    double phifactor;
+    double rzfactor;
+    double iphifactor;
+    double irzfactor;
+    int k=0; // column index of D matrix
+
+    if(NewChisqDebug){
+      cout << "OG chisq:" << endl;
+      cout << "drinv/cov = " << drinv << "/" << drinv_cov << endl;
+      cout << "dphi0/cov = " << drinv << "/" << dphi0_cov << endl;
+      cout << "dt/cov = " << drinv << "/" << dt_cov << endl;
+      cout << "dz0/cov = " << drinv << "/" << dz0_cov << endl << endl;
+      cout << "D[0][k]= ";
+      for(unsigned int i=0;i<2*n;i++) {
+        cout << D[0][i] << ", ";
+      }
+      cout << endl;
+    }
+
+
+
+    for(unsigned int i=0;i<n;i++) { // loop over stubs
+      phifactor=(delta[k]/sigma[k]+D[0][k]*drinv/rstub[k/2]+D[1][k]*dphi0/rstub[k/2]+D[2][k]*dt/rstub[k/2]+D[3][k]*dz0/rstub[k/2]);
+      iphifactor=(idelta[k]/sigma[k]+D[0][k]*idrinv/rstub[k/2]+D[1][k]*idphi0/rstub[k/2]+D[2][k]*idt/rstub[k/2]+D[3][k]*idz0/rstub[k/2]);
+
+      if(NewChisqDebug){
+        cout << "delta[k]/sigma = " << delta[k]/sigma[k] << "  delta[k] = " << delta[k]  << endl;
+        cout << "sum = " << phifactor-delta[k]/sigma[k] << "    drinvterm = " << D[0][k]*drinv << "  dphi0term = " << D[1][k]*dphi0 << "  dtterm = " << D[2][k]*dt << "  dz0term = " << D[3][k]*dz0 << endl;
+        cout << "  phifactor = " << phifactor << endl;
+      }
+
+      chisqfit+=phifactor*phifactor;
+      ichisqfit+=iphifactor*iphifactor;
+      k++;
+
+
+      rzfactor=(delta[k]/sigma[k]+D[0][k]*drinv+D[1][k]*dphi0+D[2][k]*dt+D[3][k]*dz0);
+      irzfactor=(idelta[k]/sigma[k]+D[0][k]*idrinv+D[1][k]*idphi0+D[2][k]*idt+D[3][k]*idz0);
+
+      if(NewChisqDebug){
+        cout << "delta[k]/sigma = " << delta[k]/sigma[k] << "  delta[k] = " << delta[k]  << endl;
+        cout << "sum = " << rzfactor-delta[k]/sigma[k] << "    drinvterm = " << D[0][k]*drinv << "  dphi0term = " << D[1][k]*dphi0 << "  dtterm = " << D[2][k]*dt << "  dz0term = " << D[3][k]*dz0 << endl;
+        cout << "  rzfactor = " << rzfactor << endl;
+      }
+
+      chisqfit+=rzfactor*rzfactor;
+      ichisqfit+=irzfactor*irzfactor;
+      k++;
+    }
+
+    // Divide by degrees of freedom
+    chisqfit=chisqfit/(2*n-4);
+    chisqfitexact=chisqfitexact/(2*n-4);
+    ichisqfit=ichisqfit/(2*n-4);
+
+    //FIXME Number too large (?) in emulation
+    ichisqfit=0;
+    
+    if(NewChisqDebug){
+      cout << "chisqfit = " << chisqfit << endl << endl;
+    }
+////////////// END NEW CHISQ /////////////////////
 
     /*
     cout << "rinvfit  : "<<rinvseed<<" "<<rinvseedexact<<" "
@@ -1244,7 +1322,7 @@ public:
 	return tmp;
   }
 
-  void execute(std::vector<FPGATrack>& tracks) {
+  void execute(std::vector<FPGATrack*>& tracks) {
 
     //cout << "Fit track in "<<getName()<<" "
     //	 <<fullmatch1_.size()<<" "

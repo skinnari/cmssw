@@ -42,7 +42,7 @@ public:
 
   void writeSP(bool first) {
 
-    std::string fname="StubPairs_";
+    std::string fname="MemPrints/StubPairs/StubPairs_";
     fname+=getName();
     fname+="_";
     ostringstream oss;
@@ -65,12 +65,15 @@ public:
       string stub2index=stubs2_[j].first->stubindex().str();
       if (j<16) out_ <<"0";
       out_ << hex << j << dec ;
-      //out_ <<" "<<stub1index <<" "<<stub2index << endl;
+      out_ <<" "<<stub1index <<"|"<<stub2index << endl;
+	  /*
       if(writeoutReal){
 	out_ <<" "<<stubs1_[j].first->str_phys() <<" "<<stubs2_[j].first->str_phys()<< endl;
       }else{
-	out_ <<" "<<stubs1_[j].first->strbare() <<" "<<stubs2_[j].first->strbare()<< endl;
+	out_ <<" "<<stubs1_[j].first->stubindex().str() <<" "<<stubs2_[j].first->stubindex().str()<< endl;
+	//out_ <<" "<<stubs1_[j].first->strbare() <<" "<<stubs2_[j].first->strbare()<< endl;
       }
+	  */
     }
     out_.close();
 

@@ -96,7 +96,8 @@ public:
       if (layer1==0) {
 	layer1= new FPGATEBin;
 	layer1->initLayerLayer(1,false);
-	if (writeTEBinTable) layer1->writeTable("TEBinTableLayer1ToLayer2.txt");
+	if (writeTEBinTable) layer1->writeTable("TEBinTableLayer1ToLayer2.txt",
+											NLONGVMBITS+1);
       }
       return layer1->lookup(bin);
     }
@@ -106,7 +107,8 @@ public:
       if (layer3==0) {
 	layer3= new FPGATEBin;
 	layer3->initLayerLayer(3,false);
-	if (writeTEBinTable) layer3->writeTable("TEBinTableLayer3ToLayer4.txt");
+	if (writeTEBinTable) layer3->writeTable("TEBinTableLayer3ToLayer4.txt",
+											NLONGVMBITS+1);
 
       }
       return layer3->lookup(bin);
@@ -117,7 +119,8 @@ public:
       if (layer3overlap==0) {
 	layer3overlap= new FPGATEBin;
 	layer3overlap->initLayerLayer(3,true);
-	if (writeTEBinTable) layer3overlap->writeTable("TEBinTableLayer3ToLayer2.txt");
+	if (writeTEBinTable) layer3overlap->writeTable("TEBinTableLayer3ToLayer2.txt",
+												   NLONGVMBITS+1);
       }
       return layer3overlap->lookup(bin);
     }
@@ -127,7 +130,8 @@ public:
       if (layer5==0) {
 	layer5= new FPGATEBin;
 	layer5->initLayerLayer(5,false);
-	if (writeTEBinTable) layer5->writeTable("TEBinTableLayer5ToLayer6.txt");
+	if (writeTEBinTable) layer5->writeTable("TEBinTableLayer5ToLayer6.txt",
+											NLONGVMBITS+1);
 
       }
       return layer5->lookup(bin);
@@ -155,7 +159,8 @@ public:
       if (disk1==0) {
 	disk1= new FPGATEBin;
 	disk1->initDiskDisk(1);
-	if (writeTEBinTable) disk1->writeTable("TEBinTableDisk1ToDisk2.txt");
+	if (writeTEBinTable) disk1->writeTable("TEBinTableDisk1ToDisk2.txt",
+										   NLONGVMRBITS+1);
       }
       return disk1->lookup(ibin);
     }
@@ -165,7 +170,8 @@ public:
       if (disk3==0) {
 	disk3= new FPGATEBin;
 	disk3->initDiskDisk(3);
-	if (writeTEBinTable) disk3->writeTable("TEBinTableDisk3ToDisk4.txt");
+	if (writeTEBinTable) disk3->writeTable("TEBinTableDisk3ToDisk4.txt",
+										   NLONGVMRBITS+1);
 
       }
       return disk3->lookup(ibin);
@@ -192,7 +198,8 @@ public:
       if (layer1overlap==0) {
 	layer1overlap= new FPGATEBin;
 	layer1overlap->initLayertoDisk(1);
-	if (writeTEBinTable) layer1overlap->writeTable("TEBinTableLayer1ToDisk1.txt");
+	if (writeTEBinTable) layer1overlap->writeTable("TEBinTableLayer1ToDisk1.txt",
+												   NLONGVMRBITS+1);
 
       }
       return layer1overlap->lookup(bin);
@@ -225,7 +232,8 @@ public:
       if (layer1==0) {
 	layer1= new FPGATEBin;
 	layer1->initDisktoLayer(1);
-	if (writeTEBinTable) layer1->writeTable("TEBinTableDisk1ToLayer1.txt");
+	if (writeTEBinTable) layer1->writeTable("TEBinTableDisk1ToLayer1.txt",
+											NLONGVMBITS+1);
       }
       return layer1->lookup(ibin);
     }
@@ -235,7 +243,8 @@ public:
       if (layer2==0) {
 	layer2= new FPGATEBin;
 	layer2->initDisktoLayer(2);
-	if (writeTEBinTable) layer2->writeTable("TEBinTableDisk1ToLayer2.txt");
+	if (writeTEBinTable) layer2->writeTable("TEBinTableDisk1ToLayer2.txt",
+											NLONGVMBITS+1);
       }
       return layer2->lookup(ibin);
     }
@@ -255,7 +264,7 @@ public:
 
   void writeStubs(bool first) {
 
-    std::string fname="VMStubs_";
+    std::string fname="MemPrints/VMStubsTE/VMStubs_";
     fname+=getName();
     //get rid of duplicates
     int len = fname.size();

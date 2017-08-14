@@ -192,12 +192,15 @@ public:
 
   
   
-  void writeTable(std::string fname) {
+  void writeTable(std::string fname, int nbit) {
 
     ofstream out(fname.c_str());
 
     for (unsigned int i=0;i<table_.size();i++){
-      out << i<<" "<<table_[i]<<endl;
+	  //out << i<<" "<<table_[i]<<endl;
+	  FPGAWord tmp;
+	  tmp.set(table_[i], nbit, true);
+	  out << tmp.str() << endl;
     }
     out.close();
       

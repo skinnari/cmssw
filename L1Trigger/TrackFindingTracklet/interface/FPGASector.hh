@@ -18,6 +18,7 @@
 #include "FPGACandidateMatch.hh"
 #include "FPGAFullMatch.hh"
 #include "FPGATrackFit.hh"
+#include "FPGACleanTrack.hh"
 
 #include "FPGALayerRouter.hh"
 #include "FPGADiskRouter.hh"
@@ -31,6 +32,7 @@
 #include "FPGAMatchCalculator.hh"
 #include "FPGAMatchTransceiver.hh"
 #include "FPGAFitTrack.hh"
+#include "FPGAPurgeDuplicate.hh"
 
 using namespace std;
 
@@ -54,8 +56,8 @@ public:
     //cout << "FPGASector::addStub phi phimin_ phimax_ : "<<phi<<" "<<phimin_<<" "<<phimax_<<endl;
     double dphi=two_pi/NSector/6.0;
     if (layer<999) {
-      if ((layer%2==1&&(phi>phimin_-dphi)&&(phi<phimax_+dphi))||
-	  (layer%2==0&&(phi>phimin_-dphi)&&(phi<phimax_+dphi))) {
+      if (((phi>phimin_-dphi)&&(phi<phimax_+dphi))||
+	  ((phi>two_pi+phimin_-dphi)&&(phi<two_pi+phimax_+dphi))) {
 	FPGAStub fpgastub(stub,phimin_,phimax_);
 	//cout << "Trying to add stub in sector : "<<isector_<<" layer = "<<layer<<endl;
 	for (unsigned int i=0;i<IL_.size();i++){
@@ -64,9 +66,10 @@ public:
 	}
       }
     } else {
-      int disk=stub.disk();
-      if ((abs(disk)%2==1&&(phi>phimin_-dphi)&&(phi<phimax_+dphi))||
-	  (abs(disk)%2==0&&(phi>phimin_-dphi)&&(phi<phimax_+dphi))) {
+      //int disk=stub.disk();
+      if (((phi>phimin_-dphi)&&(phi<phimax_+dphi))||
+	  ((phi>two_pi+phimin_-dphi)&&(phi<two_pi+phimax_+dphi))) {
+	//cout << "Trying to add stub in sector : "<<isector_<<" disk = "<<disk<<endl;
 	for (unsigned int i=0;i<IL_.size();i++){
 	  FPGAStub fpgastub(stub,phimin_,phimax_);
 	  IL_[i]->addStub(stub,fpgastub);
@@ -133,6 +136,10 @@ public:
       TF_.push_back(new FPGATrackFit(memName,isector_,phimin_,phimax_));
       Memories_[memName]=TF_.back();
       MemoriesV_.push_back(TF_.back());
+    } else if (memType=="CleanTrack:") {
+      CT_.push_back(new FPGACleanTrack(memName,isector_,phimin_,phimax_));
+      Memories_[memName]=CT_.back();
+      MemoriesV_.push_back(CT_.back());
     } else {
       cout << "Don't know of memory type: "<<memType<<endl;
       exit(0);
@@ -178,6 +185,9 @@ public:
     } else if (procType=="FitTrack:") {
       FT_.push_back(new FPGAFitTrack(procName,isector_));
       Processes_[procName]=FT_.back();
+    } else if (procType=="PurgeDuplicate:") {
+      PD_.push_back(new FPGAPurgeDuplicate(procName,isector_));
+      Processes_[procName]=PD_.back();
     } else {
       cout << "Don't know of processing type: "<<procType<<endl;
       exit(0);      
@@ -296,9 +306,21 @@ public:
     }
   }
 
+  void writeAP(bool first) {
+    for (unsigned int i=0;i<AP_.size();i++){
+      AP_[i]->writeAP(first);
+    }
+  }
+
   void writeVMPROJ(bool first) {
     for (unsigned int i=0;i<VMPROJ_.size();i++){
       VMPROJ_[i]->writeVMPROJ(first);
+    }
+  }
+
+  void writeCM(bool first) {
+    for (unsigned int i=0;i<CM_.size();i++){
+     CM_[i]->writeCM(first);
     }
   }
 
@@ -311,6 +333,12 @@ public:
   void writeTF(bool first){
     for(unsigned int i=0; i<TF_.size(); ++i){
       TF_[i]->writeTF(first);
+    }
+  }
+
+  void writeCT(bool first) {
+    for(unsigned int i=0; i<CT_.size(); ++i){
+      CT_[i]->writeCT(first);
     }
   }
 
@@ -391,6 +419,12 @@ public:
     }
   }
 
+  void executePD(std::vector<FPGATrack*>& tracks){
+    for (unsigned int i=0;i<PD_.size();i++){
+      PD_[i]->execute(tracks);
+    }
+  }
+
   void executePT(FPGASector* sectorPlus,FPGASector* sectorMinus){
     //For now the order is assumed
     for (unsigned int i=0;i<PT_.size();i++){
@@ -457,57 +491,6 @@ public:
     }
   }
 
-  void findduplicates(std::vector<FPGATrack>& tracks) {
-  
-     int numTrk = fpgatracks_.size();
-
-     //set the sector for FPGATrack, enabling the ability for adjacent sector removal
-     for(int itrk=0; itrk<numTrk; itrk++) {
-        fpgatracks_[itrk].setSector(isector_);
-     }
-
-     for(int itrk=0; itrk<numTrk-1; itrk++){
-
-       //if primary track is a duplicate, it cannot veto any...move on
-	    if(!fpgatracks_[itrk].duplicate()) {	  
-		
-	      for(int jtrk=itrk+1; jtrk<numTrk; jtrk++){
-		    
-		   	//get stub information	 
-				int nShare=0;
-				std::map<int, int> stubsTrk1 = fpgatracks_[itrk].stubID();
-				std::map<int, int> stubsTrk2 = fpgatracks_[jtrk].stubID();
-				
-            //count shared stubs
-				for(std::map<int, int>::iterator  st=stubsTrk1.begin(); st!=stubsTrk1.end(); st++) {
-				   if( stubsTrk2.find(st->first) != stubsTrk2.end() ) {
-				     //printf("First  %i   %i   Second  %i \n",st->first,st->second,stubsTrk2[st->first]);
-					  if(st->second == stubsTrk2[st->first] && st->second != 63) nShare++;
-               }   	  
-				} //loop over stubs
-
-		   	//Decide if we should flag either of the tracks as a duplicate
-				if(stubsTrk1.size()>=stubsTrk2.size()) {
-				  //don't allow primary track to veto if it is already a duplicate
-				  if( (((int)stubsTrk2.size()-nShare)<minIndepStubs) & !fpgatracks_[itrk].duplicate())  fpgatracks_[jtrk].setDuplicate(true);				     
-				} else {
-				  //don't allow second track to veto if it is already a duplicate
-				  if( (((int)stubsTrk1.size()-nShare)<minIndepStubs) & !fpgatracks_[jtrk].duplicate() ) fpgatracks_[itrk].setDuplicate(true);
-				} 
-							  		  
-		   } //loop over second track
-		 }//if first track not a duplicate already  	  
-	  } //loop over first track
-
-//Now that we have the duplicate flag set, push the tracks out
-    for(unsigned int i=0;i<fpgatracks_.size();i++){
-      tracks.push_back(fpgatracks_[i]);
-    }
-  
-  }
-
-
-
 
   bool foundTrack(ofstream& outres, L1SimTrack simtrk){
     bool match=false;
@@ -560,7 +543,7 @@ private:
   double phimin_;
   double phimax_;
 
-  std::vector<FPGATrack> fpgatracks_;
+  std::vector<FPGATrack*> fpgatracks_;
 
 
   std::map<string, FPGAMemoryBase*> Memories_;
@@ -579,6 +562,7 @@ private:
   std::vector<FPGACandidateMatch*> CM_;
   std::vector<FPGAFullMatch*> FM_;
   std::vector<FPGATrackFit*> TF_;
+  std::vector<FPGACleanTrack*> CT_;
   
   std::map<string, FPGAProcessBase*> Processes_;
   std::vector<FPGALayerRouter*> LR_;
@@ -593,6 +577,7 @@ private:
   std::vector<FPGAMatchCalculator*> MC_;
   std::vector<FPGAMatchTransceiver*> MT_;
   std::vector<FPGAFitTrack*> FT_;
+  std::vector<FPGAPurgeDuplicate*> PD_;
 
 
 

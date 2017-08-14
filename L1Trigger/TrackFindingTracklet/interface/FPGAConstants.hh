@@ -12,6 +12,8 @@
 //static string geomext="full";  //Use full
 static string geomext="new";  //Use full
 
+static int TMUX = 6;
+
 static bool flatgeom=false;
 
 static string fitpatternfile="fitpattern.txt";
@@ -93,25 +95,17 @@ static bool doL1L2=true;
 static bool doL3L4=true;
 static bool doL5L6=true;
 
-static bool doF1F2=true; 
-static bool doF3F4=true;  
+static bool doD1D2=true; 
+static bool doD3D4=true;
 
-static bool doB1B2=true;
-static bool doB3B4=true;
-
-static bool doL1F1=true;
-static bool doL2F1=true;
-
-static bool doL1B1=true;
-static bool doL2B1=true;
+static bool doL1D1=true;
+static bool doL2D1=true;
 
 static bool doMEMatch=true;
 
 static bool allSector=false; //if true duplicate stubs in all sectors
 
 static bool doProjections=true;
-
-static int minIndepStubs=3;
 
 static const int MEBinsBits=3;
 static const int MEBins=(1<<MEBinsBits);
@@ -208,7 +202,7 @@ static int nbitsalpha=6;
 static double kalpha=alphamax/(1<<(nbitsalpha-1));
 static int alphaBitsTable=1; //For number of bits in track derivative table
 
-static unsigned int NSector=24; //Has to be multiple of 4
+static unsigned int NSector=24; 
 static int Nphibits=2;         //Number of bits required to label the phi VM
 static int L1Nphi=(1<<Nphibits)-1; //Number of odd layer VMs
 static int Nzbits=3;         //Number of bits required to label the z VM
@@ -338,8 +332,8 @@ static int itshiftdisk=5;
 static int it12shiftdisk=8;
 
 
-static double kphi=two_pi/((3*NSector/4)*(1<<nbitsphistubL123));
-static double kphi1=two_pi/((3*NSector/4)*(1<<nbitsphistubL456));
+static double kphi=two_pi/((0.75*NSector)*(1<<nbitsphistubL123));
+static double kphi1=two_pi/((0.75*NSector)*(1<<nbitsphistubL456));
 static double kz=2*zlength/(1<<nbitszL123);
 static double kr=2*drmax/(1<<nbitsrL456);			
 static double kdrinv=1.0/(kr*(1<<idrinvbits));
@@ -450,7 +444,8 @@ static int fittbitshift=6;     //4 OK?
 static int fitz0bitshift=8;    //6 OK?
 
 //Duplicate Removal
-//static int minIndepStubs=2;
+static int minIndStubs=3;
+static bool AdjacentRemoval=false;
 
 #endif
 

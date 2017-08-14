@@ -1376,16 +1376,17 @@ public:
   }
 
   bool ed_binarytracklet(FPGAStub* innerFPGAStub, 
-		      FPGAStub* outerFPGAStub,
-		      double sigmaz,
-		      int& irinv, int& iphi0,
-		      int& it, int& iz0,
-		      int iphiproj[4], int izproj[4],
-		      int iphider[4], int izder[4],
-		      bool minusNeighbor[4], bool plusNeighbor[4],
-		      int iphiprojdisk[5], int irprojdisk[5],
-		      int iphiderdisk[5], int irderdisk[5],
-		      bool minusNeighborDisk[5], bool plusNeighborDisk[5]){
+			 FPGAStub* outerFPGAStub,
+			 double sigmaz,
+			 int& irinv, int& iphi0,
+			 int& it, int& iz0, bool validproj[4],
+			 int iphiproj[4], int izproj[4],
+			 int iphider[4], int izder[4],
+			 bool minusNeighbor[4], bool plusNeighbor[4],
+			 bool validprojdisk[5],
+			 int iphiprojdisk[5], int irprojdisk[5],
+			 int iphiderdisk[5], int irderdisk[5],
+			 bool minusNeighborDisk[5], bool plusNeighborDisk[5]){
 
     if (sigmaz<-10.0) {
       cout << "Negative sigmaz"<<endl;
@@ -1474,18 +1475,29 @@ public:
     
     //test
     if (fabs(irinv*krinvpars)>rinvcut*2) {        // *2 is HACK associated with "irinv/=2" below, the irinv calculation should be corrected earlier!!
-      //cout << "Failed tracklet pt cut"<<endl;
+      if (debug1) {
+	cout << "Failed tracklet pt cut"<<endl;
+      }
       return false;
     }
-    if (fabs(iz0*kzpars)>z0cut) {
-        //cout << "Failed tracklet z0 cut"<<endl;
+
+    if (layer_==1&&fabs(iz0*kzpars)>z0cut) {
+      if (debug1) {
+	cout << "Failed tracklet z0 cut "<<iz0*kzpars<<" in layer 1"<<endl;
+      }
+      return false;
+    }
+    if (layer_>=2&&fabs(iz0*kzpars)>1.5*z0cut) { 
+      if (debug1) {
+	cout << "Failed tracklet z0 cut "<<iz0*kzpars<<" in layer "<<layer_<<endl;
+      }      
       return false;
     }
 
     //calculate projections
     for (int i=0;i<4;i++) {
       int rp = rproj_[i]/kr;
-      ed_binaryproj(rp,phi0s,it,iz0,
+      ed_binaryproj(rp,phi0s,it,iz0,validproj[i],
 		    iphiproj[i],izproj[i],iphider[i],izder[i],
 		    minusNeighbor[i], plusNeighbor[i],
 		    //extras
@@ -1499,7 +1511,7 @@ public:
       int sign=1;
       if (it<0) sign=-1;
       int zp = (sign*zmean[i])/kz;
-      ed_binaryprojdisk(zp,phi0s,it,iz0,
+      ed_binaryprojdisk(zp,phi0s,it,iz0,validprojdisk[i],
 			iphiprojdisk[i],irprojdisk[i],iphiderdisk[i],irderdisk[i],
 			minusNeighborDisk[i], plusNeighborDisk[i],
 			//extras
@@ -1514,7 +1526,7 @@ public:
     return true;
   }
 
-  void ed_binaryproj(int rp, int iphi0, int it, int iz0,
+  void ed_binaryproj(int rp, int iphi0, int it, int iz0, bool &validproj,
 		     int &iphiproj, int &izproj, int &iphider, int &izder,
 		     bool &minusNeighbor, bool &plusNeighbor,
 		     //plus some internal stuff from tracklet par calculations
@@ -1561,7 +1573,8 @@ public:
     //from the original
     minusNeighbor=false;
     plusNeighbor=false;
-
+    validproj=true;
+    
     if (iphiproj<(1<<nbitsphistubL456)/8) {
       minusNeighbor=true;
       iphiproj+=3*(1<<nbitsphistubL456)/4;
@@ -1580,8 +1593,8 @@ public:
     float rproj = rp * kr;
     if (rproj<60.0) iphiproj>>=(nbitsphistubL456-nbitsphistubL123);
 
-    if (izproj<-(1<<(nbitszprojL123-1))) izproj=-(1<<(nbitszprojL123-1));
-    if (izproj>=(1<<(nbitszprojL123-1))) izproj=(1<<(nbitszprojL123-1))-1;
+    if (izproj<-(1<<(nbitszprojL123-1))) validproj=false;
+    if (izproj>=(1<<(nbitszprojL123-1))) validproj=false;
 
     if (rproj>60.) {
       izproj>>=(nbitszprojL123-nbitszprojL456);
@@ -1590,6 +1603,7 @@ public:
   }
 
   void ed_binaryprojdisk(int zp, int iphi0, int it, int iz0,
+			 bool &validprojdisk,
 			 int &iphiproj, int &irproj, int &iphider, int &irder,
 			 bool &minusNeighbor, bool &plusNeighbor,
 			 //plus extra from tracklet pars calculation
@@ -1668,8 +1682,10 @@ public:
     if(irder>=(1<<7)) irder = (1<<7)-1;
     if(irder<-(1<<7)) irder = -(1<<7);
 
+    validprojdisk=true;
 
     if (irproj<=0) {
+      validprojdisk=false;
       irproj=0;
       iphiproj=0;
       iphider=0;
@@ -1680,6 +1696,7 @@ public:
     assert(irproj>0);
 
     if (irproj*krprojshiftdisk>120.0) {
+      validprojdisk=false;
       irproj=0;
       iphiproj=0;
       iphider=0;
@@ -1690,16 +1707,18 @@ public:
   }
 
   bool ed_binarytrackletdisk(FPGAStub* innerFPGAStub, 
-			  FPGAStub* outerFPGAStub,
-			  double sigmaz,
-			  int& irinv, int& iphi0,
-			  int& it, int& iz0,
-			  int iphiprojLayer[6], int izprojLayer[6],
-			  int iphiderLayer[6], int izderLayer[6],
-			  bool minusNeighborLayer[6], bool plusNeighborLayer[6],
-			  int iphiproj[4], int irproj[4],
-			  int iphider[4], int irder[4],
-			  bool minusNeighbor[4], bool plusNeighbor[4]){
+			     FPGAStub* outerFPGAStub,
+			     double sigmaz,
+			     int& irinv, int& iphi0,
+			     int& it, int& iz0,
+			     bool validproj[6],
+			     int iphiprojLayer[6], int izprojLayer[6],
+			     int iphiderLayer[6], int izderLayer[6],
+			     bool minusNeighborLayer[6], bool plusNeighborLayer[6],
+			     bool validprojdisk[4],
+			     int iphiproj[4], int irproj[4],
+			     int iphider[4], int irder[4],
+			     bool minusNeighbor[4], bool plusNeighbor[4]){
     
     if (sigmaz<-10.0) {
       cout << "Negative sigmaz"<<endl;
@@ -1726,8 +1745,9 @@ public:
     //	 <<round_int(zmean[abs(disk_)-1]/kzdisk)<<endl;
     z1mean*=sign;
     //int dz12 = z2mean - z1mean;             // undigned=0, Nbits=15
+
     int dz12=sign*round_int(8*(zmean[abs(disk_)]-zmean[abs(disk_)-1])/kzdisk);
-    
+
     //wire inputs
     int phi2  = iphi2;
     int phi1  = iphi1;
@@ -1742,6 +1762,10 @@ public:
     //    long int invdr = (1<<23)/dr;                 // unsigned=0, Nbits=17
     //cout << "will calc. invdr 2" << endl;
     long int invdr = invRTable_.lookup((dr&511));
+    if (dr>511) {
+      if (debug1) cout << "Table out of range" << endl;
+      invdr = (1<<23)/dr;
+    }
     //cout << "done calc. invdr 2" << endl;
 
     
@@ -1780,6 +1804,7 @@ public:
     long int z0a = (delta_z * r1abs)>>18;        // unsigned=0, Nbits=15
     long int z0 = z1 - z0a;                      // unsigned=0, Nbits=10
 
+	     
     //output tracklet parameters:
     irinv = inv_rho; //K = 1.31423e+06 
     iphi0 = phi0;    //K = 219038
@@ -1788,11 +1813,17 @@ public:
 
    
     if (fabs(iz0*kzdisk)>z0cut) {
-      //cout << "DUMP iz0 too large: "<<iz0*kzdisk<<endl;
+      if (debug1) {
+	cout << "FPGATrackletCalculator::eb_binarytrackletdisk iz0 too large: "<<iz0*kzdisk<<endl;
+      }
       return false;
     }
     //if (fabs(irinv*krinvparsdisk)>0.0057) {
     if (fabs(irinv*krinvparsdisk)>rinvcut) {
+      if (debug1) {
+	cout << "FPGATrackletCalculator::eb_binarytrackletdisk irinv too large: "<<irinv*krinvparsdisk<<endl;
+      }
+
       //cout << "DUMP irinv too large: "<<irinv*krinvparsdisk<<endl;
       return false;
     }
@@ -1800,7 +1831,7 @@ public:
     //calculate projections
     for (int i=0;i<3;i++) {
       int rp = rmean[i]/kr;
-      ed_binaryproj(rp,phi0s,it,iz0,
+      ed_binaryproj(rp,phi0s,it,iz0,validproj[i],
 		    iphiprojLayer[i],izprojLayer[i],iphiderLayer[i],izderLayer[i],
 		    minusNeighborLayer[i], plusNeighborLayer[i],
 		    //extras
@@ -1811,7 +1842,7 @@ public:
     for (int i=0;i<3;i++) {
       int zp = zproj_[i]/kz;
       //cout << "rproj izp zp : "<<zp<<" "<<zp*kz<<" "<<zproj_[i]<<endl;
-      ed_binaryprojdisk(zp,phi0s,it,iz0,
+      ed_binaryprojdisk(zp,phi0s,it,iz0,validprojdisk[i],
 			iphiproj[i],irproj[i],iphider[i],irder[i],
 			minusNeighbor[i], plusNeighbor[i],
 			//extras
@@ -1829,10 +1860,11 @@ public:
 		      FPGAStub* outerFPGAStub,
 		      double sigmaz,
 		      int& irinv, int& iphi0,
-		      int& it, int& iz0,
+		      int& it, int& iz0, bool validproj[4],
 		      int iphiproj[4], int izproj[4],
 		      int iphider[4], int izder[4],
 		      bool minusNeighbor[4], bool plusNeighbor[4],
+		      bool validprojdisk[5],
 		      int iphiprojdisk[5], int irprojdisk[5],
 		      int iphiderdisk[5], int irderdisk[5],
 		      bool minusNeighborDisk[5], bool plusNeighborDisk[5]){
@@ -2026,7 +2058,7 @@ public:
     //calculate projections
 
     for (int i=0;i<4;i++) {
-      binaryproj(rproj_[i],irinv,iphi0,it,iz0,
+      binaryproj(rproj_[i],irinv,iphi0,it,iz0,validproj[i],
 		 iphiproj[i],izproj[i],iphider[i],izder[i],
 		 minusNeighbor[i], plusNeighbor[i]);
       //cout << "Calculating projection to r = "<<rproj_[i]<<" iphi = "<<iphiproj[i]<<endl;
@@ -2037,7 +2069,7 @@ public:
       int sign=1;
       if (it<0) sign=-1;
       //cout << "Calculating projection to z = "<<sign*zmean[i]<<endl;
-      binaryprojdisk(sign*zmean[i],irinv,iphi0,it,iz0,
+      binaryprojdisk(sign*zmean[i],irinv,iphi0,it,iz0,validprojdisk[i],
 		     iphiprojdisk[i],irprojdisk[i],iphiderdisk[i],irderdisk[i],
 		     minusNeighborDisk[i], plusNeighborDisk[i]);
       //cout << "Calculating projection to z = "<<sign*zmean[i]<<" ir = "<<irprojdisk[i]<<endl;
@@ -2137,6 +2169,7 @@ public:
 
 
   void binaryproj(double rproj,int irinv, int iphi0, int it, int iz0,
+		  bool &validproj,
 		  int &iphiproj, int &izproj, int &iphider, int &izder,
 		  bool &minusNeighbor, bool &plusNeighbor) {
 
@@ -2245,9 +2278,10 @@ public:
       }
     }
 
+    validproj=true;
 
-    if (izproj<-(1<<(nbitszprojL123-1))) izproj=-(1<<(nbitszprojL123-1));
-    if (izproj>=(1<<(nbitszprojL123-1))) izproj=(1<<(nbitszprojL123-1))-1;
+    if (izproj<-(1<<(nbitszprojL123-1))) validproj=false;
+    if (izproj>=(1<<(nbitszprojL123-1))) validproj=false;
 
     if (rproj>60.) {
       izproj>>=(nbitszprojL123-nbitszprojL456);
@@ -2373,6 +2407,7 @@ public:
 
 
   void binaryprojdisk(double zproj,int irinv, int iphi0, int it, int iz0,
+		      bool &validproj,
 		      int &iphiproj, int &irproj, int &iphider, int &irder,
 		      bool &minusNeighbor, bool &plusNeighbor) {
 
@@ -2437,6 +2472,7 @@ public:
       iphiproj-=3*(1<<nbitsphistubL456)/4;
     }
 
+    
     if (iphiproj<0) iphiproj=0;
     if (iphiproj>=(1<<nbitsphistubL456)) iphiproj=(1<<nbitsphistubL456)-1;
 
@@ -2472,7 +2508,10 @@ public:
     iphider>>=phiderdiskbitshift;
     irder>>=rderdiskbitshift;
 
+    validproj=true;
+    
     if (irproj<=0) {
+      validproj=false;
       irproj=0;
       iphiproj=0;
       iphider=0;
@@ -2483,6 +2522,7 @@ public:
     assert(irproj>0);
 
     if (irproj*krprojshiftdisk>120.0) {
+      validproj=false;
       irproj=0;
       iphiproj=0;
       iphider=0;
@@ -2509,9 +2549,11 @@ public:
 			  double sigmaz,
 			  int& irinv, int& iphi0,
 			  int& it, int& iz0,
+			  bool validproj[6],
 			  int iphiprojLayer[6], int izprojLayer[6],
 			  int iphiderLayer[6], int izderLayer[6],
 			  bool minusNeighborLayer[6], bool plusNeighborLayer[6],
+			  bool validprojdisk[4],
 			  int iphiproj[4], int izproj[4],
 			  int iphider[4], int izder[4],
 			  bool minusNeighbor[4], bool plusNeighbor[4]){
@@ -2651,7 +2693,7 @@ public:
     //cout << "DUMP calling projectbinary disk_="<<disk_<<endl;
 
     for (int i=0;i<3;i++) {
-      binaryprojdisk(zproj_[i],irinv,iphi0,it,iz0,
+      binaryprojdisk(zproj_[i],irinv,iphi0,it,iz0,validprojdisk[i],
 		     iphiproj[i],izproj[i],iphider[i],izder[i],
 		     minusNeighbor[i], plusNeighbor[i]);
     }
@@ -2659,6 +2701,7 @@ public:
 
     for (int i=0;i<3;i++) {
       binaryproj(rmean[i],irinv,iphi0,it,iz0,
+		 validproj[i],
 		 iphiprojLayer[i],izprojLayer[i],
 		 iphiderLayer[i],izderLayer[i],
 		 minusNeighborLayer[i], plusNeighborLayer[i]);
@@ -2686,10 +2729,12 @@ public:
 			     double sigmaz,
 			     int& irinv, int& iphi0,
 			     int& it, int& iz0,
+			     bool validproj[6],
 			     int iphiprojLayer[6], int izprojLayer[6],
 			     int iphiderLayer[6], int izderLayer[6],
 			     bool minusNeighborLayer[6], 
 			     bool plusNeighborLayer[6],
+			     bool validprojdisk[4],
 			     int iphiproj[4], int izproj[4],
 			     int iphider[4], int izder[4],
 			     bool minusNeighbor[4], bool plusNeighbor[4]){
@@ -2837,6 +2882,7 @@ public:
 
     for (int i=0;i<4;i++) {
       binaryprojdisk(zprojoverlap_[i],irinv,iphi0,it,iz0,
+		     validprojdisk[i],
 		     iphiproj[i],izproj[i],iphider[i],izder[i],
 		     minusNeighbor[i], plusNeighbor[i]);
       //cout << "zproj 1 der : "<<izder[i]<<" "<<it<<endl;
@@ -2855,6 +2901,7 @@ public:
 	//cout << "Will call binaryproj r = "<<rmean[i]<<" "<<getName()<<" "<<layer_<<" "<<outerFPGAStub->layer().value()+1<<endl;
 	//cout << "Inner fga stub : "<<innerFPGAStub->layer().value()+1<<endl;
 	binaryproj(rmean[i],irinv,iphi0,it,iz0,
+		   validproj[i],
 		   iphiprojLayer[i],izprojLayer[i],
 		   iphiderLayer[i],izderLayer[i],
 		   minusNeighborLayer[i], plusNeighborLayer[i]);
@@ -3176,11 +3223,14 @@ public:
 	    }
 	    
 	    double dphi1=phi1-phimin_+(phimax_-phimin_)/6.0-iphi1.value()*kphi/lphi;
-
+	    
+	    
 	    //cout << "dphi1 phi1 phimin_ phimax_ : "
-	    //	 <<dphi1<<" "<<phi1<<" "<<phimin_<<" "<<phimax_<<endl;
+	    //  <<dphi1<<" "<<phi1<<" "<<phimin_<<" "<<phimax_
+	    //  <<" "<<kphi/lphi<<" "<<(phimax_-phimin_)*NSector<<" "<<z1<<endl;
 	    
 	    if (dphi1<-0.5*two_pi) dphi1+=two_pi;
+	    if (dphi1>0.5*two_pi) dphi1-=two_pi;
 	    //cout << "layer dphi1 phi1 : "<<layer_<<" "<<dphi1<<" "<<phi1<<endl;
 	    assert(fabs(dphi1)<1e-4);
 	    phi1-=dphi1;
@@ -3207,6 +3257,7 @@ public:
 	    }
 	    double dphi2=phi2-phimin_+(phimax_-phimin_)/6.0-iphi2.value()*kphi/lphi;
 	    if (dphi2<-0.5*two_pi) dphi2+=two_pi;
+	    if (dphi2>0.5*two_pi) dphi2-=two_pi;
 	    //cout << "layer dphi2 phi2 iphi2: "<<layer_<<" "<<dphi2<<" "
 	    //	 <<phi2<<" "<< iphi2.value()<<endl;
 	    assert(fabs(dphi2)<1e-4);
@@ -3234,20 +3285,24 @@ public:
 			 phiderdiskapprox,rderdiskapprox);
 	  
 	  int irinv,iphi0,it,iz0;
+	  bool validproj[4];
 	  int iphiproj[4],izproj[4],iphider[4],izder[4];
 	  bool minusNeighbor[4],plusNeighbor[4];
+	  bool validprojdisk[5];
 	  int iphiprojdisk[5],irprojdisk[5],iphiderdisk[5],irderdisk[5];
 	  bool minusNeighborDisk[5],plusNeighborDisk[5];
 	  
 	  //bool success=binarytracklet(innerFPGAStub,outerFPGAStub,
 	  bool success=ed_binarytracklet(innerFPGAStub,outerFPGAStub,
-				      outerStub->sigmaz(),
-				      irinv,iphi0,it,iz0,
-				      iphiproj,izproj,iphider,izder,
-				      minusNeighbor,plusNeighbor,
-				      iphiprojdisk,irprojdisk,
-				      iphiderdisk,irderdisk,
-				      minusNeighborDisk,plusNeighborDisk);
+					 outerStub->sigmaz(),
+					 irinv,iphi0,it,iz0,
+					 validproj,
+					 iphiproj,izproj,iphider,izder,
+					 minusNeighbor,plusNeighbor,
+					 validprojdisk,
+					 iphiprojdisk,irprojdisk,
+					 iphiderdisk,irderdisk,
+					 minusNeighborDisk,plusNeighborDisk);
 
 	  //cout<<"disk 1 rproj irproj "<<rprojdiskapprox[0]<<" "
 	  //	<<irprojdisk[0]*krprojshiftdisk<<" "
@@ -3294,15 +3349,17 @@ public:
 	      phiproj[j]-=dphisector;
 	    }	    
 	  }
+
 	  
+	  //if ((layer_==1)&&(fabs(iz0*kzpars)>z0cut)) {
+	  //  assert(0);
+	  //  continue;
+	  //}
 	  
-	  if ((layer_==1)&&(fabs(iz0*kzpars)>z0cut)) {
-	    continue;
-	  }
-	  
-	  if ((layer_>=3)&&(fabs(iz0*kzpars)>20.0)) {
-	    continue;
-	  }
+	  //if ((layer_>=3)&&(fabs(iz0*kzpars)>20.0)) {
+	  //  assert(0);
+	  //  continue;
+	  //}
 	  
 	  
 	  if (writeTrackletPars) {
@@ -3353,12 +3410,13 @@ public:
 						  rinv,phi0,z0,t,
 						  rinvapprox,phi0approx,
 						  z0approx,tapprox,
-						  irinv,iphi0,iz0,it,
+						  irinv,iphi0,iz0,it,validproj,
 						  iphiproj,izproj,iphider,izder,
 						  minusNeighbor,plusNeighbor,
 						  phiproj,zproj,phider,zder,
 						  phiprojapprox,zprojapprox,
 						  phiderapprox,zderapprox,
+						  validprojdisk,
 						  iphiprojdisk,irprojdisk,
 						  iphiderdisk,irderdisk,
 						  minusNeighborDisk,
@@ -3562,6 +3620,7 @@ public:
 	      //}
 	      double dphi1=phi1-phimin_+(phimax_-phimin_)/6.0-iphi1.value()*kphi/lphi;
 	      if (dphi1<-0.5*two_pi) dphi1+=two_pi;
+	      if (dphi1>0.5*two_pi) dphi1-=two_pi;
 	      //cout << "layer dphi1 phi1 : "<<layer_<<" "<<dphi1<<" "<<phi1<<endl;
 	      assert(fabs(dphi1)<1e-4);
 	      phi1-=dphi1;
@@ -3589,6 +3648,7 @@ public:
 	      
 	      double dphi2=phi2-phimin_+(phimax_-phimin_)/6.0-iphi2.value()*kphi/lphi;
 	      if (dphi2<-0.5*two_pi) dphi2+=two_pi;
+	      if (dphi2>0.5*two_pi) dphi2-=two_pi;
 	      //cout << "layer dphi2 phi2 iphi2: "<<layer_<<" "<<dphi2<<" "
 	      //	 <<phi2<<" "<< iphi2.value()<<endl;
 	      assert(fabs(dphi2)<1e-4);
@@ -3625,22 +3685,27 @@ public:
 			       phiderapproxdisk,rderapproxdisk);
 	    
 	    int irinv,iphi0,it,iz0;
+	    bool validproj[3];
 	    int iphiproj[3],izproj[3],iphider[3],izder[3];
 	    bool minusNeighbor[3],plusNeighbor[3];
-	    
+
+	    bool validprojdisk[3];
 	    int iphiprojdisk[3],irprojdisk[3],iphiderdisk[3],irderdisk[3];
 	    bool minusNeighbordisk[3],plusNeighbordisk[3];
 	    
 	    //bool success=binarytrackletdisk(innerFPGAStub,outerFPGAStub,
 	    bool success=ed_binarytrackletdisk(innerFPGAStub,outerFPGAStub,
-					    outerStub->sigmaz(),
-					    irinv,iphi0,it,iz0,
-					    iphiproj,izproj,
-					    iphider,izder,
-					    minusNeighbor,plusNeighbor,
-					    iphiprojdisk,irprojdisk,
-					    iphiderdisk,irderdisk,
-					    minusNeighbordisk,plusNeighbordisk);
+					       outerStub->sigmaz(),
+					       irinv,iphi0,it,iz0,
+					       validproj,
+					       iphiproj,izproj,
+					       iphider,izder,
+					       minusNeighbor,plusNeighbor,
+					       validprojdisk,
+					       iphiprojdisk,irprojdisk,
+					       iphiderdisk,irderdisk,
+					       minusNeighbordisk,
+					       plusNeighbordisk);
 
 	    //cout<<"disk 3 rproj irproj "<<rprojapproxdisk[0]<<" "
 	    //	<<irprojdisk[0]*krprojshiftdisk<<" "
@@ -3747,11 +3812,13 @@ public:
 						    rinvapprox,phi0approx,
 						    z0approx,tapprox,
 						    irinv,iphi0,iz0,it,
+						    validproj,
 						    iphiproj,izproj,iphider,izder,
 						    minusNeighbor,plusNeighbor,	
 						    phiproj,zproj,phider,zder,
 						    phiprojapprox,zprojapprox,
 						    phiderapprox,zderapprox,
+						    validprojdisk,
 						    iphiprojdisk,irprojdisk,
 						    iphiderdisk,irderdisk,
 						    minusNeighbordisk,
@@ -3888,6 +3955,7 @@ public:
 	      //}
 	      double dphi1=phi1-phimin_+(phimax_-phimin_)/6.0-iphi1.value()*kphi/lphi;
 	      if (dphi1<-0.5*two_pi) dphi1+=two_pi;
+	      if (dphi1>0.5*two_pi) dphi1-=two_pi;
 	      //cout << "layer dphi1 phi1 : "<<layer_<<" "<<dphi1<<" "<<phi1<<endl;
 	      assert(fabs(dphi1)<1e-4);
 	      phi1-=dphi1;
@@ -3914,6 +3982,7 @@ public:
 	      
 	      double dphi2=phi2-phimin_+(phimax_-phimin_)/6.0-iphi2.value()*kphi/lphi;
 	      if (dphi2<-0.5*two_pi) dphi2+=two_pi;
+	      if (dphi2>0.5*two_pi) dphi2-=two_pi;
 	      //cout << "layer dphi2 phi2 iphi2: "<<layer_<<" "<<dphi2<<" "
 	      //	 <<phi2<<" "<< iphi2.value()<<endl;
 	      assert(fabs(dphi2)<1e-4);
@@ -3943,9 +4012,11 @@ public:
 				  phiderapproxdisk,rderapproxdisk);
 	    
 	    int irinv,iphi0,it,iz0;
+	    bool validproj[3];
 	    int iphiproj[3],izproj[3],iphider[3],izder[3];
 	    bool minusNeighbor[3],plusNeighbor[3];
-	    
+
+	    bool validprojdisk[4];
 	    int iphiprojdisk[4],irprojdisk[4],iphiderdisk[4],irderdisk[4];
 	    bool minusNeighbordisk[4],plusNeighbordisk[4];
 
@@ -3954,9 +4025,11 @@ public:
 	    bool success=binarytrackletOverlap(innerFPGAStub,outerFPGAStub,
 					       outerStub->sigmaz(),
 					       irinv,iphi0,it,iz0,
+					       validproj,
 					       iphiproj,izproj,
 					       iphider,izder,
 					       minusNeighbor,plusNeighbor,
+					       validprojdisk,
 					       iphiprojdisk,irprojdisk,
 					       iphiderdisk,irderdisk,
 					       minusNeighbordisk,
@@ -4073,11 +4146,14 @@ public:
 						    rinvapprox,phi0approx,
 						    z0approx,tapprox,
 						    irinv,iphi0,iz0,it,
+						    validproj,
 						    iphiproj,izproj,iphider,izder,
-						    minusNeighbor,plusNeighbor,		
+						    minusNeighbor,plusNeighbor,
+						
 						    phiproj,zproj,phider,zder,
 						    phiprojapprox,zprojapprox,
 						    phiderapprox,zderapprox,
+						    validprojdisk,
 						    iphiprojdisk,irprojdisk,
 						    iphiderdisk,irderdisk,
 						    minusNeighbordisk,
@@ -4247,6 +4323,7 @@ public:
 	      
 	      double dphi2=phi2-phimin_+(phimax_-phimin_)/6.0-iphi2.value()*kphi/lphi;
 	      if (dphi2<-0.5*two_pi) dphi2+=two_pi;
+	      if (dphi2>0.5*two_pi) dphi2-=two_pi;
 	      //cout << "layer dphi2 phi2 iphi2: "<<layer_<<" "<<dphi2<<" "
 	      //	 <<phi2<<" "<< iphi2.value()<<endl;
 	      assert(fabs(dphi2)<1e-4);
@@ -4276,9 +4353,11 @@ public:
 				  phiderapproxdisk,rderapproxdisk);
 	    
 	    int irinv,iphi0,it,iz0;
+	    bool validproj[4];
 	    int iphiproj[4],izproj[4],iphider[4],izder[4];
 	    bool minusNeighbor[4],plusNeighbor[4];
-	    
+
+	    bool validdiskproj[5];
 	    int iphiprojdisk[5],irprojdisk[5],iphiderdisk[5],irderdisk[5];
 	    bool minusNeighbordisk[5],plusNeighbordisk[5];
 
@@ -4288,9 +4367,11 @@ public:
 	    bool success=binarytracklet(outerFPGAStub,innerFPGAStub,
 					outerStub->sigmaz(),
 					irinv,iphi0,it,iz0,
+					validproj,
 					iphiproj,izproj,
 					iphider,izder,
 					minusNeighbor,plusNeighbor,
+					validdiskproj,
 					iphiprojdisk,irprojdisk,
 					iphiderdisk,irderdisk,
 					minusNeighbordisk,
@@ -4373,11 +4454,13 @@ public:
 						    rinvapprox,phi0approx,
 						    z0approx,tapprox,
 						    irinv,iphi0,iz0,it,
+						    validproj,
 						    iphiproj,izproj,iphider,izder,
 						    minusNeighbor,plusNeighbor,		
 						    phiproj,zproj,phider,zder,
 						    phiprojapprox,zprojapprox,
 						    phiderapprox,zderapprox,
+						    validdiskproj,
 						    iphiprojdisk,irprojdisk,
 						    iphiderdisk,irderdisk,
 						    minusNeighbordisk,
@@ -4825,7 +4908,7 @@ public:
     }
     
     if (layer==2) {
-      if (iphi==0) addProjection(layer,iphi,trackletproj_L2PHI1_,tracklet);
+       if (iphi==0) addProjection(layer,iphi,trackletproj_L2PHI1_,tracklet);
       if (iphi==1) addProjection(layer,iphi,trackletproj_L2PHI2_,tracklet);
       if (iphi==2) addProjection(layer,iphi,trackletproj_L2PHI3_,tracklet);
     }

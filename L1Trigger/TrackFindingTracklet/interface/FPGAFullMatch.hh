@@ -50,12 +50,18 @@ public:
 
   void addMatch(FPGATracklet* tracklet,std::pair<FPGAStub*,L1TStub*> stub) {
     for(unsigned int i=0;i<matches_.size();i++){
-      if (matches_[i].first==tracklet){
+      if (matches_[i].first==tracklet){ //Better match, replace
 	matches_[i].second=stub;
 	return;
       }
     }
     std::pair<FPGATracklet*,std::pair<FPGAStub*,L1TStub*> > tmp(tracklet,stub);
+    //Check that we have the right TCID order
+    if (matches_.size()>0) {
+      //cout << matches_[matches_.size()-1].first->TCID()<<" "<<tracklet->TCID()<<endl;
+      assert(matches_[matches_.size()-1].first->TCID()<tracklet->TCID());
+
+    }
     matches_.push_back(tmp);
   }
 
@@ -81,7 +87,7 @@ public:
 
   void writeMC(bool first) {
 
-    std::string fname="FullMatches_";
+    std::string fname="MemPrints/Matches/FullMatches_";
     fname+=getName();
     fname+="_";
     ostringstream oss;

@@ -642,11 +642,11 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   FPGATimer MCTimer;
   FPGATimer MTTimer;
   FPGATimer FTTimer;
-  FPGATimer DuplicateTimer;
+  FPGATimer PDTimer;
 
   bool first=true;
 
-  std::vector<FPGATrack> tracks;
+  std::vector<FPGATrack*> tracks;
 
   int selectmu=0;
   L1SimTrack simtrk(0,0,0.0,0.0,0.0,0.0,0.0,0.0);
@@ -665,9 +665,9 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
   
   for (unsigned itrack=0; itrack<tracks.size(); itrack++) {
-    FPGATrack track=tracks[itrack];
+    FPGATrack* track=tracks[itrack];
 
-    if (track.duplicate()) continue;
+    if (track->duplicate()) continue;
 
     ntracks++;
 
@@ -677,36 +677,36 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     aTrack.setWedge(999); //not used by the tracklet implementations
 
     //First do the 4 parameter fit
-    GlobalPoint bsPosition4par(0.0,0.0,track.z0());
+    GlobalPoint bsPosition4par(0.0,0.0,track->z0());
     aTrack.setPOCA(bsPosition4par,4);
  
-    double pt4par=fabs(track.pt(mMagneticFieldStrength));
+    double pt4par=fabs(track->pt(mMagneticFieldStrength));
 
     GlobalVector p34par(GlobalVector::Cylindrical(pt4par, 
-						  track.phi0(), 
-						  pt4par*sinh(track.eta())));
+						  track->phi0(), 
+						  pt4par*sinh(track->eta())));
 
     aTrack.setMomentum(p34par,4);
-    aTrack.setRInv(track.rinv(),4);
-    aTrack.setChi2(track.chisq(),4);
+    aTrack.setRInv(track->rinv(),4);
+    aTrack.setChi2(track->chisq(),4);
 
     
     //Now do the 5 parameter fit
-    GlobalPoint bsPosition5par(-track.d0()*sin(track.phi0()),track.d0()*cos(track.phi0()),track.z0());
+    GlobalPoint bsPosition5par(-track->d0()*sin(track->phi0()),track->d0()*cos(track->phi0()),track->z0());
     aTrack.setPOCA(bsPosition5par,5);
  
-    double pt5par=fabs(track.pt(mMagneticFieldStrength));
+    double pt5par=fabs(track->pt(mMagneticFieldStrength));
 
     GlobalVector p35par(GlobalVector::Cylindrical(pt5par, 
-						  track.phi0(), 
-						  pt5par*sinh(track.eta())));
+						  track->phi0(), 
+						  pt5par*sinh(track->eta())));
 
     aTrack.setMomentum(p35par,5);
-    aTrack.setRInv(track.rinv(),5);
-    aTrack.setChi2(track.chisq(),5);
+    aTrack.setRInv(track->rinv(),5);
+    aTrack.setChi2(track->chisq(),5);
     
     
-    vector<L1TStub*> stubptrs = track.stubs();
+    vector<L1TStub*> stubptrs = track->stubs();
     
     vector<L1TStub> stubs;
 

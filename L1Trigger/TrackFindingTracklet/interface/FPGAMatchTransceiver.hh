@@ -65,57 +65,59 @@ public:
   }
 
   std::vector<std::pair<FPGATracklet*,std::pair<FPGAStub*,L1TStub*> > > orderedMatches(vector<FPGAFullMatch*>& fullmatch) {
+
     std::vector<std::pair<FPGATracklet*,std::pair<FPGAStub*,L1TStub*> > > tmp;
 
-	std::vector<unsigned int> indexArray;
-	for (unsigned int i=0;i<fullmatch.size();i++) {
-	  indexArray.push_back(0);
-	  //cout << "FPGAMatchTransceiver::orderedMatches "<<iSector_
-	  //   <<" "<<fullmatch[i]->getName()<<" "<<fullmatch[i]->nMatches();
-	  //for (unsigned int j=0;j<fullmatch[i]->nMatches();j++){
-	    //cout <<" "<<fullmatch[i]->getFPGATracklet(j)->TCID()
-		//     <<" "<<fullmatch[i]->getFPGATracklet(j)->TCIDName()
-		//     <<"("<<fullmatch[i]->getFPGATracklet(j)->homeSector()<<")";
-		//}
-	  //cout<<endl;
+    std::vector<unsigned int> indexArray;
+    for (unsigned int i=0;i<fullmatch.size();i++) {
+      indexArray.push_back(0);
+    }
+
+    /*
+    for (unsigned int i=0;i<fullmatch.size();i++) {
+      for (unsigned int j=0;j<fullmatch[i]->nMatches();j++) {
+	cout << fullmatch[i]->getName()<<" "
+	     << fullmatch[i]->getFPGATracklet(j)->TCID()<<endl;
+      }
+    }
+    */
+    
+    int bestIndex=-1;
+    do {
+      int bestTCID=(1<<16);
+      bestIndex=-1;
+      for (unsigned int i=0;i<fullmatch.size();i++) {
+	if (indexArray[i]>=fullmatch[i]->nMatches()) {
+	  //skip as we were at the end
+	  continue;
 	}
-
-	int bestIndex=-1;
-	do {
-	  int bestTCID=(1<<16);
-	  bestIndex=-1;
-	  for (unsigned int i=0;i<fullmatch.size();i++) {
-	    if (indexArray[i]>=fullmatch[i]->nMatches()) {
-		  //skip as we were at the end
-		  continue;
-		}
-		int TCID=fullmatch[i]->getFPGATracklet(indexArray[i])->TCID();
-		if (TCID<bestTCID) {
-		  bestTCID=TCID;
-		  bestIndex=i;
-		}
-	  }
-	  if (bestIndex!=-1) {
-		tmp.push_back(fullmatch[bestIndex]->getMatch(indexArray[bestIndex]));
-		indexArray[bestIndex]++;
-	  }
-	} while (bestIndex!=-1);
-
-	//cout << "In FPGAFitTrack::orderedMatches : "<<tmp.size()<<endl;
-	for (unsigned int i=0;i<tmp.size();i++) {
-	  //cout <<" "<<tmp[i]->TCID()<<endl;
-	  if (i>0) {
-	    //This allows for equal TCIDs. This means that we can e.g. have a track seeded
-		//in L1L2 that projects to both L3 and D4. The algorithm will pick up the first hit and
-	    //drop the second
-	    assert(tmp[i-1].first->TCID()<=tmp[i].first->TCID());
-	  }
+	int TCID=fullmatch[i]->getFPGATracklet(indexArray[i])->TCID();
+	if (TCID<bestTCID) {
+	  bestTCID=TCID;
+	  bestIndex=i;
 	}
-	//cout << endl;
+      }
+      if (bestIndex!=-1) {
+	tmp.push_back(fullmatch[bestIndex]->getMatch(indexArray[bestIndex]));
+	indexArray[bestIndex]++;
+      }
+    } while (bestIndex!=-1);
 
-	return tmp;
+    //cout << "In FPGAFitTrack::orderedMatches : "<<tmp.size()<<endl;
+    for (unsigned int i=0;i<tmp.size();i++) {
+      //cout <<" "<<tmp[i]->TCID()<<endl;
+      if (i>0) {
+	//This allows for equal TCIDs. This means that we can e.g. have a track seeded
+	//in L1L2 that projects to both L3 and D4. The algorithm will pick up the first hit and
+	//drop the second
+	assert(tmp[i-1].first->TCID()<=tmp[i].first->TCID());
+      }
+    }
+    //cout << endl;
+
+    return tmp;
   }
-
+  
   //this->inputmatches_ to other->outputmatches_ 
 
   void execute(FPGAMatchTransceiver* other){

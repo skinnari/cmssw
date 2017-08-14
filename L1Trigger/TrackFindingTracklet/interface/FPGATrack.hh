@@ -36,6 +36,7 @@ public:
   
   void setDuplicate(bool flag) { duplicate_=flag; }
   void setSector(int nsec) { isector_=nsec; }
+  void setChisq(double chisq) {chisq_=chisq;}
 
   int irinv() const { return irinv_; }
   int iphi0() const { return iphi0_; }
@@ -52,7 +53,7 @@ public:
   double eta() const {return asinh(it_*ktpars);}
   double d0() const {return 0.0;} //Fix when fit for 5 pars
   double phi0() const {return iphi0_*kphi0pars+isector_*two_pi/NSector-two_pi/(6.0*NSector);}
-  double chisq() const {return -1.0;}
+  double chisq() const {return chisq_;}
 
 private:
   
@@ -64,6 +65,7 @@ private:
   std::vector<L1TStub*> l1stub_;
   bool duplicate_;
   int isector_;
+  double chisq_;
 
 };
 

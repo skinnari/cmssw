@@ -12,26 +12,28 @@ class FPGADTC{
 
 public:
 
-  FPGADTC(int num=-1){
-    num_=num;
+  FPGADTC(string name=""){
+    name_=name;
   }
 
-  void init(int num){
-    num_=num;
+  void init(string name){
+    name_=name;
   }
   
   void addLink(double phimin,double phimax){
+    //cout << "FPGADTC addLink "<<name_<<endl;
     FPGADTCLink link(phimin,phimax);
     links_.push_back(link);
   }
   
   int addStub(std::pair<FPGAStub*,L1TStub*> stub) {
-    double phi=stub.second->phi();
+    double phi=stub.second->phi()-0.0*two_pi/NSector; //HAck to correct for offset.
+    if (phi>0.5*two_pi/NSector) phi-=two_pi;
     bool overlaplayer=((stub.second->layer()+1)%2==0);
     //cout << "layer overlaplayer : "<<stub.second->layer()+1<<" "<<overlaplayer
     //	 <<endl;
     int added=0;
-    //cout << "In FPGADTC : "<<num_<<" #links "<<links_.size()<<endl; 
+    //cout << "In FPGADTC : "<<name_<<" #links "<<links_.size()<<endl; 
     for (unsigned int i=0;i<links_.size();i++){
       if (links_[i].inRange(phi,overlaplayer)){
 	added++;
@@ -55,7 +57,7 @@ public:
 
 private:
 
-  int num_;
+  string name_;
   std::vector<FPGADTCLink > links_;
 
 
