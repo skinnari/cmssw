@@ -27,7 +27,7 @@ public:
   }
   
   int addStub(std::pair<FPGAStub*,L1TStub*> stub) {
-    double phi=stub.second->phi()-0.0*two_pi/NSector; //HAck to correct for offset.
+    double phi=stub.second->phi()+0.00*two_pi/NSector; //HAck to correct for offset.
     if (phi>0.5*two_pi/NSector) phi-=two_pi;
     bool overlaplayer=((stub.second->layer()+1)%2==0);
     //cout << "layer overlaplayer : "<<stub.second->layer()+1<<" "<<overlaplayer

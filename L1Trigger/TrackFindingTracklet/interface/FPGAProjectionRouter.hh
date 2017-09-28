@@ -58,31 +58,61 @@ public:
       allproj_=tmp;
       return;
     }
-    if (output=="vmprojoutPHI1"||output=="vmprojoutPHI5"||output=="vmprojoutPHI9"){
-      FPGAVMProjections* tmp=dynamic_cast<FPGAVMProjections*>(memory);
-      assert(tmp!=0);
-      vmprojPHI1_=tmp;
-      return;
-    }
-    if (output=="vmprojoutPHI2"||output=="vmprojoutPHI6"||output=="vmprojoutPHI10"){
-      FPGAVMProjections* tmp=dynamic_cast<FPGAVMProjections*>(memory);
-      assert(tmp!=0);
-      vmprojPHI2_=tmp;
-      return;
-    }
-    if (output=="vmprojoutPHI3"||output=="vmprojoutPHI7"||output=="vmprojoutPHI11"){
-      FPGAVMProjections* tmp=dynamic_cast<FPGAVMProjections*>(memory);
-      assert(tmp!=0);
-      vmprojPHI3_=tmp;
-      return;
-    }
-    if (output=="vmprojoutPHI4"||output=="vmprojoutPHI8"||output=="vmprojoutPHI12"){
-      FPGAVMProjections* tmp=dynamic_cast<FPGAVMProjections*>(memory);
-      assert(tmp!=0);
-      vmprojPHI4_=tmp;
-      return;
+    if (layer_==2||layer_==4||layer_==6) {
+      if (output=="vmprojoutPHI1"||output=="vmprojoutPHI5"||output=="vmprojoutPHI9"){
+	FPGAVMProjections* tmp=dynamic_cast<FPGAVMProjections*>(memory);
+	assert(tmp!=0);
+	vmprojPHI1_=tmp;
+	return;
+      }
+      if (output=="vmprojoutPHI2"||output=="vmprojoutPHI6"||output=="vmprojoutPHI10"){
+	FPGAVMProjections* tmp=dynamic_cast<FPGAVMProjections*>(memory);
+	assert(tmp!=0);
+	vmprojPHI2_=tmp;
+	return;
+      }
+      if (output=="vmprojoutPHI3"||output=="vmprojoutPHI7"||output=="vmprojoutPHI11"){
+	FPGAVMProjections* tmp=dynamic_cast<FPGAVMProjections*>(memory);
+	assert(tmp!=0);
+	vmprojPHI3_=tmp;
+	return;
+      }
+      if (output=="vmprojoutPHI4"||output=="vmprojoutPHI8"||output=="vmprojoutPHI12"){
+	FPGAVMProjections* tmp=dynamic_cast<FPGAVMProjections*>(memory);
+	assert(tmp!=0);
+	vmprojPHI4_=tmp;
+	return;
+      }      
+    } else {
+      if (output=="vmprojoutPHI1"||output=="vmprojoutPHI5"||output=="vmprojoutPHI9"){
+	FPGAVMProjections* tmp=dynamic_cast<FPGAVMProjections*>(memory);
+	assert(tmp!=0);
+	vmprojPHI1_=tmp;
+	return;
+      }
+      if (output=="vmprojoutPHI2"||output=="vmprojoutPHI6"||output=="vmprojoutPHI10"){
+	FPGAVMProjections* tmp=dynamic_cast<FPGAVMProjections*>(memory);
+	assert(tmp!=0);
+	vmprojPHI2_=tmp;
+	return;
+      }
+      if (output=="vmprojoutPHI3"||output=="vmprojoutPHI7"||output=="vmprojoutPHI11"){
+	FPGAVMProjections* tmp=dynamic_cast<FPGAVMProjections*>(memory);
+	assert(tmp!=0);
+	vmprojPHI3_=tmp;
+	return;
+      }
+      if (output=="vmprojoutPHI4"||output=="vmprojoutPHI8"||output=="vmprojoutPHI12"){
+	FPGAVMProjections* tmp=dynamic_cast<FPGAVMProjections*>(memory);
+	assert(tmp!=0);
+	vmprojPHI4_=tmp;
+	return;
+      }
     }
 
+
+
+    
     cout << "Did not find output : "<<output<<endl;
     assert(0);
   }
@@ -150,25 +180,33 @@ public:
 
 	  //cout << "FPGAPRojectionRouter got phi and z "<<endl;
 	  
+	  //if (inputproj_[j]->getFPGATracklet(i)->minusNeighbor(layer_)) {
+	  //  cout << "Found minus neighbor in : "<<inputproj_[j]->getName()<<endl;
+	  //} 
 	  //if (inputproj_[j]->getFPGATracklet(i)->plusNeighbor(layer_)) {
 	  //  cout << "Found plus neighbor in : "<<inputproj_[j]->getName()<<endl;
 	  //} 
+
 	  
 	  //skip if projection is out of range!
 	  if (fpgaz.atExtreme()) continue;
 	  if (fpgaphi.atExtreme()) continue;
-	  
+
+
 	  int iphitmp=fpgaphi.value();
 	  int iphi=iphitmp>>(fpgaphi.nbits()-5);
-	  //cout << "iphitmp iphi "<<iphitmp<<" "<<iphi<<endl;
+	  //cout << "iphitmp iphi (0-31) "<<iphitmp<<" "<<iphi<<endl;
 	  assert(iphi>=4);
 	  assert(iphi<=27);
 	  iphi-=4;
 	  iphi=(iphi>>1);
+	  //cout << "iphi (0-11) "<<iphi<<endl;
 	  iphi=iphi&3;
 	  assert(iphi>=0);
 	  assert(iphi<=3);
-	  
+
+	  //cout << "iphi "<<iphi<<endl;
+
 	  assert(allproj_!=0);
 
 	  unsigned int index=allproj_->nTracklets();

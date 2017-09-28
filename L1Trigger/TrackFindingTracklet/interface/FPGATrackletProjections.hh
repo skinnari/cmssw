@@ -16,6 +16,7 @@ public:
     FPGAMemoryBase(name,iSector){
     phimin_=phimin;
     phimax_=phimax;
+
     string subname=name.substr(11,2);
     if (subname[0]=='_') subname=name.substr(12,2);
     
@@ -32,29 +33,45 @@ public:
     if (subname=="D3") disk_=3;
     if (subname=="D4") disk_=4;
     if (subname=="D5") disk_=5;
-    if (subname=="F1") disk_=1;
-    if (subname=="F2") disk_=2;
-    if (subname=="F3") disk_=3;
-    if (subname=="F4") disk_=4;
-    if (subname=="F5") disk_=5;
-    if (subname=="B1") disk_=-1;
-    if (subname=="B2") disk_=-2;
-    if (subname=="B3") disk_=-3;
-    if (subname=="B4") disk_=-4;
-    if (subname=="B5") disk_=-5;
+    //if (subname=="F1") disk_=1;
+    //if (subname=="F2") disk_=2;
+    //if (subname=="F3") disk_=3;
+    //if (subname=="F4") disk_=4;
+    //if (subname=="F5") disk_=5;
+    //if (subname=="B1") disk_=-1;
+    //if (subname=="B2") disk_=-2;
+    //if (subname=="B3") disk_=-3;
+    //if (subname=="B4") disk_=-4;
+    //if (subname=="B5") disk_=-5;
+
+    subname=name.substr(11,2);
+    if (subname[0]=='_') subname=name.substr(14,2);
+    
+    if (subname=="D1") disk_=1;
+    if (subname=="D2") disk_=2;
+    if (subname=="D3") disk_=3;
+    if (subname=="D4") disk_=4;
+    if (subname=="D5") disk_=5;
+
+    
     if (layer_==0&&disk_==0) {
       cout << name<<" subname = "<<subname<<" "<<layer_<<" "<<disk_<<endl;
     }
     assert((layer_!=0)||(disk_!=0));
   }
 
-  void addTracklet(FPGATracklet* tracklet) {
+  //void addTracklet(FPGATracklet* tracklet) {
     // string tt = tracklet->isBarrel()?" (barrel) ":tracklet->isDisk()?" (disk) ":" (overlap) ";
     // cout<< " why are we adding a tracklet here?? "<< name_<<tt<<tracklet->addressstr()<<"\n";
-    tracklets_.push_back(tracklet);
-  }
+  //  tracklets_.push_back(tracklet);
+  //}
 
   void addProj(FPGATracklet* tracklet) {
+
+    if (layer_!=0&&disk_==0) assert(tracklet->validProj(layer_));
+    if (layer_==0&&disk_!=0) assert(tracklet->validProjDisk(disk_));
+    if (layer_!=0&&disk_!=0) assert(tracklet->validProj(layer_)||
+				    tracklet->validProjDisk(disk_));
     tracklets_.push_back(tracklet);
   }
 
@@ -89,7 +106,9 @@ public:
     out_ << "BX = "<<(bitset<3>)bx_ << " Event : " << event_ << endl;
 
     for (unsigned int j=0;j<tracklets_.size();j++){
-      string proj= (layer_>0)? tracklets_[j]->trackletprojstrlayer(layer_)
+ 
+      string proj= (layer_>0&&tracklets_[j]->validProj(layer_))?
+	tracklets_[j]->trackletprojstrlayer(layer_)
 	: tracklets_[j]->trackletprojstrdisk(disk_);
 	if (j<16) out_ <<"0";
 	out_ << hex << j << dec ;

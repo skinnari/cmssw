@@ -126,6 +126,17 @@ public:
       }
       return;
     }
+    if (output=="projoutPHI4"){
+      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
+      assert(tmp!=0);
+      if (subname=="L") {
+	outputprojLPHI4=tmp;
+      }
+      if (subname=="D") {
+	outputprojDPHI4=tmp;
+      }
+      return;
+    }
 
     assert(0);
   }
@@ -149,8 +160,10 @@ public:
   //Copy otherSector->inputprojections_ to this->outputprojections_ 
   void execute(FPGAProjectionTransceiver* otherSector){
 
-    //cout << "FPGAProjectionTransceiver::execute "<<getName()<<endl;
-
+    if (debug1) {
+      cout << "FPGAProjectionTransceiver::execute "<<getName()<<endl;
+    }
+    
     if (!doProjections) return;
 
     FPGATracklet* oldTracklet=0;
@@ -233,7 +246,10 @@ public:
 	//cout << "FPGAProjectionTransceiver iphivmRaw "<<iphivmRaw << " "
 	//     <<((fpgaphi.value()+1)>>(fpgaphi.nbits()-5))<<endl;
 	if (iphivmRaw<4||iphivmRaw>27) {
-	  cout << "FPGAProjectionTransceiver "<<getName()<<" will skip projection"<<endl;
+	  if (warnNoMem) {
+	    cout << "FPGAProjectionTransceiver "<<getName()<<" will skip projection iphivmRaw = "
+		 << iphivmRaw<<" "<<tracklet->fpgarinv().value()*krinvpars<<endl;
+	  }
 	  continue;
 	}
 	assert(iphivmRaw>=4);
@@ -241,11 +257,16 @@ public:
 
 	int iphi=(iphivmRaw-4)>>3;
 
+	if (layer_==2||layer_==4||layer_==6) {
+	  iphi=iphivmRaw>>3;
+	}
+    
+	
 	//cout << "FPGAProjectionTranceiver "<<getName()<<" layer fpgaphi iphivmRaw iphi : "<<layer_<<" "<<fpgaphi.value()<<" "<<iphivmRaw<<" "<<iphi<<endl;
 
     
 	assert(iphi>=0);
-	assert(iphi<=2);
+	assert(iphi<=3);
 
 	if (iphi==0) {
 	  if (layer) {
@@ -257,7 +278,7 @@ public:
 	    if (debug1) {
 	      cout << "Adding tracklet "<<otherProj->getFPGATracklet(l)<<" to "<<outputprojLPHI1->getName()<<endl;
 	    }
-	    outputprojLPHI1->addTracklet(otherProj->getFPGATracklet(l));
+	    outputprojLPHI1->addProj(otherProj->getFPGATracklet(l));
 	  }
 	  if (disk) {
 	    if (outputprojDPHI1==0) {
@@ -268,7 +289,7 @@ public:
 	    if (debug1) {
 	      cout << "Adding tracklet "<<otherProj->getFPGATracklet(l)<<" to "<<outputprojDPHI1->getName()<<endl;
 	    }
-	    outputprojDPHI1->addTracklet(otherProj->getFPGATracklet(l));
+	    outputprojDPHI1->addProj(otherProj->getFPGATracklet(l));
 	  }
 	}
 
@@ -281,7 +302,7 @@ public:
 	    if (debug1) {
 	      cout << "Adding tracklet "<<otherProj->getFPGATracklet(l)<<" to "<<outputprojLPHI2->getName()<<endl;
 	    }
-	    outputprojLPHI2->addTracklet(otherProj->getFPGATracklet(l));
+	    outputprojLPHI2->addProj(otherProj->getFPGATracklet(l));
 	  }
 	  if (disk) {
 	    if (outputprojDPHI2==0) {
@@ -291,7 +312,7 @@ public:
 	    if (debug1) {
 	      cout << "Adding tracklet "<<otherProj->getFPGATracklet(l)<<" to "<<outputprojDPHI2->getName()<<endl;
 	    }
-	    outputprojDPHI2->addTracklet(otherProj->getFPGATracklet(l));
+	    outputprojDPHI2->addProj(otherProj->getFPGATracklet(l));
 	  }
 	}
 	
@@ -305,7 +326,7 @@ public:
 	      if (debug1) {
 		cout << "Adding tracklet "<<otherProj->getFPGATracklet(l)<<" to "<<outputprojLPHI3->getName()<<endl;
 	      }
-	      outputprojLPHI3->addTracklet(otherProj->getFPGATracklet(l));
+	      outputprojLPHI3->addProj(otherProj->getFPGATracklet(l));
 	    }
 	  }
 	  if (disk) {
@@ -316,7 +337,7 @@ public:
 	    if (debug1) {
 	      cout << "FPGAProjectionTransceiver add projection to : "<<outputprojDPHI3->getName()<<endl;
 	    }
-	    outputprojDPHI3->addTracklet(otherProj->getFPGATracklet(l));
+	    outputprojDPHI3->addProj(otherProj->getFPGATracklet(l));
 	  }
 	}
 
@@ -341,10 +362,12 @@ private:
   FPGATrackletProjections*     outputprojLPHI1;
   FPGATrackletProjections*     outputprojLPHI2;
   FPGATrackletProjections*     outputprojLPHI3;
+  FPGATrackletProjections*     outputprojLPHI4;
 
   FPGATrackletProjections*     outputprojDPHI1;
   FPGATrackletProjections*     outputprojDPHI2;
   FPGATrackletProjections*     outputprojDPHI3;
+  FPGATrackletProjections*     outputprojDPHI4;
 
 
   vector<FPGATrackletProjections*> inputprojections_;

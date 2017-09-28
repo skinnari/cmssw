@@ -41,6 +41,7 @@ public:
     projlayer_=projlayer;
 
     if (iphiproj<0) iphiproj=0; //FIXME should be assert?
+
     if (rproj<60.0) {
       fpgaphiproj_.set(iphiproj,nbitsphiprojL123,true,__LINE__,__FILE__);
       int iphivm=(iphiproj>>(nbitsphiprojL123-5))&0x7;
@@ -52,7 +53,7 @@ public:
       //if (fpgazproj_.atExtreme()) {
       //	cout << "FPGALayerProjection fpgazproj at extreme (case1)" << endl;
       //}
-      int izvm=izproj>>(12-7)&0xf;
+      int izvm=izproj>>(12-7)&0xf; 
       fpgazprojvm_.set(izvm,4,true,__LINE__,__FILE__);
       fpgaphiprojder_.set(iphider,nbitsphiprojderL123,false,__LINE__,__FILE__);
       fpgazprojder_.set(izder,nbitszprojderL123,false,__LINE__,__FILE__);
@@ -64,15 +65,26 @@ public:
       }
       fpgaphiprojvm_.set(iphivm,3,true,__LINE__,__FILE__);
       fpgazproj_.set(izproj,nbitszprojL456,false,__LINE__,__FILE__);
-      //if (fpgazproj_.atExtreme()) {
-      //cout << "FPGALayerProjection fpgazproj at extreme (case2)" << endl;
-      //}
       int izvm=izproj>>(8-7)&0xf;
       fpgazprojvm_.set(izvm,4,true,__LINE__,__FILE__);
       fpgaphiprojder_.set(iphider,nbitsphiprojderL456,false,__LINE__,__FILE__);
       fpgazprojder_.set(izder,nbitszprojderL456,false,__LINE__,__FILE__); 
     }
-    
+
+    ////Separate the vm projections into zbins
+    ////This determines the central bin:
+    ////int zbin=3-(zproj.value()>>(zproj.nbits()-3));
+    ////But we need some range: 
+    unsigned int zbin1=3-(((fpgazproj_.value()>>(fpgazproj_.nbits()-5))+1)>>2);
+    unsigned int zbin2=3-(((fpgazproj_.value()>>(fpgazproj_.nbits()-5))-1)>>2);
+    if (zbin1>7) zbin1=0;
+    if (zbin2>7) zbin2=7;
+    assert(zbin1<=zbin2);
+    assert(zbin2-zbin1<=1); 
+    fpgazbin1projvm_.set(zbin1,3,true,__LINE__,__FILE__); // first z bin
+    if (zbin1==zbin2) fpgazbin2projvm_.set(0,1,true,__LINE__,__FILE__); // don't need to check adjacent z bin
+    else              fpgazbin2projvm_.set(1,1,true,__LINE__,__FILE__); // do need to check adjacent z bin
+
     
     minusNeighbor_=minusNeighbor;
     plusNeighbor_=plusNeighbor;
@@ -141,6 +153,16 @@ public:
     return fpgaphiprojvm_;
   };
 
+  FPGAWord fpgazbin1projvm() const {
+    assert(valid_);
+    return fpgazbin1projvm_;
+  };
+  
+  FPGAWord fpgazbin2projvm() const {
+    assert(valid_);
+    return fpgazbin2projvm_;
+  };
+
   FPGAWord fpgazprojvm() const {
     assert(valid_);
     return fpgazprojvm_;
@@ -207,12 +229,17 @@ protected:
 
   FPGAWord fpgaphiprojvm_;
   FPGAWord fpgazprojvm_;
-
-
+  
+  FPGAWord fpgazbin1projvm_;
+  FPGAWord fpgazbin2projvm_;
+ 
   double phiproj_;
   double zproj_;
   double phiprojder_;
   double zprojder_;
+
+  double zbin1_;
+  double zbin2_;
 
   double phiprojapprox_;
   double zprojapprox_;

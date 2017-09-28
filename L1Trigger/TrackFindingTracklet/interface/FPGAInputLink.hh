@@ -100,14 +100,9 @@ public:
 	  }
 	  //these are for TE
 	  if ((subnamelayer=="L1"&&fabs(al1stub.z())<87.0)||subnamelayer=="L3"||subnamelayer=="L5"){
-	    if (iphivmRaw>=4 && iphivmRaw<=9 && subname=="PHIA_ZP") add=true;
-	    if (iphivmRaw>=10 && iphivmRaw<=15 && subname=="PHIC_ZP") add=true;
-	    if (iphivmRaw>=16 && iphivmRaw<=21 && subname=="PHIE_ZP") add=true;
-	    if (iphivmRaw>=22 && iphivmRaw<=27 && subname=="PHIG_ZP") add=true;
-	    if (iphivmRaw>=4 && iphivmRaw<=9 && subname=="PHIB_ZP") add=true;
-	    if (iphivmRaw>=10 && iphivmRaw<=15 && subname=="PHID_ZP") add=true;
-	    if (iphivmRaw>=16 && iphivmRaw<=21 && subname=="PHIF_ZP") add=true;
-	    if (iphivmRaw>=22 && iphivmRaw<=27 && subname=="PHIH_ZP") add=true;
+	    if (iphivmRaw>=4 && iphivmRaw<=11 && subname=="PHIA_ZP") add=true;
+	    if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHIB_ZP") add=true;
+	    if (iphivmRaw>=20 && iphivmRaw<=27 && subname=="PHIC_ZP") add=true;
 	  }
 	  if ((subnamelayer=="L1"&&fabs(al1stub.z())>80.0)||subnamelayer=="L3"||subnamelayer=="L5"){
 	    if (iphivmRaw>=4 && iphivmRaw<=15 && subname=="PHIX_ZP") add=true;     //overlap
@@ -128,14 +123,9 @@ public:
 	  }
 	  //these are for TE
 	  if ((subnamelayer=="L1"&&fabs(al1stub.z())<87.0)||subnamelayer=="L3"||subnamelayer=="L5"){
-	    if (iphivmRaw>=4 && iphivmRaw<=9 && subname=="PHIA_ZM") add=true;
-	    if (iphivmRaw>=10 && iphivmRaw<=15 && subname=="PHIC_ZM") add=true;
-	    if (iphivmRaw>=16 && iphivmRaw<=21 && subname=="PHIE_ZM") add=true;
-	    if (iphivmRaw>=22 && iphivmRaw<=27 && subname=="PHIG_ZM") add=true;
-	    if (iphivmRaw>=4  && iphivmRaw<=9 && subname=="PHIB_ZM") add=true;
-	    if (iphivmRaw>=10 && iphivmRaw<=15 && subname=="PHID_ZM") add=true;
-	    if (iphivmRaw>=16 && iphivmRaw<=21 && subname=="PHIF_ZM") add=true;
-	    if (iphivmRaw>=22 && iphivmRaw<=27 && subname=="PHIH_ZM") add=true;
+	    if (iphivmRaw>=4 && iphivmRaw<=11 && subname=="PHIA_ZM") add=true;
+	    if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHIB_ZM") add=true;
+	    if (iphivmRaw>=20 && iphivmRaw<=27 && subname=="PHIC_ZM") add=true;
 	  }
 	  if ((subnamelayer=="L1"&&fabs(al1stub.z())>80.0)||subnamelayer=="L3"||subnamelayer=="L5"){
 	    if (iphivmRaw>=4 && iphivmRaw<=15 && subname=="PHIX_ZM") add=true;   //overlap
@@ -148,32 +138,26 @@ public:
       if (subnamelayer=="L2"||subnamelayer=="L4"||subnamelayer=="L6"){
 	if (stub.z().value()>0) {
 	  //remember that these are for ME
-	  if (iphivmRaw>=4 && iphivmRaw<=11 && subname=="PHI1_ZP") add=true;
-	  if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHI2_ZP") add=true;
-	  if (iphivmRaw>=20 && iphivmRaw<=27 && subname=="PHI3_ZP") add=true;
+	  if (iphivmRaw>=4 && iphivmRaw<=7 && subname=="PHI1_ZP") add=true;
+	  if (iphivmRaw>=8 && iphivmRaw<=15 && subname=="PHI2_ZP") add=true;
+	  if (iphivmRaw>=16 && iphivmRaw<=23 && subname=="PHI3_ZP") add=true;
+	  if (iphivmRaw>=24 && iphivmRaw<=27 && subname=="PHI4_ZP") add=true;
 	  //these are for TE
 	  if (iphivmRaw>=0 && iphivmRaw<=7 && subname=="PHIA_ZP") add=true;
-	  if (iphivmRaw>=6 && iphivmRaw<=13 && subname=="PHIC_ZP") add=true;
-	  if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHIE_ZP") add=true;
-	  if (iphivmRaw>=18 && iphivmRaw<=25 && subname=="PHIG_ZP") add=true;
-	  if (iphivmRaw>=6 && iphivmRaw<=13 && subname=="PHIB_ZP") add=true;
-	  if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHID_ZP") add=true;
-	  if (iphivmRaw>=18 && iphivmRaw<=25 && subname=="PHIF_ZP") add=true;
-	  if (iphivmRaw>=24 && iphivmRaw<=31 && subname=="PHIH_ZP") add=true;
+	  if (iphivmRaw>=8 && iphivmRaw<=15 && subname=="PHIB_ZP") add=true;
+	  if (iphivmRaw>=16 && iphivmRaw<=23 && subname=="PHIC_ZP") add=true;
+	  if (iphivmRaw>=24 && iphivmRaw<=31 && subname=="PHID_ZP") add=true;
 	} else {
 	  //remember that these are for ME
-	  if (iphivmRaw>=4 && iphivmRaw<=11 && subname=="PHI1_ZM") add=true;
-	  if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHI2_ZM") add=true;
-	  if (iphivmRaw>=20 && iphivmRaw<=27 && subname=="PHI3_ZM") add=true;
+	  if (iphivmRaw>=4 && iphivmRaw<=7 && subname=="PHI1_ZM") add=true;
+	  if (iphivmRaw>=8 && iphivmRaw<=15 && subname=="PHI2_ZM") add=true;
+	  if (iphivmRaw>=16 && iphivmRaw<=23 && subname=="PHI3_ZM") add=true;
+	  if (iphivmRaw>=24 && iphivmRaw<=27 && subname=="PHI4_ZM") add=true;
 	  //these are for TE
 	  if (iphivmRaw>=0 && iphivmRaw<=7 && subname=="PHIA_ZM") add=true;
-	  if (iphivmRaw>=6 && iphivmRaw<=13 && subname=="PHIC_ZM") add=true;
-	  if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHIE_ZM") add=true;
-	  if (iphivmRaw>=18 && iphivmRaw<=25 && subname=="PHIG_ZM") add=true;
-	  if (iphivmRaw>=6 && iphivmRaw<=13 && subname=="PHIB_ZM") add=true;
-	  if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHID_ZM") add=true;
-	  if (iphivmRaw>=18 && iphivmRaw<=25 && subname=="PHIF_ZM") add=true;
-	  if (iphivmRaw>=24 && iphivmRaw<=31 && subname=="PHIH_ZM") add=true;
+	  if (iphivmRaw>=8 && iphivmRaw<=15 && subname=="PHIB_ZM") add=true;
+	  if (iphivmRaw>=16 && iphivmRaw<=23 && subname=="PHIC_ZM") add=true;
+	  if (iphivmRaw>=24 && iphivmRaw<=31 && subname=="PHID_ZM") add=true;
 	}
       }
     }
@@ -197,7 +181,7 @@ public:
 	  }
 	}
       }
-
+    
       
       if (!((disk==1&&subnamelayer=="F1")||
 	    (disk==2&&subnamelayer=="F2")||

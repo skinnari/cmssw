@@ -28,6 +28,7 @@ public:
    trackletproj_L2PHI1_=0;
    trackletproj_L2PHI2_=0;
    trackletproj_L2PHI3_=0;
+   trackletproj_L2PHI4_=0;
 
    trackletproj_L3PHI1_=0;
    trackletproj_L3PHI2_=0;
@@ -36,6 +37,7 @@ public:
    trackletproj_L4PHI1_=0;
    trackletproj_L4PHI2_=0;
    trackletproj_L4PHI3_=0;
+   trackletproj_L4PHI4_=0;
 
    trackletproj_L5PHI1_=0;
    trackletproj_L5PHI2_=0;
@@ -44,6 +46,7 @@ public:
    trackletproj_L6PHI1_=0;
    trackletproj_L6PHI2_=0;
    trackletproj_L6PHI3_=0;
+   trackletproj_L6PHI4_=0;
 
    trackletproj_L1Plus_=0; 
    trackletproj_L1Minus_=0;
@@ -262,6 +265,13 @@ public:
       return;
     }
 
+    if (output=="projoutL2PHI4"){
+      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
+      assert(tmp!=0);
+      trackletproj_L2PHI4_=tmp;
+      return;
+    }
+
     if (output=="projoutL3PHI1"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
@@ -304,6 +314,13 @@ public:
       return;
     }
 
+    if (output=="projoutL4PHI4"){
+      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
+      assert(tmp!=0);
+      trackletproj_L4PHI4_=tmp;
+      return;
+    }
+
     if (output=="projoutL5PHI1"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
@@ -343,6 +360,13 @@ public:
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
       trackletproj_L6PHI3_=tmp;
+      return;
+    }
+
+    if (output=="projoutL6PHI4"){
+      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
+      assert(tmp!=0);
+      trackletproj_L6PHI4_=tmp;
       return;
     }
 
@@ -4505,6 +4529,10 @@ public:
 	  }
 	}
 	if (countall>=MAXTC) break;
+	if (debug1) {
+	  cout << "FPGATrackletCalculator execute done"<<endl;
+	}
+
       }
       if (countall>=MAXTC) break;
     }
@@ -4729,9 +4757,6 @@ public:
 
   void addDiskProj(FPGATracklet* tracklet, int disk){
 
-    //cout << "addDiskProj projection to disk = "<<disk<<endl;
-
-    
     
     FPGAWord fpgar=tracklet->fpgarprojdisk(disk);
 
@@ -4785,6 +4810,7 @@ public:
 	if (abs(disk)==2) addNeighborProjectionDisk(disk,trackletproj_L5Minus_,tracklet);
 	return;
       }
+
       if (abs(disk)==1) addNeighborProjectionDisk(disk,trackletproj_F1Minus_,tracklet);
       if (abs(disk)==2) addNeighborProjectionDisk(disk,trackletproj_F2Minus_,tracklet);
       if (abs(disk)==3) addNeighborProjectionDisk(disk,trackletproj_F3Minus_,tracklet);
@@ -4800,6 +4826,7 @@ public:
       
     //cout << "addDiskProj projection to center "<<endl;
 
+    
     FPGAWord fpgaphi=tracklet->fpgaphiprojdisk(disk);
 
     //cout << "FPGATrackletCalculator phi nbits : "<<fpgaphi.value()<<" "<<fpgaphi.nbits()<<endl;
@@ -4848,6 +4875,7 @@ public:
       if (iphi==2) addProjectionDisk(disk,iphi,trackletproj_F5PHI3_,tracklet);
     }
 
+    
   }
 
 
@@ -4895,11 +4923,16 @@ public:
 
     int iphi=(iphivmRaw-4)>>3;
 
+    if (layer==2||layer==4||layer==6) {
+      iphi=(iphivmRaw>>3);
+    }
+    
+ 
     //cout << "layer fpgaphi iphivmRaw iphi : "<<layer<<" "<<fpgaphi.value()<<" "<<iphivmRaw<<" "<<iphi<<endl;
 
     
     assert(iphi>=0);
-    assert(iphi<=2);
+    assert(iphi<=3);
 
     if (layer==1) {
       if (iphi==0) addProjection(layer,iphi,trackletproj_L1PHI1_,tracklet);
@@ -4908,9 +4941,10 @@ public:
     }
     
     if (layer==2) {
-       if (iphi==0) addProjection(layer,iphi,trackletproj_L2PHI1_,tracklet);
+      if (iphi==0) addProjection(layer,iphi,trackletproj_L2PHI1_,tracklet);
       if (iphi==1) addProjection(layer,iphi,trackletproj_L2PHI2_,tracklet);
       if (iphi==2) addProjection(layer,iphi,trackletproj_L2PHI3_,tracklet);
+      if (iphi==3) addProjection(layer,iphi,trackletproj_L2PHI4_,tracklet);
     }
 
     if (layer==3) {
@@ -4923,6 +4957,7 @@ public:
       if (iphi==0) addProjection(layer,iphi,trackletproj_L4PHI1_,tracklet);
       if (iphi==1) addProjection(layer,iphi,trackletproj_L4PHI2_,tracklet);
       if (iphi==2) addProjection(layer,iphi,trackletproj_L4PHI3_,tracklet);
+      if (iphi==3) addProjection(layer,iphi,trackletproj_L4PHI4_,tracklet);
     }
 
     if (layer==5) {
@@ -4935,6 +4970,7 @@ public:
       if (iphi==0) addProjection(layer,iphi,trackletproj_L6PHI1_,tracklet);
       if (iphi==1) addProjection(layer,iphi,trackletproj_L6PHI2_,tracklet);
       if (iphi==2) addProjection(layer,iphi,trackletproj_L6PHI3_,tracklet);
+      if (iphi==3) addProjection(layer,iphi,trackletproj_L6PHI4_,tracklet);
     }
 
     return true;
@@ -4988,6 +5024,7 @@ public:
 
   
   void addNeighborProjectionDisk(int disk, FPGATrackletProjections* trackletprojs,FPGATracklet* tracklet){
+
     if (trackletprojs==0) {
       if (warnNoMem) {
 	string str="";
@@ -5004,9 +5041,10 @@ public:
       return;
     }
     assert(trackletprojs!=0);
-    trackletprojs->addProj(tracklet);
-  
 
+    trackletprojs->addProj(tracklet);
+
+    
   }
 
     
@@ -5044,6 +5082,7 @@ private:
   FPGATrackletProjections* trackletproj_L2PHI1_;
   FPGATrackletProjections* trackletproj_L2PHI2_;
   FPGATrackletProjections* trackletproj_L2PHI3_;
+  FPGATrackletProjections* trackletproj_L2PHI4_;
 
   FPGATrackletProjections* trackletproj_L3PHI1_;
   FPGATrackletProjections* trackletproj_L3PHI2_;
@@ -5052,6 +5091,7 @@ private:
   FPGATrackletProjections* trackletproj_L4PHI1_;
   FPGATrackletProjections* trackletproj_L4PHI2_;
   FPGATrackletProjections* trackletproj_L4PHI3_;
+  FPGATrackletProjections* trackletproj_L4PHI4_;
 
   FPGATrackletProjections* trackletproj_L5PHI1_;
   FPGATrackletProjections* trackletproj_L5PHI2_;
@@ -5060,6 +5100,7 @@ private:
   FPGATrackletProjections* trackletproj_L6PHI1_;
   FPGATrackletProjections* trackletproj_L6PHI2_;
   FPGATrackletProjections* trackletproj_L6PHI3_;
+  FPGATrackletProjections* trackletproj_L6PHI4_;
 
   FPGATrackletProjections* trackletproj_F1PHI1_;
   FPGATrackletProjections* trackletproj_F1PHI2_;

@@ -202,7 +202,7 @@ static int nbitsalpha=6;
 static double kalpha=alphamax/(1<<(nbitsalpha-1));
 static int alphaBitsTable=1; //For number of bits in track derivative table
 
-static unsigned int NSector=24; 
+static unsigned int NSector=27; 
 static int Nphibits=2;         //Number of bits required to label the phi VM
 static int L1Nphi=(1<<Nphibits)-1; //Number of odd layer VMs
 static int Nzbits=3;         //Number of bits required to label the z VM

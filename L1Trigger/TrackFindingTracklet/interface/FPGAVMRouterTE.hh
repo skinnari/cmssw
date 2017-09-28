@@ -57,8 +57,6 @@ public:
 	  output=="vmstuboutD"+s+"n1"||
 	  output=="vmstuboutE"+s+"n1"||
 	  output=="vmstuboutF"+s+"n1"||
-	  output=="vmstuboutG"+s+"n1"||
-	  output=="vmstuboutH"+s+"n1"||
 	  output=="vmstuboutX"+s+"n1"||
 	  output=="vmstuboutY"+s+"n1"||
 	  output=="vmstuboutW"+s+"n1"||
@@ -69,8 +67,6 @@ public:
 	  output=="vmstuboutD"+s+"n2"||
 	  output=="vmstuboutE"+s+"n2"||
 	  output=="vmstuboutF"+s+"n2"||
-	  output=="vmstuboutG"+s+"n2"||
-	  output=="vmstuboutH"+s+"n2"||
 	  output=="vmstuboutX"+s+"n2"||
 	  output=="vmstuboutY"+s+"n2"||
 	  output=="vmstuboutW"+s+"n2"||
@@ -81,8 +77,6 @@ public:
 	  output=="vmstuboutD"+s+"n3"||
 	  output=="vmstuboutE"+s+"n3"||
 	  output=="vmstuboutF"+s+"n3"||
-	  output=="vmstuboutG"+s+"n3"||
-	  output=="vmstuboutH"+s+"n3"||
 	  output=="vmstuboutX"+s+"n3"||
 	  output=="vmstuboutY"+s+"n3"||
 	  output=="vmstuboutW"+s+"n3"||
@@ -93,24 +87,42 @@ public:
 	  output=="vmstuboutD"+s+"n4"||
 	  output=="vmstuboutE"+s+"n4"||
 	  output=="vmstuboutF"+s+"n4"||
-	  output=="vmstuboutG"+s+"n4"||
-	  output=="vmstuboutH"+s+"n4"||
 	  output=="vmstuboutA"+s+"n5"||
 	  output=="vmstuboutB"+s+"n5"||
 	  output=="vmstuboutC"+s+"n5"||
 	  output=="vmstuboutD"+s+"n5"||
 	  output=="vmstuboutE"+s+"n5"||
 	  output=="vmstuboutF"+s+"n5"||
-	  output=="vmstuboutG"+s+"n5"||
-	  output=="vmstuboutH"+s+"n5"||
 	  output=="vmstuboutA"+s+"n6"||
 	  output=="vmstuboutB"+s+"n6"||
 	  output=="vmstuboutC"+s+"n6"||
 	  output=="vmstuboutD"+s+"n6"||
 	  output=="vmstuboutE"+s+"n6"||
 	  output=="vmstuboutF"+s+"n6"||
-	  output=="vmstuboutG"+s+"n6"||
-	  output=="vmstuboutH"+s+"n6"
+	  output=="vmstuboutA"+s+"n7"||
+	  output=="vmstuboutB"+s+"n7"||
+	  output=="vmstuboutC"+s+"n7"||
+	  output=="vmstuboutD"+s+"n7"||
+	  output=="vmstuboutE"+s+"n7"||
+	  output=="vmstuboutF"+s+"n7"||
+	  output=="vmstuboutA"+s+"n8"||
+	  output=="vmstuboutB"+s+"n8"||
+	  output=="vmstuboutC"+s+"n8"||
+	  output=="vmstuboutD"+s+"n8"||
+	  output=="vmstuboutE"+s+"n8"||
+	  output=="vmstuboutF"+s+"n8"||
+	  output=="vmstuboutA"+s+"n9"||
+	  output=="vmstuboutB"+s+"n9"||
+	  output=="vmstuboutC"+s+"n9"||
+	  output=="vmstuboutD"+s+"n9"||
+	  output=="vmstuboutE"+s+"n9"||
+	  output=="vmstuboutF"+s+"n9"||
+	  output=="vmstuboutA"+s+"n10"||
+	  output=="vmstuboutB"+s+"n10"||
+	  output=="vmstuboutC"+s+"n10"||
+	  output=="vmstuboutD"+s+"n10"||
+	  output=="vmstuboutE"+s+"n10"||
+	  output=="vmstuboutF"+s+"n10"
 	  ){
 	FPGAVMStubsTE* tmp=dynamic_cast<FPGAVMStubsTE*>(memory);
 	assert(tmp!=0);

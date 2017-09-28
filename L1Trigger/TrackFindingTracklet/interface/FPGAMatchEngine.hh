@@ -85,93 +85,105 @@ public:
     unsigned int countpass=0;
 
     for(unsigned int j=0;j<vmprojs_->nTracklets();j++){
-	  FPGATracklet* proj=vmprojs_->getFPGATracklet(j);
+      FPGATracklet* proj=vmprojs_->getFPGATracklet(j);
+
+     	
+	if (layer_>0){
+
+          unsigned int zbin1 =proj->zbin1projvm(layer_);
+          unsigned int zbin2 = zbin1; 
+          if (proj->zbin2projvm(layer_)==1) zbin2 += 1;
+
+	  for (unsigned int ibin=zbin1;ibin<=zbin2;ibin++) {
+
+	    unsigned int nstub=vmstubs_->nStubsBin(ibin);
+	    
+	    for(unsigned int i=0;i<nstub;i++){
+	      if (debug1) {
+		cout << "Found stub in "<<getName()<<endl;
+	      }
+	      std::pair<FPGAStub*,L1TStub*> stub=vmstubs_->getStubBin(ibin,i);   
 	
-    for(unsigned int i=0;i<vmstubs_->nStubs();i++){
-      if (debug1) {
-	cout << "Found stub in "<<getName()<<endl;
-      }
-      std::pair<FPGAStub*,L1TStub*> stub=vmstubs_->getStub(i);   
+	      countall++;
 
-	  if (layer_>0){
-	//cout << "FPGAMatchEngine zproj = "<<proj->fpgazproj(layer_).value()<<" "<<stub.second->z()<<" layer_ = "<<layer_<<endl;
-	if (fabs(proj->zproj(layer_)-stub.second->z())>20.0) continue;
-	if (debug1) {
-	  cout << "Adding match in "<<getName()<<endl;
-	}
-	countall++;
-
-	//cout << "  Proj: "<<proj->phiprojvm(layer_)
-	//     <<" "<<proj->zprojvm(layer_)<<" "<<proj->zproj(layer_)<<endl;
-	if (doMEMatch){
-	  double zcut=10.0;
-	  if (layer_==1&&proj->layer()==5) zcut=20;
-	  if (layer_==1&&abs(proj->disk())==3) zcut=20;
-	  if (fabs(proj->zproj(layer_)-stub.second->z())>zcut) continue;
-	  double dphi=proj->phiproj(layer_)-stub.second->phi();
-	  double deltaphi=two_pi/NSector;
-	  dphi-=deltaphi/6.0;
-	  do {
-	if (dphi>0.5*deltaphi) dphi-=deltaphi;
-	if (dphi<-0.5*deltaphi) dphi+=deltaphi;
-	  }while (abs(dphi)>=0.5*deltaphi);
-	  //cout << "layer_ dphi r*dphi "<<layer_<<" "<<dphi<<" "
-	  //	   << dphi*stub.second->r() << endl;
-	  if (layer_==1&&abs(dphi*stub.second->r())>0.12) continue;
-	  if (layer_==2&&abs(dphi*stub.second->r())>0.15) continue;
-	  if (layer_==3&&abs(dphi*stub.second->r())>0.25) continue;
-	  if (abs(stub.first->phivm().value()-
-	      stub.first->phivm().value())>1) continue;
-	} // if (doMEMatch)
-
-	countpass++;
-	candmatches_->addMatch(proj,stub);
-
-	  } // if (layer_>0)      
-	  else if (disk_!=0) {
-	int disk=disk_;
-	if (proj->t()<0.0) disk=-disk_;
-	if (debug1) {
-	  cout << " Found projection in "<<getName()<<" "
-	   << proj->rprojdisk(disk)<<" "<<stub.second->r()<<endl; 
-	}
-	//cout << "FPGAMatchEngine "<<getName()<<" disk = "<<disk<<" rproj = "<<proj->rprojdisk(disk)<<" "<<proj->fpgarprojdisk(disk).value()<<" stub r = "<<stub.second->r()<<endl;
-	double rbin=10.0;
-	if (proj->rprojdisk(disk)<40.0) rbin=5.0;
-	if (fabs(proj->rprojdisk(disk)-stub.second->r())>rbin) continue;
-	countall++;
-	if (debug1) {
-	  cout << "Adding match in "<<getName()<<endl;
-	}
-
-	double rcut=5.0;
-	if (proj->rprojdisk(disk)<65.0) rcut=2.0;
-	if (fabs(proj->rprojdisk(disk)-stub.second->r())>rcut) continue;
-     
-	//cout << "  Proj: "<<proj->phiprojvm(layer_)
-	//     <<" "<<proj->zprojvm(layer_)<<" "<<proj->zproj(layer_)<<endl;
-	if (doMEMatch){
-	  if (abs(stub.first->phivm().value()-
-  	    stub.first->phivm().value())>1) {
-	    cout << "Rejecting match: "<<stub.second->z()<<endl;
-	    continue;
+	      /*This here is old debugging code keep here commented out if needed AR
+	      if (doMEMatch){
+		double zcut=10.0;
+		if (layer_==1&&proj->layer()==5) zcut=20;
+		if (layer_==1&&abs(proj->disk())==3) zcut=20;
+		if (fabs(proj->zproj(layer_)-stub.second->z())>zcut) continue;
+		double dphi=proj->phiproj(layer_)-stub.second->phi();
+		double deltaphi=two_pi/NSector;
+		dphi-=deltaphi/6.0;
+		do {
+		  if (dphi>0.5*deltaphi) dphi-=deltaphi;
+		  if (dphi<-0.5*deltaphi) dphi+=deltaphi;
+		}while (abs(dphi)>=0.5*deltaphi);
+		//cout << "layer_ dphi r*dphi "<<layer_<<" "<<dphi<<" "
+		//	   << dphi*stub.second->r() << endl;
+		if (layer_==1&&abs(dphi*stub.second->r())>0.12) continue;
+		if (layer_==2&&abs(dphi*stub.second->r())>0.15) continue;
+		if (layer_==3&&abs(dphi*stub.second->r())>0.25) continue;
+		if (abs(stub.first->phivm().value()-
+			stub.first->phivm().value())>1) continue;
+	      } // if (doMEMatch)
+	      */
+	      countpass++;
+	      candmatches_->addMatch(proj,stub);
+	      if (countall>=MAXME) break;
+	    }
 	  }
-	}
+	} // if (layer_>0)      
+	else if (disk_!=0) {
 
-	//cout << "FPGAMatchEngine "<<getName()<<" adding match to "<<candmatches_->getName()<<endl;
-	countpass++;
-	candmatches_->addMatch(proj,stub);
-	
-      } else { // if (layer_>0)
-	assert(0);
-      } // if (layer_>0)
+	  for(unsigned int i=0;i<vmstubs_->nStubs();i++){
+	    if (debug1) {
+	      cout << "Found stub in "<<getName()<<endl;
+	    }
+	    std::pair<FPGAStub*,L1TStub*> stub=vmstubs_->getStub(i);   
+	    
+	    
+	    int disk=disk_;
+	    if (proj->t()<0.0) disk=-disk_;
+	    if (debug1) {
+	      cout << " Found projection in "<<getName()<<" "
+		 << proj->rprojdisk(disk)<<" "<<stub.second->r()<<endl; 
+	    }
+	    //cout << "FPGAMatchEngine "<<getName()<<" disk = "<<disk<<" rproj = "<<proj->rprojdisk(disk)<<" "<<proj->fpgarprojdisk(disk).value()<<" stub r = "<<stub.second->r()<<endl;
+	    double rbin=10.0;
+	    if (proj->rprojdisk(disk)<40.0) rbin=5.0;
+	    if (fabs(proj->rprojdisk(disk)-stub.second->r())>rbin) continue;
+	    countall++;
+	    if (debug1) {
+	      cout << "Adding match in "<<getName()<<endl;
+	    }
+	    
+	    double rcut=5.0;
+	    if (proj->rprojdisk(disk)<65.0) rcut=2.0;
+	    if (fabs(proj->rprojdisk(disk)-stub.second->r())>rcut) continue;
+	    
+	    //cout << "  Proj: "<<proj->phiprojvm(layer_)
+	    //     <<" "<<proj->zprojvm(layer_)<<" "<<proj->zproj(layer_)<<endl;
+	    if (doMEMatch){
+	      if (abs(stub.first->phivm().value()-
+		      stub.first->phivm().value())>1) {
+		cout << "Rejecting match: "<<stub.second->z()<<endl;
+	      continue;
+	      }
+	    }
 	  
-	  if (countall>=MAXME) break;
-	} // inner for loop
-
-	if (countall>=MAXME) break;
-	} // outer for loop
-
+	    //cout << "FPGAMatchEngine "<<getName()<<" adding match to "<<candmatches_->getName()<<endl;
+	    countpass++;
+	    candmatches_->addMatch(proj,stub);
+	    if (countall>=MAXME) break;
+	  }
+	} else { // if (layer_>0)
+	  assert(0);
+	} // if (layer_>0)
+    
+    } // outer for loop
+     
+    
     if (writeME) {
       static ofstream out("matchengine.txt");
       out << getName()<<" "<<countall<<" "<<countpass<<endl;

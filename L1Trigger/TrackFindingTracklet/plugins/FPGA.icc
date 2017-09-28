@@ -6,11 +6,13 @@
     for (unsigned int k=0;k<NSector;k++) {
       sectors[k]->clean();
     }
-    
-    //for (std::map<string,FPGADTC>::iterator it=dtcs.begin();it!=dtcs.end();it++){
-    //	it->second.clean();
-    //}
-    
+
+    /*    
+    for (std::map<string,FPGADTC>::iterator it=dtcs.begin();it!=dtcs.end();it++){
+    	it->second.clean();
+    }
+    */
+  
     cleanTimer.stop();
 
     bool hitlayer[6];
@@ -43,13 +45,14 @@
 	// <<" z= "<<stub.z()<<endl;
       //}
 
-	//cout << "Stub: layer="<<stub.layer()+1
-	 //      <<" pt="<<stub.pt()
-	 //      <<" phi="<<stub.phi()
-	 //      <<" r="<<stub.r()
-	 //      <<" ladder="<<stub.ladder()
-	 //      <<" module="<<stub.module()
-	 //      <<endl;
+     //cout << "Stub: layer="<<stub.layer()+1
+	//      <<" pt="<<stub.pt()
+	//       <<" phi="<<stub.phi()
+	//      <<" r="<<stub.r()
+	//      <<" z="<<stub.z()
+	//       <<" ladder="<<stub.ladder()
+	//       <<" module="<<stub.module()
+	//       <<endl;
 
 
       if (stub.layer()<7) {
@@ -152,7 +155,7 @@
 	}
 	//cout << "Done add stub"<<endl;	
       }
-      */
+      */      
 
     }
 
@@ -365,7 +368,7 @@ if (writeHitEff) {
         
                 for(int jtrk=itrk+1; jtrk<(int)tracks.size(); jtrk++){
                 //if secondary track is a duplicate or not in an adjacent sector, it cannot veto any...move on
-                    if(!tracks[jtrk]->duplicate() && ( abs(tracks[itrk]->isector()-tracks[jtrk]->isector())==1 || abs(tracks[itrk]->isector()-tracks[jtrk]->isector())==27)) {
+                    if(!tracks[jtrk]->duplicate() && ( abs(tracks[itrk]->sector()-tracks[jtrk]->sector())==1 || abs(tracks[itrk]->sector()-tracks[jtrk]->sector())==27)) {
 
                         //get stub information
                         int nShare=0;

@@ -98,6 +98,13 @@ public:
 
 	  int iphiRaw=stub.first->iphivmRaw();
 
+	  int layer=stub.first->layer().value()+1;
+
+	  bool evenlayer=(layer==2)||(layer==4)||(layer==6);
+
+	  if (evenlayer&&(iphiRaw<4)) continue;
+	  if (evenlayer&&(iphiRaw>27)) continue;
+	  
 	  int iphiRawPlus=stub.first->iphivmRawPlus();
 	  int iphiRawMinus=stub.first->iphivmRawMinus();
 
@@ -132,17 +139,13 @@ public:
 	    insert=true;
 	  }
 
-
-	  
 	  if (iphiRaw!=iphiRawPlus) {
 	    for (unsigned int l=0;l<vmstubsPHI_[iphiRawPlus].size();l++){
-	      //cout << "Add extra plus" << endl;
 	      vmstubsPHI_[iphiRawPlus][l]->addStub(stub);
 	    }
 	  }
 	  if (iphiRaw!=iphiRawMinus) {
 	    for (unsigned int l=0;l<vmstubsPHI_[iphiRawMinus].size();l++){
-	      //cout << "Add extra minus" << endl;
 	      vmstubsPHI_[iphiRawMinus][l]->addStub(stub);
 	    }
 	  }
@@ -231,7 +234,6 @@ public:
       out<<allstubs_[0]->getName()<<" "<<allstubs_[0]->nStubs()<<endl;
     }
  
-
 
   }
 

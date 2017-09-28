@@ -419,7 +419,9 @@ public:
       index.set(allstubindex,6);
     }
     oss << index.str()<<"|"<<layerproj_[layer-1].fpgaphiprojvm().str()
-	<<"|"<< layerproj_[layer-1].fpgazprojvm().str();
+	<<"|"<< layerproj_[layer-1].fpgazbin1projvm().str() 
+        <<"|"<< layerproj_[layer-1].fpgazbin2projvm().str();
+	//<<"|"<< layerproj_[layer-1].fpgazprojvm().str();
     return oss.str();
 
   }
@@ -474,6 +476,7 @@ public:
     tmp.set(trackletIndex_,6);
     FPGAWord tcid;
     tcid.set(TCIndex_,6);
+
     oss << diskproj_[abs(disk)-1].plusNeighbor()<<"|"
         << diskproj_[abs(disk)-1].minusNeighbor()<<"|" 
         << tcid.str()<<"|" 
@@ -539,6 +542,16 @@ public:
   FPGAWord fpgazprojder(int layer) const {
     assert(layer>=1&&layer<=6);
     return layerproj_[layer-1].fpgazprojder();
+  }
+
+  int zbin1projvm(int layer) const {
+    assert(layer>=1&&layer<=6);
+    return layerproj_[layer-1].fpgazbin1projvm().value();
+  }
+
+  int zbin2projvm(int layer) const {
+    assert(layer>=1&&layer<=6);
+    return layerproj_[layer-1].fpgazbin2projvm().value();
   }
 
   int phiprojvm(int layer) const {
@@ -1009,25 +1022,25 @@ public:
     //printf(" irinv %i,  iphi %i  it %i \n",irinvfit().value(),iphi0fit().value(),itfit().value());
     //printf(" Matches:  barrel  %i   disks %i \n",nMatches(),nMatchesDisk());
     //for(int i=0; i<16; i++)  stubIDs[i] = 63; //this is no stub code value
-	  
-	  
+
+    // For future reference, *resid_[i] uses i as the absolute stub index. (0-5 for barrel, 0-4 for disk)
+    // On the other hand, proj*_[i] uses i almost like *resid_[i], except the seeding layer indices are removed entirely.
+    // E.g. An L3L4 track has 0=L1, 1=L2, 2=L4, 3=L5 for the barrels (for proj*_[i])
+
     if(barrel_) {
-	   	     
       for(int i=0; i<6; i++) {
 
-	if (!layerresid_[i].valid()) continue;
-	
-	//get barrel stubs
-	stubIDs[i+1] = layerresid_[i].fpgastubid().value();			  		  
+        //check barrel
+	if (layerresid_[i].valid()) {
+          stubIDs[1+i] = layerresid_[i].fpgastubid().value();
+        }			  		  
 		  
-	//check disk (probably only really need to check first 1 or 2)
-	if (i>=4) continue;
+	//check disk
 	if(diskresid_[i].valid()) {
-	  //printf("Disk values for barrel track proj  %i   stud ID %i \n",10+i+1,fpgastubiddisk_[i].value());
 	  if(itfit().value() < 0) {
-	    stubIDs[-10-i-1] = diskresid_[i].fpgastubid().value();
+	    stubIDs[-11-i] = diskresid_[i].fpgastubid().value();
 	  } else {
-	    stubIDs[10+i+1] = diskresid_[i].fpgastubid().value();
+	    stubIDs[11+i] = diskresid_[i].fpgastubid().value();
 	  }
 	}	 			  		  		  
       }
@@ -1040,18 +1053,19 @@ public:
 		  
 		  		  
     } else if (disk_) {
-
       for(int i=0; i<5; i++) {
 	
-	//check inner two layers of barrel
-	if(layerresid_[i].valid()) stubIDs[i+1] = layerresid_[i].fpgastubid().value();			  
+	//check barrel
+	if(layerresid_[i].valid()) {
+          stubIDs[1+i] = layerresid_[i].fpgastubid().value();			  
+        }
 	
-	//get disks
+	//check disks
 	if(diskresid_[i].valid()) {
-	  if(projdisk_[i] < 0) {
-	    stubIDs[projdisk_[i]-10] = diskresid_[i].fpgastubid().value();
+	  if(innerStub_->disk() < 0) {
+	    stubIDs[-11-i] = diskresid_[i].fpgastubid().value();
 	  } else {
-	    stubIDs[projdisk_[i]+10] = diskresid_[i].fpgastubid().value();
+	    stubIDs[11+i] = diskresid_[i].fpgastubid().value();
 	  }
 	}	 			  
       }
@@ -1067,20 +1081,24 @@ public:
       }		  
 
     } else if (overlap_) {
-      //printf("Overlap Track...\n");
-      
       
       for(int i=0; i<5; i++) {
 	
-	//check inner two layers of barrel
-	if(layerresid_[i].valid()) stubIDs[i+1] = layerresid_[i].fpgastubid().value();			  
-	
-	//get disks
+	//check barrel
+	if(layerresid_[i].valid()) {
+          stubIDs[1+i] = layerresid_[i].fpgastubid().value();	  
+	}
+
+	//check disks
 	if(diskresid_[i].valid()) {
 	  if(innerStub_->disk() < 0) {
-	    stubIDs[-projdisk_[i]-10] = diskresid_[i].fpgastubid().value();
+            if(innerFPGAStub_->layer().value()!=2 || !layerresid_[0].valid() || i!=3 ) {
+	      stubIDs[-11-i] = diskresid_[i].fpgastubid().value();
+            }
 	  } else {
-	    stubIDs[projdisk_[i]+10] = diskresid_[i].fpgastubid().value();
+            if(innerFPGAStub_->layer().value()!=2 || !layerresid_[0].valid() || i!=3 ) {
+	      stubIDs[11+i] = diskresid_[i].fpgastubid().value();
+            }
 	  }
 	}	 			  
       }
@@ -1088,7 +1106,10 @@ public:
       //get stubs making up tracklet
       //printf(" inner %i  outer %i layers \n",innerFPGAStub_.layer().value(),outerFPGAStub_.layer().value());
       //printf(" inner %i  outer %i disks \n",innerFPGAStub_.disk().value(),outerFPGAStub_.disk().value());
-      if(innerFPGAStub_->disk().value() < 0) { //negative side runs -11 - -15
+      if(innerFPGAStub_->layer().value()==2) { // L3L2 track
+	stubIDs[innerFPGAStub_->layer().value()+1] = ((innerFPGAStub_->fedregion()-1)<<6)+innerFPGAStub_->stubindex().value();
+	stubIDs[outerFPGAStub_->layer().value()+1] = ((outerFPGAStub_->fedregion()-1)<<6)+outerFPGAStub_->stubindex().value();
+      } else if(innerFPGAStub_->disk().value() < 0) { //negative side runs -11 - -15
 	stubIDs[innerFPGAStub_->disk().value()-10] = ((innerFPGAStub_->fedregion()-1)<<6)+innerFPGAStub_->stubindex().value();
 	stubIDs[outerFPGAStub_->layer().value()+1] = ((outerFPGAStub_->fedregion()-1)<<6)+outerFPGAStub_->stubindex().value();
       } else { // positive side runs 11-15]
@@ -1354,23 +1375,15 @@ public:
 
   FPGATrack makeTrack() {
     assert(fit());
-//    int iseed=0;
-//    if(barrel_) iseed=innerFPGAStub_->layer().value()+1;
-//    if(disk_) {
-//        if(innerFPGAStub_->disk().value() < 0) iseed=innerFPGAStub_->disk().value()-10;
-//        else iseed = innerFPGAStub_->disk().value()+10;
-//    }
-//    if(overlap_) {
-//        if(innerFPGAStub_->disk().value() < 0) iseed=-21;
-//        else iseed=21;
-//    }
     FPGATrack tmpTrack(irinvfit_.value(),
-		       iphi0fit_.value(),
-		       itfit_.value(),
-		       iz0fit_.value(),
-		       getStubIDs(),
-		       getL1Stubs());
-    tmpTrack.setChisq(chisqfit_);
+                       iphi0fit_.value(),
+                       itfit_.value(),
+                       iz0fit_.value(),
+                       ichisqfit_.value(),
+                       chisqfit_,
+                       getStubIDs(),
+                       getL1Stubs(),
+                       seed());
 
     return tmpTrack;
     
@@ -1410,6 +1423,24 @@ public:
 
   int overlap() const {
     return innerStub_->layer()+21;
+  }
+
+  int seed() const {
+    // Returns integer code for tracklet seed.
+    // Barrel: L1L2=1, L3L4=3, L5L6=6
+    // Disk: D1D2=11, D3D4=13 (+/- for forward/backward disk)
+    // Overlap: L1D1=21, L2D1=22 (+/- for forward/backward disk), L3L2=2
+    if(barrel_) return innerStub_->layer()+1;
+    if(disk_) {
+        if(innerStub_->disk() < 0) return innerStub_->disk()-10;
+        else return innerStub_->disk()+10;
+    }
+    if(overlap_) {
+        if(innerFPGAStub_->isBarrel()) return 2;
+        else if(innerStub_->disk() < 0) return -21-outerStub_->layer();
+        else return 21+outerStub_->layer();
+    }
+    return 0;
   }
 
   bool isBarrel() const { 
