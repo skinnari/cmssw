@@ -428,7 +428,7 @@ public:
 	iMinvDt[2][2*i]=(1<<fittbitshift)*MinvDt[2][2*i]*kphiprojdisk/ktparsdisk;
 	iMinvDt[3][2*i]=(1<<fitz0bitshift)*MinvDt[3][2*i]*kphiprojdisk/kzdisk;
 
-	if (alpha[i]==0.0) {
+	if (fabs(alpha[i])<1e-10) {
 	  MinvDt[0][2*i+1]/=sigmaz;
 	  MinvDt[1][2*i+1]/=sigmaz;
 	  MinvDt[2][2*i+1]/=sigmaz;
@@ -1081,10 +1081,10 @@ public:
       //cout << "j idelta iMinvDt[0] iMinvDt[1] : "
       //	   <<j<<" "<<idelta[j]<<" "<<iMinvDt[0][j]<<" "<<iMinvDt[1][j]<<endl;
 
-      idrinv-=((iMinvDt[0][j]*idelta[j]));
-      idphi0-=((iMinvDt[1][j]*idelta[j]));
-      idt-=((iMinvDt[2][j]*idelta[j]));
-      idz0-=((iMinvDt[3][j]*idelta[j]));
+      idrinv+=((iMinvDt[0][j]*idelta[j]));
+      idphi0+=((iMinvDt[1][j]*idelta[j]));
+      idt+=((iMinvDt[2][j]*idelta[j]));
+      idz0+=((iMinvDt[3][j]*idelta[j]));
 
       //cout << "j dt idt : "<<j<<" "<<MinvDt[2][j]*delta[j]<<" "<<((iMinvDt[2][j]*idelta[j])>>fittbitshift)*ktpars<<endl;
 
@@ -1139,13 +1139,13 @@ public:
     int itseed=tracklet->fpgat().value();
     int iz0seed=tracklet->fpgaz0().value();
 
-    int irinvfit=irinvseed-(idrinv>>fitrinvbitshift);
-    int iphi0fit=iphi0seed-(idphi0>>fitphi0bitshift);
+    int irinvfit=irinvseed+(idrinv>>fitrinvbitshift);
+    int iphi0fit=iphi0seed+(idphi0>>fitphi0bitshift);
 
     //cout << "itseed idt : "<<itseed<<" "<<(idt>>fittbitshift)<<endl;
     
-    int itfit=itseed-(idt>>fittbitshift);
-    int iz0fit=iz0seed-(idz0>>fitz0bitshift);
+    int itfit=itseed+(idt>>fittbitshift);
+    int iz0fit=iz0seed+(idz0>>fitz0bitshift);
 
     double rinvfit=rinvseed-drinv;
     double phi0fit=phi0seed-dphi0;

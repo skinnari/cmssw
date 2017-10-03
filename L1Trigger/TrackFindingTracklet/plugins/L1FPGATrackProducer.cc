@@ -680,36 +680,29 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     GlobalPoint bsPosition4par(0.0,0.0,track->z0());
     aTrack.setPOCA(bsPosition4par,4);
  
-    //double pt4par=fabs(track->pt(mMagneticFieldStrength));
-    double pt4par=fabs(track->pt());
-
+    double pt4par=fabs(track->pt(mMagneticFieldStrength));
+    
     GlobalVector p34par(GlobalVector::Cylindrical(pt4par, 
-						  //track->phi0(), 
-						  track->phi(), 
+						  track->phi0(), 
 						  pt4par*sinh(track->eta())));
 
     aTrack.setMomentum(p34par,4);
-    //aTrack.setRInv(track->rinv(),4);
-    aTrack.setRInv(track->irinv(),4);
+    aTrack.setRInv(track->rinv(),4);
     aTrack.setChi2(track->chisq(),4);
     
 
     //Now do the 5 parameter fit
-    //GlobalPoint bsPosition5par(-track->d0()*sin(track->phi0()),track->d0()*cos(track->phi0()),track->z0());
-    GlobalPoint bsPosition5par(-track->d0()*sin(track->phi()),track->d0()*cos(track->phi()),track->z0());
+    GlobalPoint bsPosition5par(-track->d0()*sin(track->phi0()),track->d0()*cos(track->phi0()),track->z0());
     aTrack.setPOCA(bsPosition5par,5);
  
-    //double pt5par=fabs(track->pt(mMagneticFieldStrength));
-    double pt5par=fabs(track->pt());
-
+    double pt5par=fabs(track->pt(mMagneticFieldStrength));
+    
     GlobalVector p35par(GlobalVector::Cylindrical(pt5par, 
-						  //track->phi0(), 
-						  track->phi(), 
+						  track->phi0(), 
 						  pt5par*sinh(track->eta())));
 
     aTrack.setMomentum(p35par,5);
-    //aTrack.setRInv(track->rinv(),5);
-    aTrack.setRInv(track->irinv(),5);
+    aTrack.setRInv(track->rinv(),5);
     aTrack.setChi2(track->chisq(),5);
     
     
@@ -717,9 +710,12 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     
     vector<L1TStub> stubs;
 
-    cout << "FPGA Track pt, eta, phi, z0, chi2, nstub = " 
-	 << track->pt() << " " << track->eta() << " " << track->phi() << " " << track->z0() << " " << track->chisq() << " " << stubptrs.size() << endl;
-    cout << "   ... rinv = " << track->irinv() << endl;
+    if (doMyDebug) {
+      cout << "FPGA Track pt, eta, phi, z0, chi2, nstub, rinv = " 
+	   << track->pt() << " " << track->eta() << " " << track->phi0() << " " << track->z0() << " " << track->chisq() << " " << stubptrs.size() << " " << track->rinv() << endl;
+      cout << "INT FPGA Track irinv, iphi0, iz0, it, ichisq = " 
+	   << track->irinv() << " " << track->iphi0() << " " << track->iz0() << " " << track->it() << " " << track->ichisq() << endl;
+    }
 
     for (unsigned int i=0;i<stubptrs.size();i++){ 
       stubs.push_back(*(stubptrs[i]));

@@ -548,7 +548,6 @@ public:
 		  if (seed == "D1L2") {iseed1=7; iseed2=2;}
 
 		  bool goodseed = (hits&(1<<(11-iseed1))) and (hits&(1<<(11-iseed2)));
-		  if (not goodseed) continue;
 
 		  int itmprinvdphi[4] = {9999999,9999999,9999999,9999999};
 		  int itmprinvdzordr[4] = {9999999,9999999,9999999,9999999};
@@ -561,67 +560,69 @@ public:
 		  
 		  // loop over bits in hit pattern
 		  int ider = 0;
-		  for (unsigned int ihit = 1; ihit < 12; ++ihit) {
+		  if (goodseed) {
+		    for (unsigned int ihit = 1; ihit < 12; ++ihit) {
 			  
-		    // skip seeding layers
-		    if (ihit == iseed1 or ihit == iseed2) {
-			  ider++;
-			  continue;
-			}
-			// skip if no hit
-			if (not (hits&(1<<(11-ihit))) ) continue;
+		      // skip seeding layers
+		      if (ihit == iseed1 or ihit == iseed2) {
+			    ider++;
+			    continue;
+			  }
+			  // skip if no hit
+			  if (not (hits&(1<<(11-ihit))) ) continue;
 
-			int inputI = -1;
-			if (seed == "L1L2") {
-			  if (ihit == 3 or ihit == 10) inputI = 0;  // L3 or D4
-			  if (ihit == 4 or ihit == 9)  inputI = 1;  // L4 or D3
-			  if (ihit == 5 or ihit == 8)  inputI = 2;  // L5 or D2
-			  if (ihit == 6 or ihit == 7)  inputI = 3;  // L6 or D1
-			}
-			else if (seed == "L3L4") {
-			  if (ihit == 1) inputI = 0;  // L1
-			  if (ihit == 2) inputI = 1;  // L2
-			  if (ihit == 5 or ihit == 8) inputI = 2;  // L5 or D2
-			  if (ihit == 6 or ihit == 7) inputI = 3;  // L6 or D1
-			}
-			else if (seed == "L5L6") {
-			  if (ihit == 1) inputI = 0;  // L1 
-			  if (ihit == 2) inputI = 1;  // L2
-			  if (ihit == 3) inputI = 2;  // L3 
-			  if (ihit == 4) inputI = 3;  // L4 
-			}
-			else if (seed == "D1D2") {
-			  if (ihit == 1)  inputI = 0;  // L1 
-			  if (ihit == 9)  inputI = 1;  // D3
-			  if (ihit == 10) inputI = 2;  // D4
-			  if (ihit == 2 or ihit == 11) inputI = 3;  // L2 or D5
-			}
-			else if (seed == "D3D4") {
-			  if (ihit == 1) inputI = 0;  // L1 
-			  if (ihit == 7) inputI = 1;  // D1
-			  if (ihit == 8) inputI = 2;  // D2
-			  if (ihit == 2 or ihit == 11) inputI = 3;  // L2 or D5
-			}
-			else if (seed == "D1L1" or "D1L2") {
-			  if (ihit == 8)  inputI = 0;  // D2
-			  if (ihit == 9)  inputI = 1;  // D3
-			  if (ihit == 10) inputI = 2;  // D4
-			  if (ihit == 11) inputI = 3;  // D5
-			}
-			if (inputI>=0 and inputI<4) {
-			  itmprinvdphi[inputI] = der.getirinvdphi(ider);
-			  itmprinvdzordr[inputI] = der.getirinvdzordr(ider);
-			  itmpphi0dphi[inputI] = der.getiphi0dphi(ider);
-			  itmpphi0dzordr[inputI] = der.getiphi0dzordr(ider);
-			  itmptdphi[inputI] = der.getitdphi(ider);
-			  itmptdzordr[inputI] = der.getitdzordr(ider);
-			  itmpz0dphi[inputI] = der.getiz0dphi(ider);
-			  itmpz0dzordr[inputI] = der.getiz0dzordr(ider);
-			}
+			  int inputI = -1;
+			  if (seed == "L1L2") {
+			    if (ihit == 3 or ihit == 10) inputI = 0;  // L3 or D4
+			    if (ihit == 4 or ihit == 9)  inputI = 1;  // L4 or D3
+			    if (ihit == 5 or ihit == 8)  inputI = 2;  // L5 or D2
+			    if (ihit == 6 or ihit == 7)  inputI = 3;  // L6 or D1
+			  }
+			  else if (seed == "L3L4") {
+			    if (ihit == 1) inputI = 0;  // L1
+			    if (ihit == 2) inputI = 1;  // L2
+			    if (ihit == 5 or ihit == 8) inputI = 2;  // L5 or D2
+			    if (ihit == 6 or ihit == 7) inputI = 3;  // L6 or D1
+			  }
+			  else if (seed == "L5L6") {
+			    if (ihit == 1) inputI = 0;  // L1 
+			    if (ihit == 2) inputI = 1;  // L2
+			    if (ihit == 3) inputI = 2;  // L3 
+			    if (ihit == 4) inputI = 3;  // L4 
+			  }
+			  else if (seed == "D1D2") {
+			    if (ihit == 1)  inputI = 0;  // L1 
+			    if (ihit == 9)  inputI = 1;  // D3
+			    if (ihit == 10) inputI = 2;  // D4
+			    if (ihit == 2 or ihit == 11) inputI = 3;  // L2 or D5
+			  }
+			  else if (seed == "D3D4") {
+			    if (ihit == 1) inputI = 0;  // L1 
+			    if (ihit == 7) inputI = 1;  // D1
+			    if (ihit == 8) inputI = 2;  // D2
+			    if (ihit == 2 or ihit == 11) inputI = 3;  // L2 or D5
+			  }
+			  else if (seed == "D1L1" or "D1L2") {
+			    if (ihit == 8)  inputI = 0;  // D2
+			    if (ihit == 9)  inputI = 1;  // D3
+			    if (ihit == 10) inputI = 2;  // D4
+			    if (ihit == 11) inputI = 3;  // D5
+			  }
+			  if (inputI>=0 and inputI<4) {
+			    itmprinvdphi[inputI] = der.getirinvdphi(ider);
+			    itmprinvdzordr[inputI] = der.getirinvdzordr(ider);
+			    itmpphi0dphi[inputI] = der.getiphi0dphi(ider);
+			    itmpphi0dzordr[inputI] = der.getiphi0dzordr(ider);
+			    itmptdphi[inputI] = der.getitdphi(ider);
+			    itmptdzordr[inputI] = der.getitdzordr(ider);
+			    itmpz0dphi[inputI] = der.getiz0dphi(ider);
+			    itmpz0dzordr[inputI] = der.getiz0dzordr(ider);
+			  }
 			
-			ider++;
+			  ider++;
 			
-		  } // for (unsigned int ihit = 1; ihit < 12; ++ihit)
+		    } // for (unsigned int ihit = 1; ihit < 12; ++ihit)
+		  } // if (goodseed)
 
 		  FPGAWord tmprinvdphi[4];
 		  for (unsigned int j = 0; j < 4; ++j) {
