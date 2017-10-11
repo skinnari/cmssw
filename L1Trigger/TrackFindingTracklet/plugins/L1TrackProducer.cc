@@ -394,10 +394,10 @@ void L1TrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		ladder = static_cast<int>(tTopo->module(detid));
 	      }
 	      if (z>15.0) {
-		module = 18+static_cast<int>(tTopo->tobRod(detid));
+		module = 19+static_cast<int>(tTopo->tobRod(detid));
 		ladder = static_cast<int>(tTopo->module(detid));
 	      }
-	      if (fabs(z)<15.0)  module = 11+static_cast<int>(tTopo->module(detid));
+	      if (fabs(z)<15.0)  module = 12+static_cast<int>(tTopo->module(detid));
 	    }
 	  
 	  if (layer==2)
@@ -420,10 +420,10 @@ void L1TrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		ladder = static_cast<int>(tTopo->module(detid));
 	      }
 	      if (z>34.0)  {
-		module = 28+static_cast<int>(tTopo->tobRod(detid));
+		module = 27+static_cast<int>(tTopo->tobRod(detid));
 		ladder = static_cast<int>(tTopo->module(detid));
 	      }
-	      if (fabs(z)<34.0)  module = 13+static_cast<int>(tTopo->module(detid));
+	      if (fabs(z)<34.0)  module = 12+static_cast<int>(tTopo->module(detid));
 	    }
 	}//end special stuff for tilted barrel
       }
