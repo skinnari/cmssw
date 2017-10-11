@@ -400,7 +400,7 @@ public:
 
 
   //Returns a number from 0 to 31
-  int iphivmRaw() {
+  int iphivmRaw() const {
 
     //cout << layer_.value()<<" "<<disk_.value()<<endl;
     
@@ -413,7 +413,7 @@ public:
 
 
     //Returns a number from 0 to 31
-  int iphivmRawPlus() {
+  int iphivmRawPlus() const {
 
     //cout << layer_.value()<<" "<<disk_.value()<<endl;
 
@@ -426,7 +426,7 @@ public:
     
   }
 
-  int iphivmRawMinus() {
+  int iphivmRawMinus() const {
 
     //cout << layer_.value()<<" "<<disk_.value()<<endl;
     
@@ -582,6 +582,16 @@ public:
 
   }
 
+  std::string phiregionaddressstr() {
+
+    std::ostringstream oss;
+	assert(phiregion()>0);
+	oss << (bitset<3>(phiregion()-1)) << stubindex_.str();
+
+	return oss.str();
+	
+  }
+
   int ilink() const {
 
     //changed pow(2,phi_.nbits()) to (1<<phi_.nbits()), etc
@@ -611,6 +621,41 @@ public:
 
   }
 
+  int phiregion() const {
+	  
+	if (layer_.value()==0 or layer_.value()==2 or layer_.value()==4) { // L1, L3, L5
+	  if (iphivmRaw()>=4 and iphivmRaw()<=11) return 1;
+	  else if (iphivmRaw()>=12 and iphivmRaw()<=19) return 2;
+	  else if (iphivmRaw()>=20 and iphivmRaw()<=27) return 3;
+	  else return -1;
+	}
+	else if (layer_.value()==1 or layer_.value()==3 or layer_.value()==5) { // L2, L4, L6
+	  if (iphivmRaw()>=0 and iphivmRaw()<=7) return 1;
+	  else if (iphivmRaw()>=8 and iphivmRaw()<=15) return 2;
+	  else if (iphivmRaw()>=16 and iphivmRaw()<=23) return 3;
+	  else if (iphivmRaw()>=24 and iphivmRaw()<=31) return 4;
+	  else return -1;
+	}
+	// FIXME
+	else if (abs(disk_.value())==1 or abs(disk_.value())==3 or abs(disk_.value())==5) { // D1, D3, D5
+	  if (iphivmRaw()>=4 and iphivmRaw()<=11) return 1;
+	  else if (iphivmRaw()>=12 and iphivmRaw()<=19) return 2;
+	  else if (iphivmRaw()>=20 and iphivmRaw()<=27) return 3;
+	  else return -1;
+	}
+	// FIXME
+	else if (abs(disk_.value())==2 or abs(disk_.value())==4) { // D2, D4
+	  if (iphivmRaw()>=0 and iphivmRaw()<=7) return 1;
+	  else if (iphivmRaw()>=8 and iphivmRaw()<=15) return 2;
+	  else if (iphivmRaw()>=16 and iphivmRaw()<=23) return 3;
+	  else if (iphivmRaw()>=24 and iphivmRaw()<=31) return 4;
+	  else return -1;
+	}
+	else
+	  return -1;
+	
+  }
+	
   void setAllStubIndex(int nstub){
     if (nstub>=(1<<6)){
       if (debug1) cout << "Warning too large stubindex!"<<endl;

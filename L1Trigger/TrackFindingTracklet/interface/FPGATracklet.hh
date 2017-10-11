@@ -379,8 +379,8 @@ public:
 
   std::string addressstr() {
     std::ostringstream oss;
-    oss << innerFPGAStub_->fedregionaddressstr()<<"|" 
-	<< outerFPGAStub_->fedregionaddressstr();
+    oss << innerFPGAStub_->phiregionaddressstr()<<"|" 
+	<< outerFPGAStub_->phiregionaddressstr();
 
     return oss.str();
 
@@ -1048,8 +1048,8 @@ public:
 		  
       //get stubs making up tracklet
       //printf(" inner %i  outer %i layers \n",innerFPGAStub_.layer().value(),outerFPGAStub_.layer().value());
-      stubIDs[innerFPGAStub_->layer().value()+1] = ((innerFPGAStub_->fedregion()-1)<<6)+innerFPGAStub_->stubindex().value();
-      stubIDs[outerFPGAStub_->layer().value()+1] = ((outerFPGAStub_->fedregion()-1)<<6)+outerFPGAStub_->stubindex().value();
+      stubIDs[innerFPGAStub_->layer().value()+1] = ((innerFPGAStub_->phiregion()-1)<<6)+innerFPGAStub_->stubindex().value();
+      stubIDs[outerFPGAStub_->layer().value()+1] = ((outerFPGAStub_->phiregion()-1)<<6)+outerFPGAStub_->stubindex().value();
 		  
 		  		  
     } else if (disk_) {
@@ -1073,11 +1073,11 @@ public:
       //get stubs making up tracklet
       //printf(" inner %i  outer %i disks \n",innerFPGAStub_.disk().value(),outerFPGAStub_.disk().value());
       if(innerFPGAStub_->disk().value() < 0) { //negative side runs 6-10
-	stubIDs[innerFPGAStub_->disk().value()-10] = ((innerFPGAStub_->fedregion()-1)<<6)+innerFPGAStub_->stubindex().value();
-	stubIDs[outerFPGAStub_->disk().value()-10] = ((outerFPGAStub_->fedregion()-1)<<6)+outerFPGAStub_->stubindex().value();
+	stubIDs[innerFPGAStub_->disk().value()-10] = ((innerFPGAStub_->phiregion()-1)<<6)+innerFPGAStub_->stubindex().value();
+	stubIDs[outerFPGAStub_->disk().value()-10] = ((outerFPGAStub_->phiregion()-1)<<6)+outerFPGAStub_->stubindex().value();
       } else { // positive side runs 11-15]
-	stubIDs[innerFPGAStub_->disk().value()+10] = ((innerFPGAStub_->fedregion()-1)<<6)+innerFPGAStub_->stubindex().value();
-	stubIDs[outerFPGAStub_->disk().value()+10] = ((outerFPGAStub_->fedregion()-1)<<6)+outerFPGAStub_->stubindex().value();
+	stubIDs[innerFPGAStub_->disk().value()+10] = ((innerFPGAStub_->phiregion()-1)<<6)+innerFPGAStub_->stubindex().value();
+	stubIDs[outerFPGAStub_->disk().value()+10] = ((outerFPGAStub_->phiregion()-1)<<6)+outerFPGAStub_->stubindex().value();
       }		  
 
     } else if (overlap_) {
@@ -1107,14 +1107,14 @@ public:
       //printf(" inner %i  outer %i layers \n",innerFPGAStub_.layer().value(),outerFPGAStub_.layer().value());
       //printf(" inner %i  outer %i disks \n",innerFPGAStub_.disk().value(),outerFPGAStub_.disk().value());
       if(innerFPGAStub_->layer().value()==2) { // L3L2 track
-	stubIDs[innerFPGAStub_->layer().value()+1] = ((innerFPGAStub_->fedregion()-1)<<6)+innerFPGAStub_->stubindex().value();
-	stubIDs[outerFPGAStub_->layer().value()+1] = ((outerFPGAStub_->fedregion()-1)<<6)+outerFPGAStub_->stubindex().value();
+	stubIDs[innerFPGAStub_->layer().value()+1] = ((innerFPGAStub_->phiregion()-1)<<6)+innerFPGAStub_->stubindex().value();
+	stubIDs[outerFPGAStub_->layer().value()+1] = ((outerFPGAStub_->phiregion()-1)<<6)+outerFPGAStub_->stubindex().value();
       } else if(innerFPGAStub_->disk().value() < 0) { //negative side runs -11 - -15
-	stubIDs[innerFPGAStub_->disk().value()-10] = ((innerFPGAStub_->fedregion()-1)<<6)+innerFPGAStub_->stubindex().value();
-	stubIDs[outerFPGAStub_->layer().value()+1] = ((outerFPGAStub_->fedregion()-1)<<6)+outerFPGAStub_->stubindex().value();
+	stubIDs[innerFPGAStub_->disk().value()-10] = ((innerFPGAStub_->phiregion()-1)<<6)+innerFPGAStub_->stubindex().value();
+	stubIDs[outerFPGAStub_->layer().value()+1] = ((outerFPGAStub_->phiregion()-1)<<6)+outerFPGAStub_->stubindex().value();
       } else { // positive side runs 11-15]
-	stubIDs[innerFPGAStub_->disk().value()+10] = ((innerFPGAStub_->fedregion()-1)<<6)+innerFPGAStub_->stubindex().value();
-	stubIDs[outerFPGAStub_->layer().value()+1] = ((outerFPGAStub_->fedregion()-1)<<6)+outerFPGAStub_->stubindex().value();
+	stubIDs[innerFPGAStub_->disk().value()+10] = ((innerFPGAStub_->phiregion()-1)<<6)+innerFPGAStub_->stubindex().value();
+	stubIDs[outerFPGAStub_->layer().value()+1] = ((outerFPGAStub_->phiregion()-1)<<6)+outerFPGAStub_->stubindex().value();
       }		  
 		  
     }
@@ -1347,8 +1347,8 @@ public:
         << (itfit_.value())*ktpars<<" "
         << (iz0fit_.value())*kz<<" "
       //<< ichisqfit_.str()<< "|"                            
-        << innerFPGAStub_->fedregionaddressstr()<<" "
-        << outerFPGAStub_->fedregionaddressstr()<<" "
+        << innerFPGAStub_->phiregionaddressstr()<<" "
+        << outerFPGAStub_->phiregionaddressstr()<<" "
 	<< stubid0<<"|"
 	<< stubid1<<"|"
 	<< stubid2<<"|"
@@ -1362,8 +1362,8 @@ public:
 	<< itfit_.str()<<"|"
 	<< iz0fit_.str()<<"|"
       //<< ichisqfit_.str()<< "|"
-	<< innerFPGAStub_->fedregionaddressstr()<<"|"
-	<< outerFPGAStub_->fedregionaddressstr()<<"|"
+	<< innerFPGAStub_->phiregionaddressstr()<<"|"
+	<< outerFPGAStub_->phiregionaddressstr()<<"|"
 	<< stubid0<<"|"
 	<< stubid1<<"|"
 	<< stubid2<<"|"
