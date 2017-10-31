@@ -378,7 +378,7 @@ void L1TrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
       int strip=460;
       
-      double z=posStub.z();
+      //double z=posStub.z();
 
       if ( detid.subdetId()==StripSubdetector::TOB ) {
 	layer  = static_cast<int>(tTopo->layer(detid));
@@ -386,44 +386,50 @@ void L1TrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	ladder = static_cast<int>(tTopo->tobRod(detid));
 	if (doMyDebug) cout << "layer = " << layer << " vs " << static_cast<int>(tTopo->tobLayer(detid)) << endl;
 
+	// https://github.com/cms-sw/cmssw/tree/master/Geometry/TrackerNumberingBuilder
+	// tobSide = 1: ring- (tilted)
+	// tobSide = 2: ring+ (tilted)
+	// tobSide = 3: barrel (flat)
+	int tobSide = static_cast<int>(tTopo->tobSide(detid)); 
+	
 	if (isTilted) {
 	  if (layer==1)
 	    {
-	      if (z<-15.0) {
+	      if (tobSide==1) {
 		module = static_cast<int>(tTopo->tobRod(detid));
 		ladder = static_cast<int>(tTopo->module(detid));
 	      }
-	      if (z>15.0) {
+	      if (tobSide==2) {
 		module = 19+static_cast<int>(tTopo->tobRod(detid));
 		ladder = static_cast<int>(tTopo->module(detid));
 	      }
-	      if (fabs(z)<15.0)  module = 12+static_cast<int>(tTopo->module(detid));
+	      if (tobSide==3) module = 12+static_cast<int>(tTopo->module(detid));
 	    }
 	  
 	  if (layer==2)
 	    {
-	      if (z<-25.0) {
+	      if (tobSide==1) {
 		module = static_cast<int>(tTopo->tobRod(detid));
 		ladder = static_cast<int>(tTopo->module(detid));
 	      }
-	      if (z>25.0)  {
+	      if (tobSide==2) {
 		module = 23+static_cast<int>(tTopo->tobRod(detid));
 		ladder = static_cast<int>(tTopo->module(detid));
 	      }
-	      if (fabs(z)<25.0)  module = 12+static_cast<int>(tTopo->module(detid));
+	      if (tobSide==3) module = 12+static_cast<int>(tTopo->module(detid));
 	    }
 	  
 	  if (layer==3)
 	    {
-	      if (z<-34.0) {
+	      if (tobSide==1) {
 		module = static_cast<int>(tTopo->tobRod(detid));
 		ladder = static_cast<int>(tTopo->module(detid));
 	      }
-	      if (z>34.0)  {
+	      if (tobSide==2) {
 		module = 27+static_cast<int>(tTopo->tobRod(detid));
 		ladder = static_cast<int>(tTopo->module(detid));
 	      }
-	      if (fabs(z)<34.0)  module = 12+static_cast<int>(tTopo->module(detid));
+	      if (tobSide==3) module = 12+static_cast<int>(tTopo->module(detid));
 	    }
 	}//end special stuff for tilted barrel
       }
