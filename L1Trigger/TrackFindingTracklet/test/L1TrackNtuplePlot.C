@@ -78,8 +78,10 @@ void L1TrackNtuplePlot(TString type, int TP_select_injet=0, int TP_select_pdgid=
   int n_match_eta1p0 = 0;
 
   // counters for total track rates 
+  int ntrk_pt2 = 0;
   int ntrk_pt3 = 0;
   int ntrk_pt10 = 0;
+  int ntp_pt2 = 0;
   int ntp_pt3 = 0;
   int ntp_pt10 = 0;
 
@@ -728,6 +730,9 @@ void L1TrackNtuplePlot(TString type, int TP_select_injet=0, int TP_select_pdgid=
       }
       */
 
+      if (trk_pt->at(it) > 2.0 && fabs(trk_eta->at(it))<2.5) {
+	ntrk_pt2++;
+      }
       if (trk_pt->at(it) > 3.0 && fabs(trk_eta->at(it))<2.5) {
 	ntrk_pt3++;
 	ntrkevt_pt3++;
@@ -762,6 +767,9 @@ void L1TrackNtuplePlot(TString type, int TP_select_injet=0, int TP_select_pdgid=
       // total track rates
       //if (tp_nstub->at(it) >= 4 && tp_nstublayer->at(it) >= 4 && fabs(tp_dxy->at(it)) < 1 && fabs(tp_eta->at(it)) < TP_maxEta) {
       if (fabs(tp_dxy->at(it)) < 1 && fabs(tp_eta->at(it)) < TP_maxEta) { //the stub requirements are applied when making the ntuples
+	if (tp_pt->at(it) > 2.0) {
+	  ntp_pt2++;
+	}
 	if (tp_pt->at(it) > 3.0) {
 	  ntp_pt3++;
 	  h_tp_vspt->Fill(tp_pt->at(it));
@@ -2635,9 +2643,11 @@ void L1TrackNtuplePlot(TString type, int TP_select_injet=0, int TP_select_pdgid=
   if (fabs(N)>0) cout << "combined efficiency for |eta| < 2.5 = " << k/N*100.0 << " +- " << 1.0/N*sqrt(k*(1.0 - k/N))*100.0 << endl << endl;
 
   // track rates
+  cout << "# TP/event (pt > 2.0) = " << (float)ntp_pt2/nevt << endl;
   cout << "# TP/event (pt > 3.0) = " << (float)ntp_pt3/nevt << endl;
   cout << "# TP/event (pt > 10.0) = " << (float)ntp_pt10/nevt << endl;
 
+  cout << "# tracks/event (pt > 2.0) = " << (float)ntrk_pt2/nevt << endl;
   cout << "# tracks/event (pt > 3.0) = " << (float)ntrk_pt3/nevt << endl;
   cout << "# tracks/event (pt > 10.0) = " << (float)ntrk_pt10/nevt << endl;
 
