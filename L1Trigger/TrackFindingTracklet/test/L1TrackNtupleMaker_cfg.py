@@ -48,8 +48,15 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10))
 if GEOMETRY == "D17":
     #D17 (tilted barrel -- latest and greatest with T5 tracker, see: https://github.com/cms-sw/cmssw/blob/CMSSW_9_3_0_pre2/Configuration/Geometry/README.md)
     Source_Files = cms.untracked.vstring(
-        "/store/relval/CMSSW_9_3_2/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/93X_upgrade2023_realistic_v2_2023D17noPU-v1/10000/0681719F-AFA6-E711-87C9-0CC47A4C8E14.root"
-        )
+        "/store/relval/CMSSW_9_3_2/RelValSingleMuPt10Extended/GEN-SIM-DIGI-RAW/93X_upgrade2023_realistic_v2_2023D17noPU-v1/10000/12D20D3F-D5A6-E711-8C40-0025905A608A.root"
+    ## these files already have the latest stubs + stub-MC associators
+    ## PU=0
+    # https://svnweb.cern.ch/cern/wsvn/UK-TrackTrig/software/cmssw/trunkSimpleCode9/MCsamples/932/RelVal/eclementMC/TTbar/PU0.txt
+    ## PU=140
+    # https://svnweb.cern.ch/cern/wsvn/UK-TrackTrig/software/cmssw/trunkSimpleCode9/MCsamples/932/RelVal/eclementMC/TTbar/PU140.txt
+    ## PU=200
+    # https://svnweb.cern.ch/cern/wsvn/UK-TrackTrig/software/cmssw/trunkSimpleCode9/MCsamples/932/RelVal/eclementMC/TTbar/PU200.txt
+    )
 elif GEOMETRY == "tilted":
     Source_Files = cms.untracked.vstring(
         "file:MuMinus_1to10_TkOnly.root",
@@ -57,23 +64,23 @@ elif GEOMETRY == "tilted":
 )
 process.source = cms.Source("PoolSource", fileNames = Source_Files)
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('TTbar_'+GEOMETRY+'_PU0.root'), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string('MuPt10_'+GEOMETRY+'_PU0.root'), closeFileFast = cms.untracked.bool(True))
 
 
 ############################################################
 # L1 tracking
 ############################################################
 
-# remake stubs 
-
-# ===> IMPORTANT !!! stub window tuning as is by default in CMSSW is incorrect !!! <===
-
+# remake stubs ?
 process.load('L1Trigger.TrackTrigger.TrackTrigger_cff')
 from L1Trigger.TrackTrigger.TTStubAlgorithmRegister_cfi import *
+process.load("SimTracker.TrackTriggerAssociation.TrackTriggerAssociator_cff")
 
 if GEOMETRY == "D10": 
     TTStubAlgorithm_official_Phase2TrackerDigi_.zMatchingPS = cms.bool(False)
+
 process.TTClusterStub = cms.Path(process.TrackTriggerClustersStubs)
+process.TTClusterStubTruth = cms.Path(process.TrackTriggerAssociatorClustersStubs)
 
 from L1Trigger.TrackFindingTracklet.Tracklet_cfi import *
 
@@ -132,6 +139,12 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackNtupleMaker',
                                        )
 process.ana = cms.Path(process.L1TrackNtuple)
 
-#process.schedule = cms.Schedule(process.TTClusterStub,process.TTTracksWithTruth,process.ana)
-process.schedule = cms.Schedule(process.TTClusterStub,process.TTTracksEmulationWithTruth,process.ana)
+# use this if you want to re-run the stub making
+#process.schedule = cms.Schedule(process.TTClusterStub,TrackTriggerAssociatorClustersStubs,process.TTTracksEmulationWithTruth,process.ana)
+
+# use this if cluster/stub associators not available 
+process.schedule = cms.Schedule(process.TTClusterStubTruth,process.TTTracksEmulationWithTruth,process.ana)
+
+# use this to only run tracking + track associator
+#process.schedule = cms.Schedule(process.TTTracksEmulationWithTruth,process.ana)
 

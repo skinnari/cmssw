@@ -9,5 +9,5 @@ TTClusterAssociatorFromPixelDigis.digiSimLinks = cms.InputTag("simSiPixelDigis",
 TTTrackAssociatorFromPixelDigis.TTTracks = cms.VInputTag(cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks") )
 
 L1TrackletEmulationTracks = cms.Sequence(offlineBeamSpot*TTTracksFromTrackletEmulation)
-L1TrackletEmulationTracksWithAssociators = cms.Sequence(offlineBeamSpot*TTTracksFromTrackletEmulation*TrackTriggerAssociatorClustersStubs*TrackTriggerAssociatorTracks)
+L1TrackletEmulationTracksWithAssociators = cms.Sequence(offlineBeamSpot*TTTracksFromTrackletEmulation*TrackTriggerAssociatorTracks)
 
