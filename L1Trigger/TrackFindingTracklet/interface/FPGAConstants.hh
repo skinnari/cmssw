@@ -14,8 +14,6 @@ static string geomext="new";  //Use full
 
 static int TMUX = 6;
 
-static bool flatgeom=false;
-
 static string fitpatternfile="fitpattern.txt";
 
 //If this string is non-empty we will write ascii file with
@@ -59,7 +57,9 @@ static bool writeNMatches=false;
 static bool writez0andrinv=false;
 static bool writeDiskMatch1=false;
 static bool writeHitEff=false;
-static bool writeTEBinTable=false;
+
+static bool writeTETables=false;
+static bool writeVMTables=false;
 
 
 static bool writeHitPattern=false;
@@ -74,12 +74,11 @@ static bool writeResEff=false; //write files for making resolution & efficiency 
 static bool writestubs=false;
 static bool writestubs_in2=false;
 static bool writeifit=false;
-static bool padding=false;
+static bool padding=true;
 
 static bool exactderivatives=false;  //for both the integer and float
 static bool exactderivativesforfloating=true; //only for the floating point
 
-static double errfac=1.0;
 static bool writetrace=false; //Print out details about startup
 static bool debug1=false; //Print information about tracking
 static bool writeoutReal = false; 
@@ -111,33 +110,36 @@ static const int MEBinsBits=3;
 static const int MEBins=(1<<MEBinsBits);
 
 //Geometry
-static double zlength=flatgeom?115.0:120.0;
+static double zlength=120.0;
 
 // can automatically determine the above values using script plotstub.cc:
 // root -b -q 'plotstub.cc("evlist_MuPlus_1to10_D11_PU0")'
 
 // these assume D11 geometry!
-static double rmeanL1=flatgeom?22.8268:25.1493;
-static double rmeanL2=flatgeom?35.6324:37.468;
-static double rmeanL3=flatgeom?50.6508:52.5977;
-static double rmeanL4=flatgeom?68.3849:68.7737;
-static double rmeanL5=flatgeom?88.5582:86.0591;
-static double rmeanL6=flatgeom?107.758:110.844;
+static double rmeanL1=25.1493;
+static double rmeanL2=37.468;
+static double rmeanL3=52.5977;
+static double rmeanL4=68.7737;
+static double rmeanL5=86.0591;
+static double rmeanL6=110.844;
 
-static double zmeanD1=flatgeom?131.454:131.18;
-static double zmeanD2=flatgeom?156.255:155;
-static double zmeanD3=flatgeom?185.614:185.34;
-static double zmeanD4=flatgeom?220.368:221.619;
-static double zmeanD5=flatgeom?261.51:265;
+static double zmeanD1=131.18;
+static double zmeanD2=155.0;
+static double zmeanD3=185.34;
+static double zmeanD4=221.619;
+static double zmeanD5=265.0;
 
 
 //now the half-way between rmindisk and rmaxdisk corresponds to PS/SS boundary 
-static double rmindisk=flatgeom?12.0:0.0;
-static double rmaxdisk=flatgeom?108.0:120.0;
+static double rmindisk=0.0;
+static double rmaxdisk=120.0;
 
-//lookup values for SS modules
-//static double rDSS[16]={flatgeom?62.63:60.92, flatgeom?67.65:65.93, flatgeom?69.61:68.25, flatgeom?74.63:73.30, flatgeom?80.14:78.52, flatgeom?85.16:83.60, 0., 0.,
-//                        flatgeom?86.37:85.29, flatgeom?91.40:90.31, flatgeom?97.00:95.73, flatgeom?102.0:100.766, flatgeom?102.5:101.97, flatgeom?107.5:106.99, 0., 0.};
+static double rmindiskvm=27.0;
+static double rmaxdiskvm=67.0;
+
+static double rmaxdiskl1overlapvm=45.0;
+static double rmindiskl2overlapvm=40.0;
+
 
 // need separate lookup values for inner two vs outer three disks for 2S modules
 // these assume D11 geometry!
@@ -234,7 +236,7 @@ static unsigned int MAXLAYERROUTER = 10000; //Max stubs handled by layer router
 static unsigned int MAXDISKROUTER = 10000; //Max stubs handled by disk router
 static unsigned int MAXVMROUTER = 10000; //Max stubs handled by VM router
 static unsigned int MAXTE = 10000; //Maximum number of stub pairs to try in TE 
-static unsigned int MAXTC = 64; //Maximum number of tracklet parameter calculations
+static unsigned int MAXTC = 10000; //Maximum number of tracklet parameter calculations
 //static unsigned int MAXPROJECTIONTRANSCEIVER = 10000; //Maximum number of projections to neighbor
 static unsigned int MAXPROJROUTER = 10000; //Maximum number of projections to route
 static unsigned int MAXME = 10000; //Maximum number of stub-projection matches to try
@@ -442,6 +444,9 @@ static int fitrinvbitshift=10;  //6 OK?
 static int fitphi0bitshift=6;  //4 OK?
 static int fittbitshift=6;     //4 OK?
 static int fitz0bitshift=8;    //6 OK?
+
+static int chisqphifactbits=14;
+static int chisqzfactbits=8;
 
 //Duplicate Removal
 static int minIndStubs=3;

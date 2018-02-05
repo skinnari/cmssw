@@ -4,7 +4,11 @@
 
 #include "L1TStub.hh"
 #include "FPGAStub.hh"
-#include "FPGATEBin.hh"
+#include "FPGATETableOuter.hh"
+#include "FPGATETableInner.hh"
+#include "FPGATETableOuterDisk.hh"
+#include "FPGATETableInnerDisk.hh"
+#include "FPGATETableInnerOverlap.hh"
 #include "FPGAMemoryBase.hh"
 
 using namespace std;
@@ -21,6 +25,8 @@ public:
     string subname=name.substr(6,2);
     layer_ = 0;
     disk_  = 0;
+    phibin_=-1;
+    other_=0;
     if (subname=="L1") layer_=1;
     if (subname=="L2") layer_=2;
     if (subname=="L3") layer_=3;
@@ -42,33 +48,172 @@ public:
     if (subname=="Y") overlap_=true;
     if (subname=="W") overlap_=true;
     if (subname=="Q") overlap_=true;
+
+    subname=name.substr(12,2);
+    phibin_=subname[0]-'0';
+    if (subname[1]!='n') {
+      phibin_=10*phibin_+(subname[1]-'0');
+    }
     
   }
   
-  void addStub(std::pair<FPGAStub*,L1TStub*> stub) {
-    //cout << "addStub "<<getName()<<endl;
-    stubs_.push_back(stub);
-    if (stub.first->isBarrel()){
-      FPGAWord z=stub.first->z();
-      int bin = ((z.value()+(1<<(z.nbits()-1)))>>(z.nbits()-NLONGVMBITS));
-      assert(bin>=0);
-      assert((unsigned int)bin<NLONGVMBINS);
-      stubsbinned_[bin].push_back(stub);
-    } else {
-      int ir=stub.first->r().value();
-      assert(NLONGVMRBITS==3); //This code is not generic...
-      int ir1=(rinnerdisk+(routerPSdisk-rinnerdisk)*0.25)/kr;
-      int ir2=(rinnerdisk+(routerPSdisk-rinnerdisk)*0.50)/kr;
-      int ir3=(rinnerdisk+(routerPSdisk-rinnerdisk)*0.75)/kr;
-      int offset=0;
-      if (stub.first->disk().value()<0) offset=4;
-      int bin=3+offset;
-      if (ir<ir3) bin=2+offset;
-      if (ir<ir2) bin=1+offset;
-      if (ir<ir1) bin=0+offset;
-      //cout << "Adding stub in bin " << bin << endl;
-      stubsbinned_[bin].push_back(stub);
+  bool addStub(std::pair<FPGAStub*,L1TStub*> stub) {
+
+    static bool first=true;
+    static FPGATETableInner innerTableL1_;
+    static FPGATETableInner innerTableL3_;
+    static FPGATETableInner innerTableL5_;
+    static FPGATETableOuter outerTableL2_;
+    static FPGATETableOuter outerTableL4_;
+    static FPGATETableOuter outerTableL6_;
+
+    static FPGATETableInnerDisk innerTableD1_;
+    static FPGATETableInnerDisk innerTableD3_;
+    static FPGATETableOuterDisk outerTableD2_;
+    static FPGATETableOuterDisk outerTableD4_;
+
+    static FPGATETableInnerOverlap innerTableOverlapL1_;
+    static FPGATETableInnerOverlap innerTableOverlapL2_;
+    static FPGATETableOuterDisk outerTableOverlapD1_;
+
+    
+    if (first) {
+      //layer-layer seeding
+      innerTableL1_.init(1,2,7,4);
+      innerTableL3_.init(3,4,7,4);
+      innerTableL5_.init(5,6,7,4);
+      outerTableL2_.init(2,7,4);
+      outerTableL4_.init(4,7,4);
+      outerTableL6_.init(6,7,4);
+
+      //disk-disk seeding
+      innerTableD1_.init(1,2,7,3);
+      innerTableD3_.init(3,4,7,3);
+      outerTableD2_.init(2,7,3);
+      outerTableD4_.init(4,7,3);
+
+      //overlap seeding
+      innerTableOverlapL1_.init(1,1,7,3);
+      innerTableOverlapL2_.init(2,1,7,3);
+      outerTableOverlapD1_.init(1,7,3);
+      
+      first=false;
     }
+   
+
+    if (overlap_) {
+      if (stub.first->isBarrel()){
+	if (debug1) cout << "Have barrel stub for overlap in layer = "<<layer_<<endl;
+	FPGAWord z=stub.first->z();
+	FPGAWord r=stub.first->r();
+	int zbin=(z.value()+(1<<(z.nbits()-1)))>>(z.nbits()-7);
+	int rbin=(r.value()+(1<<(r.nbits()-1)))>>(r.nbits()-3);
+	int binlookup=-1;
+	switch (layer_) {
+	  case 1 : binlookup=innerTableOverlapL1_.lookup(zbin,rbin);
+	    break;
+	  case 2 : binlookup=innerTableOverlapL2_.lookup(zbin,rbin);
+	    break;
+	  case 0 : return false; //FIXME - why are we here???
+	    break;
+	default: assert(0);
+	}
+	if (binlookup<0) {
+	  if (debug1) cout << getName() << " binlookup<0 returning"<<endl;
+	  return false;
+	}
+	if (debug1) cout << getName()<<" Stub with lookup = "<<binlookup<<" in layer = "<<layer_<<endl;
+	stub.first->setVMBits(binlookup);
+      } else {
+	if (debug1) cout << "Have disk stub for overlap in disk = "<<disk_<<endl;
+	FPGAWord r=stub.first->r();
+	FPGAWord z=stub.first->z();
+	int rbin=(r.value())>>(r.nbits()-7);
+	int zbin=(z.value()+(1<<(z.nbits()-1)))>>(z.nbits()-3);
+	bool negdisk=stub.first->disk().value()<0.0;
+	if (negdisk) zbin=7-zbin; //Should this be separate table?
+	int binlookup=-1;
+	if (disk_==1) {
+	  binlookup=outerTableOverlapD1_.lookup(rbin,zbin);
+	  assert(binlookup>=0);
+	  stub.first->setVMBits(binlookup);
+	  int bin=binlookup/8;
+	  assert(bin<4);
+	  if (negdisk) bin+=4;
+	  stubsbinned_[bin].push_back(stub);
+	  if (debug1) cout << getName()<<" Stub with lookup = "<<binlookup
+			   <<" in disk = "<<disk_<<"  in bin = "<<bin<<endl;
+	}
+      }
+    } else {
+      if (stub.first->isBarrel()){
+	FPGAWord z=stub.first->z();
+	FPGAWord r=stub.first->r();
+	int zbin=(z.value()+(1<<(z.nbits()-1)))>>(z.nbits()-7);
+	int rbin=(r.value()+(1<<(r.nbits()-1)))>>(r.nbits()-4);
+	int binlookup=-1;
+	switch (layer_) {
+	  case 2 : binlookup=outerTableL2_.lookup(zbin,rbin);
+	    break;
+	  case 4 : binlookup=outerTableL4_.lookup(zbin,rbin);
+	    break;
+	  case 6 : binlookup=outerTableL6_.lookup(zbin,rbin);
+	    break;
+	  case 1 : binlookup=innerTableL1_.lookup(zbin,rbin);
+	    break;
+	  case 3 : binlookup=innerTableL3_.lookup(zbin,rbin);
+	    break;
+	  case 5 : binlookup=innerTableL5_.lookup(zbin,rbin);
+	    break;
+       	  default : assert(0);
+	}
+
+	if (layer_%2==0) {
+	  assert(binlookup>=0);
+	  int bin=binlookup/8;
+	  stubsbinned_[bin].push_back(stub);
+	} else {
+	  if (binlookup<0) return false;
+	}
+	stub.first->setVMBits(binlookup);
+
+	
+      } else {
+	FPGAWord r=stub.first->r();
+	FPGAWord z=stub.first->z();
+	int rbin=(r.value())>>(r.nbits()-7);
+	int zbin=(z.value()+(1<<(z.nbits()-1)))>>(z.nbits()-3);
+	bool negdisk=stub.first->disk().value()<0.0;
+	if (negdisk) zbin=7-zbin; //Should this be separate table?
+	int binlookup=-1;
+
+	switch (disk_) {
+	  case 2 : binlookup=outerTableD2_.lookup(rbin,zbin);
+	    break;
+	  case 4 : binlookup=outerTableD4_.lookup(rbin,zbin);
+	    break;
+	  case 1 : binlookup=innerTableD1_.lookup(rbin,zbin);
+	    break;
+	  case 3 : binlookup=innerTableD3_.lookup(rbin,zbin);
+	    break;
+	  default : assert(0);  
+	}
+
+	if (disk_%2==0) {
+	  assert(binlookup>=0);
+	  int bin=binlookup/8;
+	  assert(bin<4);
+	  if (negdisk) bin+=4;
+	  stubsbinned_[bin].push_back(stub);
+	} else {
+	  if (binlookup<0) return false;
+	}
+	stub.first->setVMBits(binlookup);
+	
+      }
+    }
+    stubs_.push_back(stub);
+    return true;
   }
 
   unsigned int nStubs() const {return stubs_.size();}
@@ -82,177 +227,6 @@ public:
   L1TStub* getL1TStubBinned(unsigned int bin, unsigned int i) const {return stubsbinned_[bin][i].second;}
   std::pair<FPGAStub*,L1TStub*> getStubBinned(unsigned int bin,unsigned int i) const {return stubsbinned_[bin][i];}
 
-  int getzbin(unsigned int i,int overlap=false) {
-    FPGAStub* stub=stubs_[i].first;
-    //cout << "r of stub "<<stubs_[i].second->r()<<endl;
-    //cout << "z of stub "<<stubs_[i].second->z()<<endl;
-    int bin = ((stub->z().value()+(1<<(stub->z().nbits()-1)))>>(stub->z().nbits()-NLONGVMODDLAYERBITS));
-    int layer=stub->layer().value()+1;
-    assert (layer%2==1); //can only call this on layer 1, 3, and 5. Remember that FPGA stub has layer
-                                        //counting from zero
-
-    if (layer==1) {
-      static FPGATEBin *layer1=0;
-      if (layer1==0) {
-	layer1= new FPGATEBin;
-	layer1->initLayerLayer(1,false);
-	if (writeTEBinTable) layer1->writeTable("TEBinTableLayer1ToLayer2.txt",
-											NLONGVMBITS+1);
-      }
-      return layer1->lookup(bin);
-    }
-
-    if (layer==3&&(!overlap)) {
-      static FPGATEBin *layer3=0;
-      if (layer3==0) {
-	layer3= new FPGATEBin;
-	layer3->initLayerLayer(3,false);
-	if (writeTEBinTable) layer3->writeTable("TEBinTableLayer3ToLayer4.txt",
-											NLONGVMBITS+1);
-
-      }
-      return layer3->lookup(bin);
-    }
-
-    if (layer==3&&overlap) {
-      static FPGATEBin *layer3overlap=0;
-      if (layer3overlap==0) {
-	layer3overlap= new FPGATEBin;
-	layer3overlap->initLayerLayer(3,true);
-	if (writeTEBinTable) layer3overlap->writeTable("TEBinTableLayer3ToLayer2.txt",
-												   NLONGVMBITS+1);
-      }
-      return layer3overlap->lookup(bin);
-    }
-
-    if (layer==5) {
-      static FPGATEBin *layer5=0;
-      if (layer5==0) {
-	layer5= new FPGATEBin;
-	layer5->initLayerLayer(5,false);
-	if (writeTEBinTable) layer5->writeTable("TEBinTableLayer5ToLayer6.txt",
-											NLONGVMBITS+1);
-
-      }
-      return layer5->lookup(bin);
-    }
-
-    assert(0);
-    return 0;
-    
-  }
-
-  int getrbin(unsigned int i) {
-    FPGAStub* stub=stubs_[i].first;
-    int disk=abs(stub->disk().value());
-    assert (disk%2==1); //can only call this on disk 1, 3.
-    int bin = (stub->r().value())>>(stub->r().nbits()-NLONGVMODDDISKBITS+1);
-    assert(bin>=0);
-    int ibin=bin;
-    if (stub->disk().value()<0) {
-      ibin+=(1<<(NLONGVMODDDISKBITS-1));
-    }
-    assert((unsigned int)bin<(1<<NLONGVMODDDISKBITS));
-
-    if (disk==1) {
-      static FPGATEBin *disk1=0;
-      if (disk1==0) {
-	disk1= new FPGATEBin;
-	disk1->initDiskDisk(1);
-	if (writeTEBinTable) disk1->writeTable("TEBinTableDisk1ToDisk2.txt",
-										   NLONGVMRBITS+1);
-      }
-      return disk1->lookup(ibin);
-    }
-
-    if (disk==3) {
-      static FPGATEBin *disk3=0;
-      if (disk3==0) {
-	disk3= new FPGATEBin;
-	disk3->initDiskDisk(3);
-	if (writeTEBinTable) disk3->writeTable("TEBinTableDisk3ToDisk4.txt",
-										   NLONGVMRBITS+1);
-
-      }
-      return disk3->lookup(ibin);
-    }
-
-    assert(0);
-    return 0;
-
-    
-    
-  }
-
-
-  int getrbinfromlayer(unsigned int i) {
-    FPGAStub* stub=stubs_[i].first;
-    assert(stub->isBarrel());
-    int layer=stub->layer().value()+1;
-    int bin = ((stub->z().value()+(1<<(stub->z().nbits()-1)))>>(stub->z().nbits()-NLONGVMODDLAYERBITS));
-
-    assert(layer==1);
-    
-    if (layer==1) {
-      static FPGATEBin *layer1overlap=0;
-      if (layer1overlap==0) {
-	layer1overlap= new FPGATEBin;
-	layer1overlap->initLayertoDisk(1);
-	if (writeTEBinTable) layer1overlap->writeTable("TEBinTableLayer1ToDisk1.txt",
-												   NLONGVMRBITS+1);
-
-      }
-      return layer1overlap->lookup(bin);
-    }
-
-    assert(0);
-    return 0;
-    
-  }
-
-  int getzbinfromdisk(unsigned int i, unsigned int layer=1) {
-    FPGAStub* stub=stubs_[i].first;
-    assert(stub->isDisk());
-    int disk=abs(stub->disk().value());
-    assert (disk==1); //can only call this on disk 1
-
-    //cout << "r value and nbits : "<<stub->r().value()<<" "<<stub->r().nbits()<<endl;
-
-    int bin = (stub->r().value())>>(stub->r().nbits()-NLONGVMODDDISKBITS+1);
-    assert(bin>=0);
-
-    int ibin=bin;
-    if (stub->disk().value()<0) {
-      ibin+=(1<<(NLONGVMODDDISKBITS-1));
-    }
-    assert((unsigned int)bin<(1<<NLONGVMODDDISKBITS));
-
-    if (layer==1) {
-      static FPGATEBin *layer1=0;
-      if (layer1==0) {
-	layer1= new FPGATEBin;
-	layer1->initDisktoLayer(1);
-	if (writeTEBinTable) layer1->writeTable("TEBinTableDisk1ToLayer1.txt",
-											NLONGVMBITS+1);
-      }
-      return layer1->lookup(ibin);
-    }
-
-    if (layer==2) {
-      static FPGATEBin *layer2=0;
-      if (layer2==0) {
-	layer2= new FPGATEBin;
-	layer2->initDisktoLayer(2);
-	if (writeTEBinTable) layer2->writeTable("TEBinTableDisk1ToLayer2.txt",
-											NLONGVMBITS+1);
-      }
-      return layer2->lookup(ibin);
-    }
-
-    assert(0);
-    return 0;
-    
-  }
 
   
   void clean() {
@@ -290,8 +264,10 @@ public:
       for (unsigned int j=0;j<stubs_.size();j++){
 	string stub=stubs_[j].first->stubindex().str();
 	stub+="|";
+    stub+=stubs_[j].first->stubaddressaste().str();
+    stub+="|";
 	FPGAWord tmp;
-	tmp.set(getzbin(j),4,true,__LINE__,__FILE__);
+	tmp.set(stubs_[j].first->getVMBits().value(),10,true,__LINE__,__FILE__);
 	stub+=tmp.str();  
 	if (j<16) out_ <<"0";
 	out_ << hex << j << dec ;
@@ -301,6 +277,8 @@ public:
       for (unsigned int i=0;i<NLONGVMBINS;i++) {
 	for (unsigned int j=0;j<stubsbinned_[i].size();j++){
 	  string stub=stubsbinned_[i][j].first->stubindex().str();
+      stub+="|";
+      stub+=stubsbinned_[i][j].first->stubaddressaste().str();
 	  out_ << hex << i << " " << j << dec << " "<<stub<<endl;
 	}
       }
@@ -312,8 +290,10 @@ public:
 	for (unsigned int j=0;j<stubs_.size();j++){
 	  string stub=stubs_[j].first->stubindex().str();
 	  stub+="|";
+      stub+=stubs_[j].first->stubaddressaste().str();
+      stub+="|";
 	  FPGAWord tmp;
-	  tmp.set(getrbin(j),4,true,__LINE__,__FILE__);
+	  tmp.set(stubs_[j].first->getVMBits().value(),10,true,__LINE__,__FILE__);
 	  stub+=tmp.str();  
 	  if (j<16) out_ <<"0";
 	  out_ << hex << j << dec ;
@@ -323,6 +303,8 @@ public:
 	for (unsigned int i=0;i<NLONGVMBINS;i++) {
 	  for (unsigned int j=0;j<stubsbinned_[i].size();j++){
 	    string stub=stubsbinned_[i][j].first->stubindex().str();
+        stub+="|";
+        stub+=stubsbinned_[i][j].first->stubaddressaste().str();
 	    out_ << hex << i << " " << j << dec << " "<<stub<<endl;
 	  }
 	}
@@ -338,12 +320,48 @@ public:
 
   }
 
+  int phibin() const {
+    return phibin_;
+  }
 
+  void getPhiRange(double &phimin, double &phimax) {
+
+    if (layer_==1 || layer_==3 || layer_==5) {
+      int nphibin=24;
+      double dphi=dphisector/nphibin;
+      phimax=phibin()*dphi;
+      phimin=phimax-dphi;
+      return;
+    }
+
+    if (layer_==2 || layer_==4 || layer_==6) {
+      int nphibin=12;
+      double dphi=dphisector/nphibin;
+      phimax=phibin()*dphi-dphisector/6.0;
+      phimin=phimax-dphi;
+      return;
+    }
+
+    assert(0); //not implemented yet
+    
+  }
+  
+  void setother(FPGAVMStubsTE* other){
+    other_=other;
+  }
+  
+  FPGAVMStubsTE* other() const {
+    return other_;
+  }
+
+  
 
 private:
 
   int layer_;
   int disk_;
+  int phibin_;
+  FPGAVMStubsTE* other_;
   bool overlap_;
   double phimin_;
   double phimax_;

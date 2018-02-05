@@ -66,79 +66,42 @@ public:
    trackletproj_L6Plus_=0; 
    trackletproj_L6Minus_=0;
 
-   trackletproj_F1PHI1_=0;
-   trackletproj_F1PHI2_=0;
-   trackletproj_F1PHI3_=0;
+   trackletproj_D1PHI1_=0;
+   trackletproj_D1PHI2_=0;
+   trackletproj_D1PHI3_=0;
 
-   trackletproj_F2PHI1_=0;
-   trackletproj_F2PHI2_=0;
-   trackletproj_F2PHI3_=0;
+   trackletproj_D2PHI1_=0;
+   trackletproj_D2PHI2_=0;
+   trackletproj_D2PHI3_=0;
 
-   trackletproj_F3PHI1_=0;
-   trackletproj_F3PHI2_=0;
-   trackletproj_F3PHI3_=0;
+   trackletproj_D3PHI1_=0;
+   trackletproj_D3PHI2_=0;
+   trackletproj_D3PHI3_=0;
 
-   trackletproj_F4PHI1_=0;
-   trackletproj_F4PHI2_=0;
-   trackletproj_F4PHI3_=0;
+   trackletproj_D4PHI1_=0;
+   trackletproj_D4PHI2_=0;
+   trackletproj_D4PHI3_=0;
 
-   trackletproj_F5PHI1_=0;
-   trackletproj_F5PHI2_=0;
-   trackletproj_F5PHI3_=0;
+   trackletproj_D5PHI1_=0;
+   trackletproj_D5PHI2_=0;
+   trackletproj_D5PHI3_=0;
 
-
-   trackletproj_B1PHI1_=0;
-   trackletproj_B1PHI2_=0;
-   trackletproj_B1PHI3_=0;
-
-   trackletproj_B2PHI1_=0;
-   trackletproj_B2PHI2_=0;
-   trackletproj_B2PHI3_=0;
-
-   trackletproj_B3PHI1_=0;
-   trackletproj_B3PHI2_=0;
-   trackletproj_B3PHI3_=0;
-
-   trackletproj_B4PHI1_=0;
-   trackletproj_B4PHI2_=0;
-   trackletproj_B4PHI3_=0;
-
-   trackletproj_B5PHI1_=0;
-   trackletproj_B5PHI2_=0;
-   trackletproj_B5PHI3_=0;
-
-   trackletproj_F1Plus_=0; 
-   trackletproj_F1Minus_=0;
+   trackletproj_D1Plus_=0; 
+   trackletproj_D1Minus_=0;
                          
-   trackletproj_F2Plus_=0; 
-   trackletproj_F2Minus_=0;
+   trackletproj_D2Plus_=0; 
+   trackletproj_D2Minus_=0;
                          
-   trackletproj_F3Plus_=0; 
-   trackletproj_F3Minus_=0;
+   trackletproj_D3Plus_=0; 
+   trackletproj_D3Minus_=0;
                          
-   trackletproj_F4Plus_=0; 
-   trackletproj_F4Minus_=0;
+   trackletproj_D4Plus_=0; 
+   trackletproj_D4Minus_=0;
                          
-   trackletproj_F5Plus_=0; 
-   trackletproj_F5Minus_=0;
+   trackletproj_D5Plus_=0; 
+   trackletproj_D5Minus_=0;
 
   
-   trackletproj_B1Plus_=0; 
-   trackletproj_B1Minus_=0;
-                         
-   trackletproj_B2Plus_=0; 
-   trackletproj_B2Minus_=0;
-                         
-   trackletproj_B3Plus_=0; 
-   trackletproj_B3Minus_=0;
-                         
-   trackletproj_B4Plus_=0; 
-   trackletproj_B4Minus_=0;
-                         
-   trackletproj_B5Plus_=0; 
-   trackletproj_B5Minus_=0;
-
-
    layer_=0;
    disk_=0;
 
@@ -211,6 +174,11 @@ public:
 
   }
 
+  void addOutputProjection(FPGATrackletProjections* &outputProj, FPGAMemoryBase* memory){
+      outputProj=dynamic_cast<FPGATrackletProjections*>(memory);
+      assert(outputProj!=0);
+  }
+  
   void addOutput(FPGAMemoryBase* memory,string output){
     if (writetrace) {
       cout << "In "<<name_<<" adding output to "<<memory->getName()
@@ -223,17 +191,14 @@ public:
       return;
     }
 
-    if (output=="projoutL1PHI1"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_L1PHI1_=tmp;
+
+    if (output=="projoutL1PHI1") {
+      addOutputProjection(trackletproj_L1PHI1_,memory);
       return;
     }
-
-    if (output=="projoutL1PHI2"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_L1PHI2_=tmp;
+    
+    if (output=="projoutL1PHI2") {
+      addOutputProjection(trackletproj_L1PHI2_,memory);
       return;
     }
 
@@ -370,328 +335,110 @@ public:
       return;
     }
 
-
-
-    if (output=="projoutF1PHI1"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_F1PHI1_=tmp;
-      return;
-    }
-
-    if (output=="projoutF1PHI2"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_F1PHI2_=tmp;
-      return;
-    }
-
-    if (output=="projoutF1PHI3"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_F1PHI3_=tmp;
-      return;
-    }
-
-    if (output=="projoutF2PHI1"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_F2PHI1_=tmp;
-      return;
-    }
-
-    if (output=="projoutF2PHI2"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_F2PHI2_=tmp;
-      return;
-    }
-
-    if (output=="projoutF2PHI3"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_F2PHI3_=tmp;
-      return;
-    }
-
-    if (output=="projoutF3PHI1"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_F3PHI1_=tmp;
-      return;
-    }
-
-    if (output=="projoutF3PHI2"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_F3PHI2_=tmp;
-      return;
-    }
-
-    if (output=="projoutF3PHI3"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_F3PHI3_=tmp;
-      return;
-    }
-
-    if (output=="projoutF4PHI1"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_F4PHI1_=tmp;
-      return;
-    }
-
-    if (output=="projoutF4PHI2"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_F4PHI2_=tmp;
-      return;
-    }
-
-    if (output=="projoutF4PHI3"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_F4PHI3_=tmp;
-      return;
-    }
-
-    if (output=="projoutF5PHI1"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_F5PHI1_=tmp;
-      return;
-    }
-
-    if (output=="projoutF5PHI2"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_F5PHI2_=tmp;
-      return;
-    }
-
-    if (output=="projoutF5PHI3"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_F5PHI3_=tmp;
-      return;
-    }
-
-
-
     if (output=="projoutD1PHI1"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F1PHI1_=tmp;
+      trackletproj_D1PHI1_=tmp;
       return;
     }
 
     if (output=="projoutD1PHI2"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F1PHI2_=tmp;
+      trackletproj_D1PHI2_=tmp;
       return;
     }
 
     if (output=="projoutD1PHI3"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F1PHI3_=tmp;
+      trackletproj_D1PHI3_=tmp;
       return;
     }
 
     if (output=="projoutD2PHI1"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F2PHI1_=tmp;
+      trackletproj_D2PHI1_=tmp;
       return;
     }
 
     if (output=="projoutD2PHI2"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F2PHI2_=tmp;
+      trackletproj_D2PHI2_=tmp;
       return;
     }
 
     if (output=="projoutD2PHI3"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F2PHI3_=tmp;
+      trackletproj_D2PHI3_=tmp;
       return;
     }
 
     if (output=="projoutD3PHI1"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F3PHI1_=tmp;
+      trackletproj_D3PHI1_=tmp;
       return;
     }
 
     if (output=="projoutD3PHI2"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F3PHI2_=tmp;
+      trackletproj_D3PHI2_=tmp;
       return;
     }
 
     if (output=="projoutD3PHI3"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F3PHI3_=tmp;
+      trackletproj_D3PHI3_=tmp;
       return;
     }
 
     if (output=="projoutD4PHI1"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F4PHI1_=tmp;
+      trackletproj_D4PHI1_=tmp;
       return;
     }
 
     if (output=="projoutD4PHI2"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F4PHI2_=tmp;
+      trackletproj_D4PHI2_=tmp;
       return;
     }
 
     if (output=="projoutD4PHI3"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F4PHI3_=tmp;
+      trackletproj_D4PHI3_=tmp;
       return;
     }
 
     if (output=="projoutD5PHI1"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F5PHI1_=tmp;
+      trackletproj_D5PHI1_=tmp;
       return;
     }
 
     if (output=="projoutD5PHI2"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F5PHI2_=tmp;
+      trackletproj_D5PHI2_=tmp;
       return;
     }
 
     if (output=="projoutD5PHI3"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F5PHI3_=tmp;
+      trackletproj_D5PHI3_=tmp;
       return;
     }
-
-
-
-    
-    if (output=="projoutB1PHI1"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B1PHI1_=tmp;
-      return;
-    }
-
-    if (output=="projoutB1PHI2"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B1PHI2_=tmp;
-      return;
-    }
-
-    if (output=="projoutB1PHI3"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B1PHI3_=tmp;
-      return;
-    }
-
-    if (output=="projoutB2PHI1"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B2PHI1_=tmp;
-      return;
-    }
-
-    if (output=="projoutB2PHI2"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B2PHI2_=tmp;
-      return;
-    }
-
-    if (output=="projoutB2PHI3"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B2PHI3_=tmp;
-      return;
-    }
-
-    if (output=="projoutB3PHI1"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B3PHI1_=tmp;
-      return;
-    }
-
-    if (output=="projoutB3PHI2"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B3PHI2_=tmp;
-      return;
-    }
-
-    if (output=="projoutB3PHI3"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B3PHI3_=tmp;
-      return;
-    }
-
-    if (output=="projoutB4PHI1"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B4PHI1_=tmp;
-      return;
-    }
-
-    if (output=="projoutB4PHI2"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B4PHI2_=tmp;
-      return;
-    }
-
-    if (output=="projoutB4PHI3"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B4PHI3_=tmp;
-      return;
-    }
-
-    if (output=="projoutB5PHI1"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B5PHI1_=tmp;
-      return;
-    }
-
-    if (output=="projoutB5PHI2"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B5PHI2_=tmp;
-      return;
-    }
-
-    if (output=="projoutB5PHI3"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B5PHI3_=tmp;
-      return;
-    }
-
 
 
     
@@ -839,71 +586,35 @@ public:
     if (output=="projoutD1ToPlus"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F1Plus_=tmp;
+      trackletproj_D1Plus_=tmp;
       return;
     }
 
     if (output=="projoutD2ToPlus"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F2Plus_=tmp;
+      trackletproj_D2Plus_=tmp;
       return;
     }
 
     if (output=="projoutD3ToPlus"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F3Plus_=tmp;
+      trackletproj_D3Plus_=tmp;
       return;
     }
 
     if (output=="projoutD4ToPlus"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F4Plus_=tmp;
+      trackletproj_D4Plus_=tmp;
       return;
     }
 
     if (output=="projoutD5ToPlus"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F5Plus_=tmp;
-      return;
-    }    
-    
-
-    if (output=="projoutB1ToPlus"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B1Plus_=tmp;
-      return;
-    }
-
-    if (output=="projoutB2ToPlus"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B2Plus_=tmp;
-      return;
-    }
-
-    if (output=="projoutB3ToPlus"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B3Plus_=tmp;
-      return;
-    }
-
-    if (output=="projoutB4ToPlus"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B4Plus_=tmp;
-      return;
-    }
-
-    if (output=="projoutB5ToPlus"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B5Plus_=tmp;
+      trackletproj_D5Plus_=tmp;
       return;
     }    
     
@@ -911,76 +622,38 @@ public:
     if (output=="projoutD1ToMinus"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F1Minus_=tmp;
+      trackletproj_D1Minus_=tmp;
       return;
     }
 
     if (output=="projoutD2ToMinus"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F2Minus_=tmp;
+      trackletproj_D2Minus_=tmp;
       return;
     }
 
     if (output=="projoutD3ToMinus"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F3Minus_=tmp;
+      trackletproj_D3Minus_=tmp;
       return;
     }
 
     if (output=="projoutD4ToMinus"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F4Minus_=tmp;
+      trackletproj_D4Minus_=tmp;
       return;
     }
 
     if (output=="projoutD5ToMinus"){
       FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
       assert(tmp!=0);
-      trackletproj_F5Minus_=tmp;
+      trackletproj_D5Minus_=tmp;
       return;
     }    
     
-
-    if (output=="projoutB1ToMinus"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B1Minus_=tmp;
-      return;
-    }
-
-    if (output=="projoutB2ToMinus"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B2Minus_=tmp;
-      return;
-    }
-
-    if (output=="projoutB3ToMinus"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B3Minus_=tmp;
-      return;
-    }
-
-    if (output=="projoutB4ToMinus"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B4Minus_=tmp;
-      return;
-    }
-
-    if (output=="projoutB5ToMinus"){
-      FPGATrackletProjections* tmp=dynamic_cast<FPGATrackletProjections*>(memory);
-      assert(tmp!=0);
-      trackletproj_B5Minus_=tmp;
-      return;
-    }    
-    
-
-
 
 
 
@@ -1500,8 +1173,9 @@ public:
     //test
     if (fabs(irinv*krinvpars)>rinvcut*2) {        // *2 is HACK associated with "irinv/=2" below, the irinv calculation should be corrected earlier!!
       if (debug1) {
-	cout << "Failed tracklet pt cut"<<endl;
+	cout << "Failed tracklet pt cut in layer = "<<layer_<<endl;
       }
+      //cout << "Failed tracklet pt cut in layer = "<<layer_<<" "<<0.5*irinv*krinvpars<<endl;
       return false;
     }
 
@@ -1509,6 +1183,7 @@ public:
       if (debug1) {
 	cout << "Failed tracklet z0 cut "<<iz0*kzpars<<" in layer 1"<<endl;
       }
+      //cout << "Failed tracklet z0 cut "<<iz0*kzpars<<" in layer 1"<<endl;
       return false;
     }
     if (layer_>=2&&fabs(iz0*kzpars)>1.5*z0cut) { 
@@ -3150,6 +2825,7 @@ public:
 	
 	if (innerFPGAStub->isBarrel()&&(getName()!="TC_D1L2A"&&getName()!="TC_D1L2B")){
 
+	  
 	  if (debug1) {
 	    cout << "FPGATrackletCalculator "<<getName()<<" trying stub pair in layer (inner outer): "
 		 <<innerFPGAStub->layer().value()<<" "<<outerFPGAStub->layer().value()<<endl;
@@ -3230,7 +2906,9 @@ public:
 			phiproj,zproj,phider,zder,
 			phiprojdisk,rprojdisk,phiderdisk,rderdisk);
 
+	  
 	  if (fabs(rinv)>0.0065) {
+	    //FIXME
 	    //cout << "FPGATrackletCalculator warning will reject rinv "<<rinv<<endl;
 	    continue;
 	  }
@@ -3349,6 +3027,7 @@ public:
 	  //cout << "L4 projection z "<<zprojapprox[1]<<" "<<izproj[1]*kz*16<<endl;
 	  
 	  //cout << "success : "<<success<<endl;
+
 	  
 	  if (!success) continue;
 	  
@@ -3460,6 +3139,7 @@ public:
 
 	  countsel++;
 
+
 	  tracklet->setTrackletIndex(trackletpars_->nTracklets());
 	  tracklet->setTCIndex(TCIndex_);
 
@@ -3493,7 +3173,6 @@ public:
 
 	  
 	  //cout << "Done adding layer projection"<<endl;
-
 
 	  
 	}  else {
@@ -3554,38 +3233,21 @@ public:
 
 	    
 	    int istubpt1=innerFPGAStub->stubpt().value();
-	    int iphivm1=innerFPGAStub->phivm().value();
 	    FPGAWord iphi1=innerFPGAStub->phi();
 	    FPGAWord iz1=innerFPGAStub->z();
 	    FPGAWord ir1=innerFPGAStub->r();
-	    int irvm1=innerFPGAStub->rvm().value();
-	    //int izvm1=innerFPGAStub->zvm().value();
 	    
 	    int istubpt2=outerFPGAStub->stubpt().value();
-	    int iphivm2=outerFPGAStub->phivm().value();
 	    FPGAWord iphi2=outerFPGAStub->phi();
 	    FPGAWord iz2=outerFPGAStub->z();
 	    FPGAWord ir2=outerFPGAStub->r();
-	    int irvm2=outerFPGAStub->rvm().value();
-	    //int izvm2=outerFPGAStub->zvm().value();
 	    
 	  
-	    
-	    int ideltaphi=iphivm2-iphivm1;
-	    int ideltar=irvm2-irvm1;
-
-	    ideltar>>=2;
-	    
-	    if (ideltar<0) ideltar+=8;
-	    assert(ideltar>=0);
-	    if (ideltaphi<0) ideltaphi+=16;
-	    assert(ideltaphi>=0);
 	    
 	    //cout << "istubpt1 istubpt2 : "<<istubpt1<<" "<<istubpt2<<endl;
 	    assert(istubpt1>=0);
 	    assert(istubpt2>=0);
 	    
-	    //int address=(istubpt1<<10)+(istubpt2<<7)+(ideltaphi<<3)+ideltar;
 	    
 	    //int i1=TEs_[i].first.first;
 	    //int i2=TEs_[i].second.first;
@@ -4528,13 +4190,25 @@ public:
 
 	  }
 	}
-	if (countall>=MAXTC) break;
+
+	if (trackletpars_->nTracklets()>=63) {
+	  cout << "Will break on number of tracklets"<<endl;
+	  break;
+	}
+	
+	if (countall>=MAXTC) {
+	  cout << "Will break on MAXTC 1"<<endl;
+	  break;
+	}
 	if (debug1) {
 	  cout << "FPGATrackletCalculator execute done"<<endl;
 	}
 
       }
-      if (countall>=MAXTC) break;
+      if (countall>=MAXTC) {
+	cout << "Will break on MAXTC 2"<<endl;
+	break;
+      }
     }
 
     if (writeTrackletCalculator) {
@@ -4783,16 +4457,11 @@ public:
 	if (abs(disk)==2) addNeighborProjectionDisk(disk,trackletproj_L5Plus_,tracklet);
 	return;
       }
-      if (abs(disk)==1) addNeighborProjectionDisk(disk,trackletproj_F1Plus_,tracklet);
-      if (abs(disk)==2) addNeighborProjectionDisk(disk,trackletproj_F2Plus_,tracklet);
-      if (abs(disk)==3) addNeighborProjectionDisk(disk,trackletproj_F3Plus_,tracklet);
-      if (abs(disk)==4) addNeighborProjectionDisk(disk,trackletproj_F4Plus_,tracklet);
-      if (abs(disk)==5) addNeighborProjectionDisk(disk,trackletproj_F5Plus_,tracklet);
-      //if (disk==-1) addNeighborProjectionDisk(disk,trackletproj_B1Plus_,tracklet);
-      //if (disk==-2) addNeighborProjectionDisk(disk,trackletproj_B2Plus_,tracklet);
-      //if (disk==-3) addNeighborProjectionDisk(disk,trackletproj_B3Plus_,tracklet);
-      //if (disk==-4) addNeighborProjectionDisk(disk,trackletproj_B4Plus_,tracklet);
-      //if (disk==-5) addNeighborProjectionDisk(disk,trackletproj_B5Plus_,tracklet);
+      if (abs(disk)==1) addNeighborProjectionDisk(disk,trackletproj_D1Plus_,tracklet);
+      if (abs(disk)==2) addNeighborProjectionDisk(disk,trackletproj_D2Plus_,tracklet);
+      if (abs(disk)==3) addNeighborProjectionDisk(disk,trackletproj_D3Plus_,tracklet);
+      if (abs(disk)==4) addNeighborProjectionDisk(disk,trackletproj_D4Plus_,tracklet);
+      if (abs(disk)==5) addNeighborProjectionDisk(disk,trackletproj_D5Plus_,tracklet);
       return;
     }
       
@@ -4811,16 +4480,11 @@ public:
 	return;
       }
 
-      if (abs(disk)==1) addNeighborProjectionDisk(disk,trackletproj_F1Minus_,tracklet);
-      if (abs(disk)==2) addNeighborProjectionDisk(disk,trackletproj_F2Minus_,tracklet);
-      if (abs(disk)==3) addNeighborProjectionDisk(disk,trackletproj_F3Minus_,tracklet);
-      if (abs(disk)==4) addNeighborProjectionDisk(disk,trackletproj_F4Minus_,tracklet);
-      if (abs(disk)==5) addNeighborProjectionDisk(disk,trackletproj_F5Minus_,tracklet);
-      //if (disk==-1) addNeighborProjectionDisk(disk,trackletproj_B1Minus_,tracklet);
-      //if (disk==-2) addNeighborProjectionDisk(disk,trackletproj_B2Minus_,tracklet);
-      //if (disk==-3) addNeighborProjectionDisk(disk,trackletproj_B3Minus_,tracklet);
-      //if (disk==-4) addNeighborProjectionDisk(disk,trackletproj_B4Minus_,tracklet);
-      //if (disk==-5) addNeighborProjectionDisk(disk,trackletproj_B5Minus_,tracklet);
+      if (abs(disk)==1) addNeighborProjectionDisk(disk,trackletproj_D1Minus_,tracklet);
+      if (abs(disk)==2) addNeighborProjectionDisk(disk,trackletproj_D2Minus_,tracklet);
+      if (abs(disk)==3) addNeighborProjectionDisk(disk,trackletproj_D3Minus_,tracklet);
+      if (abs(disk)==4) addNeighborProjectionDisk(disk,trackletproj_D4Minus_,tracklet);
+      if (abs(disk)==5) addNeighborProjectionDisk(disk,trackletproj_D5Minus_,tracklet);
       return;
     }
       
@@ -4846,33 +4510,33 @@ public:
     assert(iphi<=2);
 
     if (abs(disk)==1) {
-      if (iphi==0) addProjectionDisk(disk,iphi,trackletproj_F1PHI1_,tracklet);
-      if (iphi==1) addProjectionDisk(disk,iphi,trackletproj_F1PHI2_,tracklet);
-      if (iphi==2) addProjectionDisk(disk,iphi,trackletproj_F1PHI3_,tracklet);
+      if (iphi==0) addProjectionDisk(disk,iphi,trackletproj_D1PHI1_,tracklet);
+      if (iphi==1) addProjectionDisk(disk,iphi,trackletproj_D1PHI2_,tracklet);
+      if (iphi==2) addProjectionDisk(disk,iphi,trackletproj_D1PHI3_,tracklet);
     }
     
     if (abs(disk)==2) {
-      if (iphi==0) addProjectionDisk(disk,iphi,trackletproj_F2PHI1_,tracklet);
-      if (iphi==1) addProjectionDisk(disk,iphi,trackletproj_F2PHI2_,tracklet);
-      if (iphi==2) addProjectionDisk(disk,iphi,trackletproj_F2PHI3_,tracklet);
+      if (iphi==0) addProjectionDisk(disk,iphi,trackletproj_D2PHI1_,tracklet);
+      if (iphi==1) addProjectionDisk(disk,iphi,trackletproj_D2PHI2_,tracklet);
+      if (iphi==2) addProjectionDisk(disk,iphi,trackletproj_D2PHI3_,tracklet);
     }
 
     if (abs(disk)==3) {
-      if (iphi==0) addProjectionDisk(disk,iphi,trackletproj_F3PHI1_,tracklet);
-      if (iphi==1) addProjectionDisk(disk,iphi,trackletproj_F3PHI2_,tracklet);
-      if (iphi==2) addProjectionDisk(disk,iphi,trackletproj_F3PHI3_,tracklet);
+      if (iphi==0) addProjectionDisk(disk,iphi,trackletproj_D3PHI1_,tracklet);
+      if (iphi==1) addProjectionDisk(disk,iphi,trackletproj_D3PHI2_,tracklet);
+      if (iphi==2) addProjectionDisk(disk,iphi,trackletproj_D3PHI3_,tracklet);
     }
 
     if (abs(disk)==4) {
-      if (iphi==0) addProjectionDisk(disk,iphi,trackletproj_F4PHI1_,tracklet);
-      if (iphi==1) addProjectionDisk(disk,iphi,trackletproj_F4PHI2_,tracklet);
-      if (iphi==2) addProjectionDisk(disk,iphi,trackletproj_F4PHI3_,tracklet);
+      if (iphi==0) addProjectionDisk(disk,iphi,trackletproj_D4PHI1_,tracklet);
+      if (iphi==1) addProjectionDisk(disk,iphi,trackletproj_D4PHI2_,tracklet);
+      if (iphi==2) addProjectionDisk(disk,iphi,trackletproj_D4PHI3_,tracklet);
     }
 
     if (abs(disk)==5) {
-      if (iphi==0) addProjectionDisk(disk,iphi,trackletproj_F5PHI1_,tracklet);
-      if (iphi==1) addProjectionDisk(disk,iphi,trackletproj_F5PHI2_,tracklet);
-      if (iphi==2) addProjectionDisk(disk,iphi,trackletproj_F5PHI3_,tracklet);
+      if (iphi==0) addProjectionDisk(disk,iphi,trackletproj_D5PHI1_,tracklet);
+      if (iphi==1) addProjectionDisk(disk,iphi,trackletproj_D5PHI2_,tracklet);
+      if (iphi==2) addProjectionDisk(disk,iphi,trackletproj_D5PHI3_,tracklet);
     }
 
     
@@ -5102,48 +4766,26 @@ private:
   FPGATrackletProjections* trackletproj_L6PHI3_;
   FPGATrackletProjections* trackletproj_L6PHI4_;
 
-  FPGATrackletProjections* trackletproj_F1PHI1_;
-  FPGATrackletProjections* trackletproj_F1PHI2_;
-  FPGATrackletProjections* trackletproj_F1PHI3_;
+  FPGATrackletProjections* trackletproj_D1PHI1_;
+  FPGATrackletProjections* trackletproj_D1PHI2_;
+  FPGATrackletProjections* trackletproj_D1PHI3_;
 
-  FPGATrackletProjections* trackletproj_F2PHI1_;
-  FPGATrackletProjections* trackletproj_F2PHI2_;
-  FPGATrackletProjections* trackletproj_F2PHI3_;
+  FPGATrackletProjections* trackletproj_D2PHI1_;
+  FPGATrackletProjections* trackletproj_D2PHI2_;
+  FPGATrackletProjections* trackletproj_D2PHI3_;
 
-  FPGATrackletProjections* trackletproj_F3PHI1_;
-  FPGATrackletProjections* trackletproj_F3PHI2_;
-  FPGATrackletProjections* trackletproj_F3PHI3_;
+  FPGATrackletProjections* trackletproj_D3PHI1_;
+  FPGATrackletProjections* trackletproj_D3PHI2_;
+  FPGATrackletProjections* trackletproj_D3PHI3_;
 
-  FPGATrackletProjections* trackletproj_F4PHI1_;
-  FPGATrackletProjections* trackletproj_F4PHI2_;
-  FPGATrackletProjections* trackletproj_F4PHI3_;
+  FPGATrackletProjections* trackletproj_D4PHI1_;
+  FPGATrackletProjections* trackletproj_D4PHI2_;
+  FPGATrackletProjections* trackletproj_D4PHI3_;
 
-  FPGATrackletProjections* trackletproj_F5PHI1_;
-  FPGATrackletProjections* trackletproj_F5PHI2_;
-  FPGATrackletProjections* trackletproj_F5PHI3_;
+  FPGATrackletProjections* trackletproj_D5PHI1_;
+  FPGATrackletProjections* trackletproj_D5PHI2_;
+  FPGATrackletProjections* trackletproj_D5PHI3_;
 
-
-  FPGATrackletProjections* trackletproj_B1PHI1_;
-  FPGATrackletProjections* trackletproj_B1PHI2_;
-  FPGATrackletProjections* trackletproj_B1PHI3_;
-
-  FPGATrackletProjections* trackletproj_B2PHI1_;
-  FPGATrackletProjections* trackletproj_B2PHI2_;
-  FPGATrackletProjections* trackletproj_B2PHI3_;
-
-  FPGATrackletProjections* trackletproj_B3PHI1_;
-  FPGATrackletProjections* trackletproj_B3PHI2_;
-  FPGATrackletProjections* trackletproj_B3PHI3_;
-
-  FPGATrackletProjections* trackletproj_B4PHI1_;
-  FPGATrackletProjections* trackletproj_B4PHI2_;
-  FPGATrackletProjections* trackletproj_B4PHI3_;
-
-  FPGATrackletProjections* trackletproj_B5PHI1_;
-  FPGATrackletProjections* trackletproj_B5PHI2_;
-  FPGATrackletProjections* trackletproj_B5PHI3_;
-
-  
 
   
   FPGATrackletProjections* trackletproj_L1Plus_; 
@@ -5165,36 +4807,21 @@ private:
   FPGATrackletProjections* trackletproj_L6Minus_;
 
 
-  FPGATrackletProjections* trackletproj_F1Plus_; 
-  FPGATrackletProjections* trackletproj_F1Minus_;
+  FPGATrackletProjections* trackletproj_D1Plus_; 
+  FPGATrackletProjections* trackletproj_D1Minus_;
 			                         
-  FPGATrackletProjections* trackletproj_F2Plus_; 
-  FPGATrackletProjections* trackletproj_F2Minus_;
+  FPGATrackletProjections* trackletproj_D2Plus_; 
+  FPGATrackletProjections* trackletproj_D2Minus_;
 			                         
-  FPGATrackletProjections* trackletproj_F3Plus_; 
-  FPGATrackletProjections* trackletproj_F3Minus_;
+  FPGATrackletProjections* trackletproj_D3Plus_; 
+  FPGATrackletProjections* trackletproj_D3Minus_;
 			                         
-  FPGATrackletProjections* trackletproj_F4Plus_; 
-  FPGATrackletProjections* trackletproj_F4Minus_;
+  FPGATrackletProjections* trackletproj_D4Plus_; 
+  FPGATrackletProjections* trackletproj_D4Minus_;
 			                         
-  FPGATrackletProjections* trackletproj_F5Plus_; 
-  FPGATrackletProjections* trackletproj_F5Minus_;
+  FPGATrackletProjections* trackletproj_D5Plus_; 
+  FPGATrackletProjections* trackletproj_D5Minus_;
 
-  
-  FPGATrackletProjections* trackletproj_B1Plus_; 
-  FPGATrackletProjections* trackletproj_B1Minus_;
-			                         
-  FPGATrackletProjections* trackletproj_B2Plus_; 
-  FPGATrackletProjections* trackletproj_B2Minus_;
-			                         
-  FPGATrackletProjections* trackletproj_B3Plus_; 
-  FPGATrackletProjections* trackletproj_B3Minus_;
-			                         
-  FPGATrackletProjections* trackletproj_B4Plus_; 
-  FPGATrackletProjections* trackletproj_B4Minus_;
-			                         
-  FPGATrackletProjections* trackletproj_B5Plus_; 
-  FPGATrackletProjections* trackletproj_B5Minus_;
   
 };
 

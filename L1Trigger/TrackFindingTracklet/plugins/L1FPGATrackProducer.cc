@@ -638,7 +638,6 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   FPGATimer readTimer;
   FPGATimer cleanTimer;
   FPGATimer addStubTimer;
-  FPGATimer layerdiskRouterTimer;
   FPGATimer VMRouterTimer;  
   FPGATimer TETimer;
   FPGATimer TCTimer;
@@ -663,6 +662,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   ofstream outeff;
   if (writeResEff) outeff.open("trackeff.txt");
 
+  int nlayershit=0;
 
 #include "FPGA.icc"  
 

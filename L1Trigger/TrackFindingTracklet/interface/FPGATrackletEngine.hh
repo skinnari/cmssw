@@ -3,9 +3,7 @@
 #define FPGATRACKLETENGINE_H
 
 #include "FPGAProcessBase.hh"
-#include "FPGATETable.hh"
-#include "FPGATETableDisk.hh"
-#include "FPGATETableOverlap.hh"
+
 
 using namespace std;
 
@@ -26,7 +24,7 @@ public:
     stubpairs_=0;
     innervmstubs_=0;
     outervmstubs_=0;
-    table_=0;
+    //table_=0;
     layer1_=0;
     layer2_=0;
     disk1_=0;
@@ -96,12 +94,14 @@ public:
       FPGAVMStubsTE* tmp=dynamic_cast<FPGAVMStubsTE*>(memory);
       assert(tmp!=0);
       innervmstubs_=tmp;
+      setVMPhiBin();
       return;
     }
     if (input=="outervmstubin") {
       FPGAVMStubsTE* tmp=dynamic_cast<FPGAVMStubsTE*>(memory);
       assert(tmp!=0);
       outervmstubs_=tmp;
+      setVMPhiBin();
       return;
     }
     cout << "Could not find input : "<<input<<endl;
@@ -119,406 +119,170 @@ public:
 	  (doL1D1&&(disk1_==1)&&(layer2_==1))||
 	  (doL2D1&&(disk1_==1)&&(layer2_==2)))) return;
 
-    //cout << getName()<<" "<<layer1_<<" "<<layer2_<<" "<<disk1_<<" "<<disk2_<<endl;
-    
-
-    //if (disk1_==0||disk2_==0) return;
-
-    //cout << getName()<<" disk1_ disk2_ "<<disk1_<<" "<<disk2_<<endl;
-
-
-    //if (getName().substr(0,5)!="TE_L1") return;
-
-   
 
     unsigned int countall=0;
     unsigned int countpass=0;
 
-    bool print=false&&(getName()=="TE_L1PHIC7_L2PHIC5");
-
-    if (print) {
-      cout << "In FPGATrackletEngine::execute : "<<getName()
-	   <<" "<<innervmstubs_->nStubs()
-	   <<" "<<outervmstubs_->nStubs()
-	   <<endl;
-    }
-
-    //cout << "layer/disk : "<<layer1_<<" "<<layer2_<<" "
-    //	 <<disk1_<<" "<<disk2_<<endl;
 
     assert(innervmstubs_!=0);
     assert(outervmstubs_!=0);
-    for(unsigned int i=0;i<innervmstubs_->nStubs();i++){
-      std::pair<FPGAStub*,L1TStub*> innerstub=innervmstubs_->getStub(i);
-      if (debug1) {
-	cout << "In "<<getName()<<" have inner stub"<<endl;
+
+    if (disk1_==1 && (layer2_==1 || layer2_==2) ) {
+
+      for(unsigned int i=0;i<outervmstubs_->nStubs();i++){
+	std::pair<FPGAStub*,L1TStub*> outerstub=outervmstubs_->getStub(i);
+
+	if (debug1) cout << "Have overlap stub in layer = "<<outerstub.first->layer().value()+1<<" disk = "<<outerstub.first->disk().value()<<endl;
+	
+	int lookupbits=outerstub.first->getVMBits().value();
+        int rdiffmax=(lookupbits>>7);	
+	int newbin=(lookupbits&127);
+	int bin=newbin/8;
+
+	int rbinfirst=newbin&7;
+
+	int start=(bin>>1);
+	int last=start+(bin&1);
+	if (last==8) {
+	  cout << "Warning last==8 start="<<start<<endl;
+	  last=start;
+	}
+	for(int ibin=start;ibin<=last;ibin++) {
+
+	  for(unsigned int j=0;j<innervmstubs_->nStubsBinned(ibin);j++){
+	    countall++;
+	    std::pair<FPGAStub*,L1TStub*> innerstub=innervmstubs_->getStubBinned(ibin,j);
+	    int rbin=(innerstub.first->getVMBits().value()&7);
+	    if (start!=ibin) rbin+=8;
+	    if (rbin<rbinfirst) continue;
+	    if (rbin-rbinfirst>rdiffmax) continue;
+	    stubpairs_->addStubPair(innerstub,outerstub);
+	    countpass++;
+	  }
+	}
+
       }
-
-      if ((layer1_==1 && layer2_==2)||
-	  (layer1_==3 && layer2_==4)||
-	  (layer1_==5 && layer2_==6)) {
-
-
-	if (debug1) cout << "Layer-layer pair" <<endl;
-	
-	int bin=innervmstubs_->getzbin(i);
-	//cout << "z bin : "<<(bin>>1)<<" "<<(bin&1)<<endl;
-	int start=(bin>>1);
-	int last=start+(bin&1);
-	for(int ibin=start;ibin<=last;ibin++) {
-	  for(unsigned int j=0;j<outervmstubs_->nStubsBinned(ibin);j++){
-	    std::pair<FPGAStub*,L1TStub*> outerstub=outervmstubs_->getStubBinned(ibin,j);
-	    countall++;
-	    countpass++;
-	    //cout << "FPGATrackletEngine : "<<getName()<<" Adding stub pair"<<endl;
-	    stubpairs_->addStubPair(innerstub,outerstub);
-	  }
+    } else {
+    
+      for(unsigned int i=0;i<innervmstubs_->nStubs();i++){
+	std::pair<FPGAStub*,L1TStub*> innerstub=innervmstubs_->getStub(i);
+	if (debug1) {
+	  cout << "In "<<getName()<<" have inner stub"<<endl;
 	}
 	
-      } else if ((disk1_==1 && disk2_==2)||
-		 (disk1_==3 && disk2_==4)) {
+	if ((layer1_==1 && layer2_==2)||
+	    (layer1_==3 && layer2_==4)||
+	    (layer1_==5 && layer2_==6)) {
+	  
 
-	if (debug1) cout << "Disk-disk pair" <<endl;
-
-	int bin=innervmstubs_->getrbin(i);
-	//cout << "r bin : "<<(bin>>1)<<" "<<(bin&1)<<endl;
-	int start=(bin>>1);
-	int last=start+(bin&1);
-	for(int ibin=start;ibin<=last;ibin++) {
-	  for(unsigned int j=0;j<outervmstubs_->nStubsBinned(ibin);j++){
-	    std::pair<FPGAStub*,L1TStub*> outerstub=outervmstubs_->getStubBinned(ibin,j);
-	    countall++;
-	    countpass++;
-	    //cout << "FPGATrackletEngine : "<<getName()<<" Adding stub pair"<<endl;
-	    stubpairs_->addStubPair(innerstub,outerstub);
-	  }
-	}
-      }	else if (disk1_==1 && layer2_==1) {
-
-	if (debug1) cout << "Disk+layer1 pair" <<endl;
+	  if (debug1) cout << "Layer-layer pair" <<endl;
+	  
+	  int lookupbits=innerstub.first->getVMBits().value();
+	  int zdiffmax=(lookupbits>>7);	
+	  int newbin=(lookupbits&127);
+	  int bin=newbin/8;
+	  
+	  int zbinfirst=newbin&7;
 	
-	int bin=innervmstubs_->getzbinfromdisk(i);
-	//cout << "z bin : "<<(bin>>1)<<" "<<(bin&1)<<endl;
-	int start=(bin>>1);
-	int last=start+(bin&1);
-	for(int ibin=start;ibin<=last;ibin++) {
-	  for(unsigned int j=0;j<outervmstubs_->nStubsBinned(ibin);j++){
-	    std::pair<FPGAStub*,L1TStub*> outerstub=outervmstubs_->getStubBinned(ibin,j);
-	    countall++;
-	    countpass++;
-	    //cout << "FPGATrackletEngine : "<<getName()<<" Adding stub pair"<<endl;
-	    stubpairs_->addStubPair(innerstub,outerstub);
+	  int start=(bin>>1);
+	  int last=start+(bin&1);
+	  for(int ibin=start;ibin<=last;ibin++) {
+	    for(unsigned int j=0;j<outervmstubs_->nStubsBinned(ibin);j++){
+	      countall++;
+	      std::pair<FPGAStub*,L1TStub*> outerstub=outervmstubs_->getStubBinned(ibin,j);
+              
+	      int zbin=(outerstub.first->getVMBits().value()&7);
+	      if (start!=ibin) zbin+=8;
+	      if (zbin<zbinfirst) continue;
+	      if (zbin-zbinfirst>zdiffmax) continue;
+
+	      int innerphibits=1;
+	      int outerphibits=2;
+
+	      int iphiinnerbin=innerstub.first->iphivmFineBins(5,innerphibits);
+	      int iphiouterbin=outerstub.first->iphivmFineBins(4,outerphibits);
+
+
+	      
+	      int index = (iphiinnerbin<<outerphibits)+iphiouterbin;
+
+	      assert(index<(int)phitable_.size());		
+	      if (!phitable_[index]) continue;
+
+              FPGAWord innerbend=innerstub.first->bend();
+              FPGAWord outerbend=outerstub.first->bend();
+              
+              int ptinnerindex=(index<<innerbend.nbits())+innerbend.value();
+              int ptouterindex=(index<<outerbend.nbits())+outerbend.value();
+
+	      if (!pttableinner_[ptinnerindex]) continue;
+	      if (!pttableouter_[ptouterindex]) continue;
+	      
+	      if (debug1) cout << "Adding layer-layer pair in " <<getName()<<endl;
+	      stubpairs_->addStubPair(innerstub,outerstub);
+
+	      countpass++;
+	    }
 	  }
-	}
-
-      } else if (disk1_==1 && layer2_==2) {
-
-	if (debug1) cout << "Disk+layer2 pair" <<endl;
 	
-	int bin=0;
-	if (innerstub.first->isBarrel()) {
-	  bin=innervmstubs_->getzbin(i,true);
-	} else {
-	  bin=innervmstubs_->getzbinfromdisk(i,layer2_);
-	}
-	//cout << "z bin : "<<(bin>>1)<<" "<<(bin&1)<<endl;
-	int start=(bin>>1);
-	int last=start+(bin&1);
-	for(int ibin=start;ibin<=last;ibin++) {
-	  for(unsigned int j=0;j<outervmstubs_->nStubsBinned(ibin);j++){
-	    std::pair<FPGAStub*,L1TStub*> outerstub=outervmstubs_->getStubBinned(ibin,j);
+	} else if ((disk1_==1 && disk2_==2)||
+		   (disk1_==3 && disk2_==4)) {
+	  
+	  if (debug1) cout << "Disk-disk pair" <<endl;
+	  
+	  int lookupbits=innerstub.first->getVMBits().value();
+	  bool negdisk=innerstub.first->disk().value()<0;
+	  int rdiffmax=(lookupbits>>6);	
+	  int newbin=(lookupbits&63);
+	  int bin=newbin/8;
+	  
+	  int rbinfirst=newbin&7;
+	  
+	  int start=(bin>>1);
+	  if (negdisk) start+=4;
+	  int last=start+(bin&1);
+	  for(int ibin=start;ibin<=last;ibin++) {
+	    for(unsigned int j=0;j<outervmstubs_->nStubsBinned(ibin);j++){
+	      countall++;
+	      std::pair<FPGAStub*,L1TStub*> outerstub=outervmstubs_->getStubBinned(ibin,j);
+	      int rbin=(outerstub.first->getVMBits().value()&7);
+	      if (start!=ibin) rbin+=8;
+	      if (rbin<rbinfirst) continue;
+	      if (rbin-rbinfirst>rdiffmax) continue;
 
-
-	    double r1=innerstub.second->r();
-	    double z1=innerstub.second->z();
-	    
-	    double r2=outerstub.second->r();
-	    double z2=outerstub.second->z();
-	    
-	    double z0=z1-(z1-z2)*r1/(r1-r2);
-	    
-	    if (fabs(z0)>30.0) continue;
-
-
-	    double rinv=2*sin(outerstub.second->phi()-innerstub.second->phi())/
-	      (innerstub.second->r()-outerstub.second->r());
-	    
-	    double pt=0.00299792*3.8/rinv;
-
-	    if (fabs(pt)<ptcut-0.3) continue;
-
-	    
-	    countall++;
-	    countpass++;
-	    //cout << "FPGATrackletEngine : "<<getName()<<" Adding stub pair"<<endl;
-	    stubpairs_->addStubPair(innerstub,outerstub);
-	  }
-	}
-
-      } else {
-
-	assert(0);
+	      stubpairs_->addStubPair(innerstub,outerstub);
+	      countpass++;
 	
-	for(unsigned int j=0;j<outervmstubs_->nStubs();j++){
-	  std::pair<FPGAStub*,L1TStub*> outerstub=outervmstubs_->getStub(j);
-	  countall++;
-
-
-	  if (layer1_!=0 && layer2_!=0) {
-
-	    assert(0); //should never get here!!!
-	    if (debug1) {
-	      cout << "In "<<getName()<<" have barrel candidate stub pair"<<endl;
 	    }
-	    
-	  
-	    double r1=innerstub.second->r();
-	    double z1=innerstub.second->z();
-	    
-	    double r2=outerstub.second->r();
-	    double z2=outerstub.second->z();
-
-	    double z2avg=z1*r2/r1;
-
-	    //cout << "z2avg z1 z2 : "<<z2avg<<" "<<z1<<" "<<z2<<endl;
-	  
-	    if (fabs(z2avg-z2)>30.0) {
-	      countall--; //undo the count since in the proper implementation this will be binned
-	      continue;
-	    }
-	    
-	    double z0=z1-(z1-z2)*r1/(r1-r2);
-	    
-	    //cout << "z0 : "<<z0<<endl;
-
-	    
-	    if (layer1_==1&&fabs(z0)>20.0) continue;
-	    if (layer1_==3&&fabs(z0)>30.0) continue;
-	    if (layer1_==5&&fabs(z0)>40.0) continue;
-	  
-	    //cout << "FPGATrackletEngine z0 = "<<z0<<endl;
-	    
-	    double rinv=2*sin(outerstub.second->phi()-innerstub.second->phi())/
-	      (innerstub.second->r()-outerstub.second->r());
-	    
-	    double pt=0.00299792*3.8/rinv;
-
-	    if (fabs(pt)<ptcut-0.3) continue;
-	    
-	    double pt1=innerstub.second->pt();
-	    double pt2=outerstub.second->pt();
-	    
-	    if (fabs(1.0/pt-1.0/pt1)>teptconsistency||
-		fabs(1.0/pt-1.0/pt2)>teptconsistency) {
-	      if (debug1) {
-		cout << "FPGATrackletEngine Rejected1 pt pt1 pt2 : "<<pt<<" "
-		     <<pt1<<" "<<pt2<<endl;
-	      }
-	      continue;
-	    }
-	    
-
-	  } else if (disk1_!=0 && disk2_!=0) {
-
-	    assert(0); //should never get here!!!
-
-	    if (debug1) {
-	      cout << "In "<<getName()<<" have endcap candidate stub pair"<<endl;
-	    }
-	    
-	    double z1=innerstub.second->z();
-	    double z2=outerstub.second->z();
-
-	    if (z1*z2<0.0) {
-	      countall--; //undo the count since in the proper implementation this will be binned
-	      continue;
-	    }
-	    
-	    double r1=innerstub.second->r();
-	    double r2=outerstub.second->r();
-
-	    double rproj=(r1/z1)*z2;
-	    
-	    if (fabs(r2-rproj)>5.0) {
-	      if (debug1) {
-		cout << "FPGATrackletEngine failed rproj cut"<<endl;
-	      }
-	      countall--; //undo the count since in the proper implementation this will be binned
-	      continue;
-	    }
-	    
-	    double z0=z1-(z1-z2)*r1/(r1-r2);
-
-	    if (fabs(z0)>25.0) {
-	      if (debug1) {
-		cout << "FPGATrackletEngine failed z0 cut"<<endl;
-	      }
-	      continue;
-	    }
-	    
-	    //cout << "FPGATrackletEngine z0 = "<<z0<<endl;
-
-	    double rinv=2*sin(outerstub.second->phi()-innerstub.second->phi())/
-	      (innerstub.second->r()-outerstub.second->r());
-	    
-	    double pt=0.00299792*3.8/rinv;
-
-	    if (fabs(pt)<ptcut-0.3) {
-	      if (debug1) {
-		cout << "FPGATrackletEngine failed min pt cut"<<endl;
-	      }
-	      continue;
-	    }
-	    
-	    //cout << "pt = "<<pt<<endl;
-	    
-	    double pt1=innerstub.second->pt();
-	    double pt2=outerstub.second->pt();
-	    
-	    if (z1<0) {   //HACK
-	      pt1=-pt1;
-	      pt2=-pt2;
-	    }
-	    
-	    
-	    if (fabs(1.0/pt-1.0/pt1)>teptconsistencydisk||
-		fabs(1.0/pt-1.0/pt2)>teptconsistencydisk) {
-	      if (debug1) {
-		cout << "FPGATrackletEngine Rejected2 pt pt1 pt2 : "
-		     <<pt<<" "<<pt1<<" "<<pt2<<endl;
-	      }
-	      continue;
-	    }
-
-	  } else if (disk1_!=0 && layer2_!=0) {
-
-	    cout << "disk1_ layer2_ "<<disk1_<<" "<<layer2_<<endl;
-	    
-	    assert(0);
-	    
-	    if (debug1) {
-	      cout << "In "<<getName()<<" have overlap candidate stub pair"<<endl;
-	    }
-
-
-	    double z1=innerstub.second->z();
-	  
-	    double z2=outerstub.second->z();
-	    
-	    //cout << "z1 = "<<z1<<endl;
-	    //cout << "r1 = "<<innerstub.second->r()<<endl;
-	    
-	    //cout << "z2 = "<<z2<<endl;
-	    //cout << "r2 = "<<outerstub.second->r()<<endl;
-	    
-	    //if (fabs(z2)<57.0) {
-	    //  countall--; //undo the count since in the proper implementation only stubs in correct z range will be includes
-	    //  continue;
-	    //}
-	    
-	  
-	    if (z1*z2<0.0) {
-	      countall--; //undo the count since in the proper implementation this will be binned
-	      continue;
-	    }
-	    
-	    
-	    double r1=innerstub.second->r();
-	    
-	    double r2=outerstub.second->r();
-
-	    if (fabs(r1)>42.0&&layer2_==1) {
-	      countall--; //undo the count since in the proper implementation only stubs in correct z range will be includes
-	      continue;
-	    }
-	    
-	  
-	    if (r2>r1) continue;
-
-	    double rproj=(r2/z2)*z1;
-	    
-	    if (fabs(r1-rproj)>5.0) {
-	      countall--; //undo the count since in the proper implementation this will be binned
-	      continue;
-	    }
-	    
-
-	    double z0=z1-(z1-z2)*r1/(r1-r2);
-	    
-	    if (fabs(z0)>25.0) continue;
-	    
-	  
-	    //cout << "FPGATrackletEngine z0 = "<<z0<<endl;
-	    
-	    double rinv=2*sin(outerstub.second->phi()-innerstub.second->phi())/
-	      (innerstub.second->r()-outerstub.second->r());
-	    
-	    double pt=0.00299792*3.8/rinv;
-
-	    if (fabs(pt)<ptcut-0.3) continue;
-	    
-	    double pt1=innerstub.second->pt();
-	    double pt2=outerstub.second->pt();
-	    
-	    if (z1<0) {   //HACK
-	      pt1=-pt1;
-	    }
-	    
-	  
-	    if (fabs(1.0/pt-1.0/pt1)>teptconsistencyoverlap||
-		fabs(1.0/pt-1.0/pt2)>teptconsistencyoverlap) {
-	      if (debug1) {
-		cout << "FPGATrackletEngine Rejected3 pt pt1 pt2 : "<<pt<<" "
-		     <<pt1<<" "<<pt2<<endl;
-	      }
-	      continue;
-	    }
-
-	    if (debug1) {
-	      cout << "Found overlap stub pair "<<getName()<<endl;
-	    }
-	    
-	  } else {
-	    assert(0);
 	  }
-	  
-	  if (debug1) {
-	    cout << "Adding stub pair in "<<getName()<<endl;
-	  }
-	  assert(stubpairs_!=0);
-	  countpass++;
-	  //cout << "FPGATrackletEngine : "<<getName()<<" Adding stub pair"<<endl;
-	  stubpairs_->addStubPair(innerstub,outerstub);
-	  
-	  if (countall>=MAXTE) break;
 	}
-	if (countall>=MAXTE) break;
       }
-
-      if (countall>5000) {
-	cout << "In FPGATrackletEngine::execute : "<<getName()
-	     <<" "<<innervmstubs_->nStubs()
-	     <<" "<<outervmstubs_->nStubs()
-	     <<" "<<countall<<" "<<countpass
-	     <<endl;
-	for(unsigned int i=0;i<innervmstubs_->nStubs();i++){
-	  std::pair<FPGAStub*,L1TStub*> innerstub=innervmstubs_->getStub(i);
-	  cout << "In FPGATrackletEngine::execute inner stub : "
-	       << innerstub.second->r()<<" "
-	       << innerstub.second->phi()<<" "
-	       << innerstub.second->r()*innerstub.second->phi()<<" "
-	       << innerstub.second->z()<<endl;
-	}
-	for(unsigned int i=0;i<outervmstubs_->nStubs();i++){
-	  std::pair<FPGAStub*,L1TStub*> outerstub=outervmstubs_->getStub(i);
-	  cout << "In FPGATrackletEngine::execute outer stub : "
-	       << outerstub.second->r()<<" "
-	       << outerstub.second->phi()<<" "
-	       << outerstub.second->r()*outerstub.second->phi()<<" "
-	       << outerstub.second->z()<<endl;
-	}
-	
+      
+    }
+  
+    if (countall>5000) {
+      cout << "In FPGATrackletEngine::execute : "<<getName()
+	   <<" "<<innervmstubs_->nStubs()
+	   <<" "<<outervmstubs_->nStubs()
+	   <<" "<<countall<<" "<<countpass
+	   <<endl;
+      for(unsigned int i=0;i<innervmstubs_->nStubs();i++){
+	std::pair<FPGAStub*,L1TStub*> innerstub=innervmstubs_->getStub(i);
+	cout << "In FPGATrackletEngine::execute inner stub : "
+	     << innerstub.second->r()<<" "
+	     << innerstub.second->phi()<<" "
+	     << innerstub.second->r()*innerstub.second->phi()<<" "
+	     << innerstub.second->z()<<endl;
       }
+      for(unsigned int i=0;i<outervmstubs_->nStubs();i++){
+	std::pair<FPGAStub*,L1TStub*> outerstub=outervmstubs_->getStub(i);
+	cout << "In FPGATrackletEngine::execute outer stub : "
+	     << outerstub.second->r()<<" "
+	     << outerstub.second->phi()<<" "
+	     << outerstub.second->r()*outerstub.second->phi()<<" "
+	     << outerstub.second->z()<<endl;
+      }
+      
     }
       
     if (writeTE) {
@@ -528,13 +292,141 @@ public:
       
   }
 
+  void setVMPhiBin() {
+    if (innervmstubs_==0 || outervmstubs_==0 ) return;
+
+    innervmstubs_->setother(outervmstubs_);
+    outervmstubs_->setother(innervmstubs_);
+
+    
+    if ((layer1_==1 && layer2_==2)||
+	(layer1_==3 && layer2_==4)||
+	(layer1_==5 && layer2_==6)){
+
+      int innerphibits=1;
+      int outerphibits=2;
+
+      int innerphibins=(1<<innerphibits);
+      int outerphibins=(1<<outerphibits);
+
+      double innerphimin, innerphimax;
+      innervmstubs_->getPhiRange(innerphimin,innerphimax);
+      double rinner=rmean[layer1_-1];
+      
+      double outerphimin, outerphimax;
+      outervmstubs_->getPhiRange(outerphimin,outerphimax);
+      double router=rmean[layer2_-1];
+
+      double phiinner[2];
+      double phiouter[2];
+	
+      for (int iphiinnerbin=0;iphiinnerbin<innerphibins;iphiinnerbin++){
+	phiinner[0]=innerphimin+iphiinnerbin*(innerphimax-innerphimin)/innerphibins;
+	phiinner[1]=innerphimin+(iphiinnerbin+1)*(innerphimax-innerphimin)/innerphibins;
+	for (int iphiouterbin=0;iphiouterbin<outerphibins;iphiouterbin++){
+	  phiouter[0]=outerphimin+iphiouterbin*(outerphimax-outerphimin)/outerphibins;
+	  phiouter[1]=outerphimin+(iphiouterbin+1)*(outerphimax-outerphimin)/outerphibins;
+
+          double bendinnermin=20.0;
+          double bendinnermax=-20.0;
+          double bendoutermin=20.0;
+          double bendoutermax=-20.0;
+          double rinvmin=1.0; 
+          for(int i1=0;i1<2;i1++) {
+            for(int i2=0;i2<2;i2++) {
+              double rinv1=rinv(phiinner[i1],phiouter[i2],rinner,router);
+              double abendinner=bend(rinner,-rinv1); //FIXME
+              double abendouter=bend(router,-rinv1);
+              //if (iSector_==0&&layer1_==1) {
+              //cout << "rin rinv1 bend : "<<rin[i3]<<" "<<rinv1<<" "<<abendinner<<endl;
+              //}
+              if (abendinner<bendinnermin) bendinnermin=abendinner;
+              if (abendinner>bendinnermax) bendinnermax=abendinner;
+              if (abendouter<bendoutermin) bendoutermin=abendouter;
+              if (abendouter>bendoutermax) bendoutermax=abendouter;
+              if (fabs(rinv1)<rinvmin) {
+                rinvmin=fabs(rinv1);
+              }
+		      
+            }
+          }
+
+          phitable_.push_back(rinvmin<rinvcut);
+          double bendinner=0.5*(bendinnermin+bendinnermax);
+          double bendouter=0.5*(bendoutermin+bendoutermax);
+          
+          for(int ibend=0;ibend<32;ibend++) {
+            double bend=(ibend-15.0)/2.0; 
+
+            pttableinner_.push_back(fabs(bend-bendinner)<1.7);
+            pttableouter_.push_back(fabs(bend-bendouter)<1.7);
+            
+          }
+
+        }
+      }
+
+      if (iSector_==0&&writeTETables) writeTETable();
+      
+    }
+
+  }
+
+  double rinv(double phi1, double phi2,double r1, double r2){
+
+    assert(r2>r1);
+
+    double dphi=phi2-phi1;
+    double dr=r2-r1;
+    
+    return 2.0*sin(dphi)/dr/sqrt(1.0+2*r1*r2*(1.0-cos(dphi))/(dr*dr));
+    
+  }
+
+  double bend(double r, double rinv) {
+
+    double dr=0.18;
+    
+    double delta=r*dr*0.5*rinv;
+
+    double bend=-delta/0.009;
+    if (r<55.0) bend=-delta/0.01;
+
+    return bend;
+    
+  }
+
+  void writeTETable() {
+
+    ofstream outptcut;
+    outptcut.open(getName()+"_ptcut.txt");
+    for(unsigned int i=0;i<phitable_.size();i++){
+      outptcut << i << " "  << phitable_[i]<<endl;
+    }
+    outptcut.close();
+
+    ofstream outstubptinnercut;
+    outstubptinnercut.open(getName()+"_stubptinnercut.txt");
+    for(unsigned int i=0;i<pttableinner_.size();i++){
+      outstubptinnercut << i << " "  << pttableinner_[i]<<endl;
+    }
+    outstubptinnercut.close();
+    
+    ofstream outstubptoutercut;
+    outstubptoutercut.open(getName()+"_stubptoutercut.txt");
+    for(unsigned int i=0;i<pttableouter_.size();i++){
+      outstubptoutercut << i << " "  << pttableouter_[i]<<endl;
+    }
+    outstubptoutercut.close();
+
+    
+  }
+  
   private:
 
     double phimax_;
     double phimin_;
 
-    FPGATETable* table_;
-    
     int layer1_;
     int layer2_;
     int disk1_;
@@ -552,6 +444,12 @@ public:
     FPGAVMStubsTE* outervmstubs_;
     
     FPGAStubPairs* stubpairs_;
+
+    vector<bool> phitable_;
+  //vector<double> bendtableinner_;
+  // vector<double> bendtableouter_;
+    vector<bool> pttableinner_;
+    vector<bool> pttableouter_;
 
     
   };

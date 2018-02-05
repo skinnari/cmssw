@@ -160,6 +160,9 @@ public:
     assert(stubinputs_.size()!=0);
 
     unsigned int count=0;
+
+    unsigned int indexphi1=0, indexphi2=0, indexphi3=0, indexphi4=0;
+    unsigned int indexphiex=0;
  
     if (layer_!=0){
       for(unsigned int j=0;j<stubinputs_.size();j++){
@@ -173,6 +176,26 @@ public:
 
 	  bool insert=false;
 
+      // stub index mapping to the corresponding AS memory filled by VMRouterME
+      int asindex = 0;
+      if (stub.first->phiregion()==1) asindex = indexphi1++;
+      else if (stub.first->phiregion()==2) asindex = indexphi2++;
+      else if (stub.first->phiregion()==3) asindex = indexphi3++;
+      else if (stub.first->phiregion()==4) asindex = indexphi4++;
+      else {
+        // Stub iphiRaw<4 or iphiRaw>27. It is used in TE but not ME, and is not stored in the AS memory filled by VMRouterME. Use an extra index to keep track of them.
+        asindex = indexphiex++;
+      }
+      
+      stub.first->setAllStubIndex(asindex);
+      stub.second->setAllStubIndex(asindex);
+
+      stub.first->setAllStubAddressTE(allstubs_[0]->nStubs());
+
+	  for (unsigned int l=0;l<allstubs_.size();l++){
+	    allstubs_[l]->addStub(stub);
+	  }
+      
 	  if (getName()=="VMRTE_L2PHIW"||getName()=="VMRTE_L2PHIQ") {
 	    //special case where even even layer is treated as an odd (inner layer)
 	    iphiRaw-=4;
@@ -219,14 +242,6 @@ public:
 	      }
 	    }
 	  }
-	    
-
-	  stub.first->setAllStubIndex(allstubs_[0]->nStubs());
-	  stub.second->setAllStubIndex(allstubs_[0]->nStubs());
-
-	  for (unsigned int l=0;l<allstubs_.size();l++){
-	    allstubs_[l]->addStub(stub);
-	  }
 
 	  //cout << "FPGAVMRouterTE "<<getName()<<" "<<stub.first->iphivmRaw()<<endl;
 	  
@@ -249,6 +264,27 @@ public:
 
 	  bool insert=false;
 
+      // stub index mapping to the corresponding AS memory filled by VMRouterME
+      int asindex = 0;
+      if (stub.first->phiregion()==1) asindex = indexphi1++;
+      else if (stub.first->phiregion()==2) asindex = indexphi2++;
+      else if (stub.first->phiregion()==3) asindex = indexphi3++;
+      else if (stub.first->phiregion()==4) asindex = indexphi4++;
+      else {
+        // Stub iphiRaw<4 or iphiRaw>27. It is used in TE but not ME, and is not stored in the AS memory filled by VMRouterME. Use an extra index to keep track of them.
+        asindex = indexphiex++;
+      }
+
+      stub.first->setAllStubIndex(asindex);
+      stub.second->setAllStubIndex(asindex);
+
+      stub.first->setAllStubAddressTE(allstubs_[0]->nStubs());
+
+      for (unsigned int l=0;l<allstubs_.size();l++){
+	    //cout << "FPGAVMRouterTE added stub to : "<<allstubs_[l]->getName()<<" "<<stub.second->r()<<endl;	     
+	    allstubs_[l]->addStub(stub);
+	  }
+      
 	  if (getName()=="VMRTE_D1PHIW"||getName()=="VMRTE_D1PHIQ") {
 	    //special case where odd disk is treated as outer disk
 	    iphiRaw/=2;
@@ -337,15 +373,6 @@ public:
 	      }
 
 	    }
-	  }
-
-
-	  stub.first->setAllStubIndex(allstubs_[0]->nStubs());
-	  stub.second->setAllStubIndex(allstubs_[0]->nStubs());
-	  
-	  for (unsigned int l=0;l<allstubs_.size();l++){
-	    //cout << "FPGAVMRouterTE added stub to : "<<allstubs_[l]->getName()<<" "<<stub.second->r()<<endl;	     
-	    allstubs_[l]->addStub(stub);
 	  }
 
 	  if (!insert) {

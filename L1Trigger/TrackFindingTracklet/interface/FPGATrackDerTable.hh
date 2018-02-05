@@ -283,9 +283,10 @@ public:
 
 
       double D[4][12];
+      int iD[4][12];
       double MinvDt[4][12];
       int iMinvDt[4][12];
-      
+      double sigma[12];
 
       if (print) {
 	for(int ii=0;ii<nlayers;ii++){
@@ -296,7 +297,7 @@ public:
 	}
       }
 
-      calculateDerivativesTable(nlayers,r,ndisks,z,alpha,t,rinv,D,MinvDt,iMinvDt);
+      calculateDerivatives(nlayers,r,ndisks,z,alpha,t,rinv,D,iD,MinvDt,iMinvDt,sigma);
 
 
       for(int j=0;j<nlayers+ndisks;j++){
@@ -719,6 +720,296 @@ public:
   }
 
 
+
+  static void invert(double M[4][8],unsigned int n){
+
+    assert(n<=4);
+
+    unsigned int i,j,k;
+    double ratio,a;
+
+    for(i = 0; i < n; i++){
+      for(j = n; j < 2*n; j++){
+	if(i==(j-n))
+	  M[i][j] = 1.0;
+	else
+	  M[i][j] = 0.0;
+      }
+    }
+
+    for(i = 0; i < n; i++){
+      for(j = 0; j < n; j++){
+	if(i!=j){
+	  ratio = M[j][i]/M[i][i];
+	  for(k = 0; k < 2*n; k++){
+	    M[j][k] -= ratio * M[i][k];
+	  }
+	}
+      }
+    }
+
+    for(i = 0; i < n; i++){
+      a = M[i][i];
+      for(j = 0; j < 2*n; j++){
+	M[i][j] /= a;
+      }
+    }
+  }
+
+
+
+
+  static void calculateDerivatives(unsigned int nlayers,
+				   double r[6],
+				   unsigned int ndisks,
+				   double z[5],
+				   double alpha[5],
+				   double t,
+				   double rinv,
+				   double D[4][12],
+				   int iD[4][12],
+				   double MinvDt[4][12],
+				   int iMinvDt[4][12],
+				   double sigma[12]){
+
+
+
+
+
+    double sigmax=0.01/sqrt(12.0);
+    double sigmaz=0.15/sqrt(12.0);
+    double sigmaz2=5.0/sqrt(12.0);
+
+    unsigned int n=nlayers+ndisks;
+    
+    assert(n<=6);
+
+    double rnew[6];
+
+    int j=0;
+
+
+    //here we handle a barrel hit
+    for(unsigned int i=0;i<nlayers;i++) {
+
+      double ri=r[i];
+
+      rnew[i]=ri;
+
+      //first we have the phi position
+      D[0][j]=-0.5*ri*ri/sqrt(1-0.25*ri*ri*rinv*rinv)/sigmax;
+      D[1][j]=ri/sigmax;
+      D[2][j]=0.0;
+      D[3][j]=0.0;
+      sigma[j]=sigmax;
+      j++;
+      //second the z position
+      D[0][j]=0.0;
+      D[1][j]=0.0;
+      if (ri<60.0) {
+	D[2][j]=(2/rinv)*asin(0.5*ri*rinv)/sigmaz;
+	D[3][j]=1.0/sigmaz;
+        sigma[j]=sigmaz;
+      } else {
+	D[2][j]=(2/rinv)*asin(0.5*ri*rinv)/sigmaz2;
+	D[3][j]=1.0/sigmaz2;
+        sigma[j]=sigmaz2;
+      }
+
+      j++;
+
+    }
+
+
+    for(unsigned int i=0;i<ndisks;i++) {
+
+      double zi=z[i];
+
+      double z0=0.0;
+ 
+      double rmultiplier=alpha[i]*zi/t;
+
+      double phimultiplier=zi/t;
+      
+      double drdrinv=-2.0*sin(0.5*rinv*(zi-z0)/t)/(rinv*rinv)
+      +(zi-z0)*cos(0.5*rinv*(zi-z0)/t)/(rinv*t);
+      double drdphi0=0;
+      double drdt=-(zi-z0)*cos(0.5*rinv*(zi-z0)/t)/(t*t);
+      double drdz0=-cos(0.5*rinv*(zi-z0)/t)/t;
+
+
+      double dphidrinv=-0.5*(zi-z0)/t;
+      double dphidphi0=1.0;
+      double dphidt=0.5*rinv*(zi-z0)/(t*t);
+      double dphidz0=0.5*rinv/t;
+
+      double r=(zi-z0)/t;
+
+      rnew[i+nlayers]=r;
+
+      D[0][j]=(phimultiplier*dphidrinv+rmultiplier*drdrinv)/sigmax;
+      D[1][j]=(phimultiplier*dphidphi0+rmultiplier*drdphi0)/sigmax;
+      D[2][j]=(phimultiplier*dphidt+rmultiplier*drdt)/sigmax;
+      D[3][j]=(phimultiplier*dphidz0+rmultiplier*drdz0)/sigmax;
+      sigma[j]=sigmax;
+
+      j++;
+
+      if (fabs(alpha[i])<1e-10) {
+	D[0][j]=drdrinv/sigmaz;
+	D[1][j]=drdphi0/sigmaz;
+	D[2][j]=drdt/sigmaz;
+	D[3][j]=drdz0/sigmaz;
+        sigma[j]=sigmaz;
+      }
+      else {
+	D[0][j]=drdrinv/sigmaz2;
+	D[1][j]=drdphi0/sigmaz2;
+	D[2][j]=drdt/sigmaz2;
+	D[3][j]=drdz0/sigmaz2;
+        sigma[j]=sigmaz2;
+      }
+
+
+      j++;
+      
+
+    }
+
+    double M[4][8];
+
+    for(unsigned int i1=0;i1<4;i1++){
+      for(unsigned int i2=0;i2<4;i2++){
+	M[i1][i2]=0.0;
+	for(unsigned int j=0;j<2*n;j++){
+	  M[i1][i2]+=D[i1][j]*D[i2][j];	  
+	}
+      }
+    }
+
+    invert(M,4);
+
+    for(unsigned int j=0;j<12;j++) {
+      for(unsigned int i1=0;i1<4;i1++) {
+	MinvDt[i1][j]=0.0;
+	iMinvDt[i1][j]=0;
+      }
+    }  
+
+    for(unsigned int j=0;j<2*n;j++) {
+      for(unsigned int i1=0;i1<4;i1++) {
+	for(unsigned int i2=0;i2<4;i2++) {
+	  MinvDt[i1][j]+=M[i1][i2+4]*D[i2][j];
+	}
+      }
+    }
+
+
+    for (unsigned int i=0;i<n;i++) {
+
+      iD[0][2*i]=D[0][2*i]*(1<<chisqphifactbits)*krinvpars/(1<<fitrinvbitshift);
+      iD[1][2*i]=D[1][2*i]*(1<<chisqphifactbits)*kphi0pars/(1<<fitphi0bitshift);
+      iD[2][2*i]=D[2][2*i]*(1<<chisqphifactbits)*ktpars/(1<<fittbitshift);
+      iD[3][2*i]=D[3][2*i]*(1<<chisqphifactbits)*kzpars/(1<<fitz0bitshift);
+
+      
+      iD[0][2*i+1]=D[0][2*i+1]*(1<<chisqzfactbits)*krinvpars/(1<<fitrinvbitshift);
+      iD[1][2*i+1]=D[1][2*i+1]*(1<<chisqzfactbits)*kphi0pars/(1<<fitphi0bitshift);
+      iD[2][2*i+1]=D[2][2*i+1]*(1<<chisqzfactbits)*ktpars/(1<<fittbitshift);
+      iD[3][2*i+1]=D[3][2*i+1]*(1<<chisqzfactbits)*kzpars/(1<<fitz0bitshift);
+	
+      
+
+
+      //First the barrel
+      if (i<nlayers) {
+
+	MinvDt[0][2*i]*=rnew[i]/sigmax;
+	MinvDt[1][2*i]*=rnew[i]/sigmax;
+	MinvDt[2][2*i]*=rnew[i]/sigmax;
+	MinvDt[3][2*i]*=rnew[i]/sigmax;
+
+	
+	iMinvDt[0][2*i]=(1<<fitrinvbitshift)*MinvDt[0][2*i]*kphi1/krinvpars;
+	iMinvDt[1][2*i]=(1<<fitphi0bitshift)*MinvDt[1][2*i]*kphi1/kphi0pars;
+	iMinvDt[2][2*i]=(1<<fittbitshift)*MinvDt[2][2*i]*kphi1/ktpars;
+	iMinvDt[3][2*i]=(1<<fitz0bitshift)*MinvDt[3][2*i]*kphi1/kzpars;
+
+	if (rnew[i]<60.0) {
+	  MinvDt[0][2*i+1]/=sigmaz;
+	  MinvDt[1][2*i+1]/=sigmaz;
+	  MinvDt[2][2*i+1]/=sigmaz;
+	  MinvDt[3][2*i+1]/=sigmaz;
+
+	  iMinvDt[0][2*i+1]=(1<<fitrinvbitshift)*MinvDt[0][2*i+1]*kzproj/krinvpars;
+	  iMinvDt[1][2*i+1]=(1<<fitphi0bitshift)*MinvDt[1][2*i+1]*kzproj/kphi0pars;
+	  iMinvDt[2][2*i+1]=(1<<fittbitshift)*MinvDt[2][2*i+1]*kzproj/ktpars;
+	  iMinvDt[3][2*i+1]=(1<<fitz0bitshift)*MinvDt[3][2*i+1]*kzproj/kzpars;
+	} else {
+	  MinvDt[0][2*i+1]/=sigmaz2;
+	  MinvDt[1][2*i+1]/=sigmaz2;
+	  MinvDt[2][2*i+1]/=sigmaz2;
+	  MinvDt[3][2*i+1]/=sigmaz2;
+
+	  int fact=(1<<(nbitszprojL123-nbitszprojL456));
+
+	  iMinvDt[0][2*i+1]=(1<<fitrinvbitshift)*MinvDt[0][2*i+1]*fact*kzproj/krinvpars;
+	  iMinvDt[1][2*i+1]=(1<<fitphi0bitshift)*MinvDt[1][2*i+1]*fact*kzproj/kphi0pars;
+	  iMinvDt[2][2*i+1]=(1<<fittbitshift)*MinvDt[2][2*i+1]*fact*kzproj/ktpars;
+	  iMinvDt[3][2*i+1]=(1<<fitz0bitshift)*MinvDt[3][2*i+1]*fact*kzproj/kzpars;
+	}
+      }
+
+      //Secondly the disks
+      else {
+
+	if (fabs(alpha[i])<1e-10) {
+	  MinvDt[0][2*i]*=(rnew[i]/sigmax);
+	  MinvDt[1][2*i]*=(rnew[i]/sigmax);
+	  MinvDt[2][2*i]*=(rnew[i]/sigmax);
+	  MinvDt[3][2*i]*=(rnew[i]/sigmax);
+	} else {
+	  MinvDt[0][2*i]*=(rnew[i]/sigmax);
+	  MinvDt[1][2*i]*=(rnew[i]/sigmax);
+	  MinvDt[2][2*i]*=(rnew[i]/sigmax);
+	  MinvDt[3][2*i]*=(rnew[i]/sigmax);
+	}      
+
+	assert(MinvDt[0][2*i]==MinvDt[0][2*i]);
+
+	iMinvDt[0][2*i]=(1<<fitrinvbitshift)*MinvDt[0][2*i]*kphiprojdisk/krinvparsdisk;
+	iMinvDt[1][2*i]=(1<<fitphi0bitshift)*MinvDt[1][2*i]*kphiprojdisk/kphi0parsdisk;
+	iMinvDt[2][2*i]=(1<<fittbitshift)*MinvDt[2][2*i]*kphiprojdisk/ktparsdisk;
+	iMinvDt[3][2*i]=(1<<fitz0bitshift)*MinvDt[3][2*i]*kphiprojdisk/kzdisk;
+
+	if (fabs(alpha[i])<1e-10) {
+	  MinvDt[0][2*i+1]/=sigmaz;
+	  MinvDt[1][2*i+1]/=sigmaz;
+	  MinvDt[2][2*i+1]/=sigmaz;
+	  MinvDt[3][2*i+1]/=sigmaz;
+	} else {
+	  MinvDt[0][2*i+1]/=sigmaz2;
+	  MinvDt[1][2*i+1]/=sigmaz2;
+	  MinvDt[2][2*i+1]/=sigmaz2;
+	  MinvDt[3][2*i+1]/=sigmaz2;
+	}
+
+	iMinvDt[0][2*i+1]=(1<<fitrinvbitshift)*MinvDt[0][2*i+1]*krprojshiftdisk/krinvparsdisk;
+	iMinvDt[1][2*i+1]=(1<<fitphi0bitshift)*MinvDt[1][2*i+1]*krprojshiftdisk/kphi0parsdisk;
+	iMinvDt[2][2*i+1]=(1<<fittbitshift)*MinvDt[2][2*i+1]*krprojshiftdisk/ktparsdisk;
+	iMinvDt[3][2*i+1]=(1<<fitz0bitshift)*MinvDt[3][2*i+1]*krprojshiftdisk/kzdisk;
+      
+      }
+
+    }
+    
+
+  }
+  
+
+  
+  /*  
+
   void invert(double M[4][8],unsigned int n){
 
     assert(n<=4);
@@ -856,16 +1147,11 @@ public:
       //cout << "FITLINNEW r = "<<r<<endl; 
 
       //second the rphi position
-      double sigmaxtmp=sigmax;
-      if (fabs(alpha[i])>1e-10) {
-	//cout << "Table for outer disks : "<<r<<" "<<zi<<endl;
-	sigmaxtmp*=errfac;
-      }
 
-      D[0][j]=(phimultiplier*dphidrinv+rmultiplier*drdrinv)/sigmaxtmp;
-      D[1][j]=(phimultiplier*dphidphi0+rmultiplier*drdphi0)/sigmaxtmp;
-      D[2][j]=(phimultiplier*dphidt+rmultiplier*drdt)/sigmaxtmp;
-      D[3][j]=(phimultiplier*dphidz0+rmultiplier*drdz0)/sigmaxtmp;
+      D[0][j]=(phimultiplier*dphidrinv+rmultiplier*drdrinv)/sigmax;
+      D[1][j]=(phimultiplier*dphidphi0+rmultiplier*drdphi0)/sigmax;
+      D[2][j]=(phimultiplier*dphidt+rmultiplier*drdt)/sigmax;
+      D[3][j]=(phimultiplier*dphidz0+rmultiplier*drdz0)/sigmax;
 
       //cout << "1 D "<<D[0][j]<<" "<<D[1][j]<<" "<<D[2][j]<<" "<<D[3][j]<<endl;
 
@@ -975,10 +1261,10 @@ public:
 	  MinvDt[2][2*i]*=(rnew[i]/sigmax);
 	  MinvDt[3][2*i]*=(rnew[i]/sigmax);
 	} else {
-	  MinvDt[0][2*i]*=(rnew[i]/(errfac*sigmax));
-	  MinvDt[1][2*i]*=(rnew[i]/(errfac*sigmax));
-	  MinvDt[2][2*i]*=(rnew[i]/(errfac*sigmax));
-	  MinvDt[3][2*i]*=(rnew[i]/(errfac*sigmax));
+	  MinvDt[0][2*i]*=(rnew[i]/sigmax);
+	  MinvDt[1][2*i]*=(rnew[i]/sigmax);
+	  MinvDt[2][2*i]*=(rnew[i]/sigmax);
+	  MinvDt[3][2*i]*=(rnew[i]/sigmax);
 	}      
 
 	//cout << "2 MinvDt[0][2*i] = "<<MinvDt[0][2*i]<<endl;
@@ -1014,6 +1300,8 @@ public:
 
   }
   
+  */
+
 
   double gett(int diskmask) { //should use layers also..
 

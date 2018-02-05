@@ -160,9 +160,9 @@ public:
   //Copy otherSector->inputprojections_ to this->outputprojections_ 
   void execute(FPGAProjectionTransceiver* otherSector){
 
-    if (debug1) {
-      cout << "FPGAProjectionTransceiver::execute "<<getName()<<endl;
-    }
+    //if (debug1) {
+    //  cout << "FPGAProjectionTransceiver::execute "<<getName()<<endl;
+    //}
     
     if (!doProjections) return;
 
@@ -178,7 +178,8 @@ public:
 	FPGATracklet* tracklet=otherProj->getFPGATracklet(l);
 	//Check that TCID is correctly ordered
 	if (oldTracklet!=0) {
-	  //cout << "PT::exectute: "<<oldTracklet->TCID()<<" "<<tracklet->TCID()<<endl;
+	  //cout << "PT::exectute: "<<getName()<<" "
+	  //     <<oldTracklet->TCID()<<" "<<tracklet->TCID()<<endl;
 	  assert(oldTracklet->TCID()<=tracklet->TCID());
 	}
 	oldTracklet=tracklet;
@@ -283,13 +284,14 @@ public:
 	  if (disk) {
 	    if (outputprojDPHI1==0) {
 	      cout << "FPGAProjectionTransceiver in : "<<getName()<< " outputprojDPHI1 is zero"<<endl;
+	      //assert(outputprojDPHI1!=0);
+	    } else {
+	      //cout << "In getName = "<<getName()<<endl;
+	      if (debug1) {
+		cout << "Adding tracklet "<<otherProj->getFPGATracklet(l)<<" to "<<outputprojDPHI1->getName()<<endl;
+	      }
+	      outputprojDPHI1->addProj(otherProj->getFPGATracklet(l));
 	    }
-	    //cout << "In getName = "<<getName()<<endl;
-	    assert(outputprojDPHI1!=0);
-	    if (debug1) {
-	      cout << "Adding tracklet "<<otherProj->getFPGATracklet(l)<<" to "<<outputprojDPHI1->getName()<<endl;
-	    }
-	    outputprojDPHI1->addProj(otherProj->getFPGATracklet(l));
 	  }
 	}
 
