@@ -53,6 +53,7 @@ public:
       }
     }
 
+
     if (writeVMTables) {
       writeVMTable("VMTableOuterL"+std::to_string(layer_)+".txt");
     }
@@ -81,14 +82,14 @@ public:
     
   }
 
-
   int lookup(int zbin, int rbin) {
 
     int index=zbin*rbins_+rbin;
     return table_[index];
     
   }
-    
+
+  
 private:
 
 

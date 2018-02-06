@@ -1473,7 +1473,8 @@ public:
 
   double phioffset() const {return phioffset_;}
 
-  void setTrackletIndex(int index) {trackletIndex_=index;}
+  void setTrackletIndex(int index) {trackletIndex_=index;
+    assert(index<64);}
 
   int trackletIndex() const {return trackletIndex_;}
 

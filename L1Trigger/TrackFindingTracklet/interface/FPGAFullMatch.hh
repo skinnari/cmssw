@@ -58,7 +58,8 @@ public:
     std::pair<FPGATracklet*,std::pair<FPGAStub*,L1TStub*> > tmp(tracklet,stub);
     //Check that we have the right TCID order
     if (matches_.size()>0) {
-      //cout << matches_[matches_.size()-1].first->TCID()<<" "<<tracklet->TCID()<<endl;
+      //cout << matches_[matches_.size()-1].first->TCID()<<" "<<tracklet->TCID()
+      //   <<" "<<tracklet<<" "<<tracklet->trackletIndex()<<endl;
       assert(matches_[matches_.size()-1].first->TCID()<tracklet->TCID());
 
     }

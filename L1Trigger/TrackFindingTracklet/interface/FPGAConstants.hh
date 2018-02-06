@@ -66,6 +66,7 @@ static bool writeHitPattern=false;
 static bool writeTrackletParsOverlap=false;
 static bool writeTrackletParsDisk=false;
 
+static bool writeAllCT=false; //write out .dat file containing all output tracks in bitwise format
 
 static bool writeResEff=false; //write files for making resolution & efficiency plots for standable code version
 

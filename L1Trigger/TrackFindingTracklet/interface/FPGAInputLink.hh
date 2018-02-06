@@ -10,6 +10,7 @@
 #include "L1TStub.hh"
 #include "FPGAStub.hh"
 #include "FPGAMemoryBase.hh"
+#include "FPGAVMRouterPhiCorrTable.hh"
 #include <math.h>
 #include <sstream>
 
@@ -28,12 +29,38 @@ public:
 
   void addStub(L1TStub& al1stub, FPGAStub& stub) {
 
+    static bool first=true;
+    static FPGAVMRouterPhiCorrTable phiCorrLayers[6];
+
+    if (first) {
+      for (int l=0;l<6;l++){
+        phiCorrLayers[l].init(l+1,5,3);
+      }
+      first=false;
+    }
+    
+
+    
+    if (stub.layer().value()!=-1) {
+
+      FPGAWord r=stub.r();
+      FPGAWord bend=stub.bend();
+      int bendbin=bend.value()>>(bend.nbits()-5);
+      int rbin=(r.value()+(1<<(r.nbits()-1)))>>(r.nbits()-3);
+      
+      int iphicorr=phiCorrLayers[stub.layer().value()].getphiCorrValue(bendbin,rbin);
+
+      stub.setPhiCorr(iphicorr);
+
+    }
+    
     bool add=false;
     int iphivmRaw=stub.iphivmRaw();
       
     if (stub.layer().value()!=-1) {
       //cout << "FPGAInputLink::addStub "<<stub.layer().value()<<endl;
 
+      
       string subname=getName().substr(5,7);
       string subnamelayer=getName().substr(3,2);
       
@@ -283,8 +310,9 @@ public:
     }
     if (stubs_.size()<MAXSTUBSLINK) {
       L1TStub* l1stub=new L1TStub(al1stub);
-      FPGAStub* stub=new FPGAStub(*l1stub,phimin_,phimax_);
-      std::pair<FPGAStub*,L1TStub*> tmp(stub,l1stub);
+      //FPGAStub* stub=new FPGAStub(*l1stub,phimin_,phimax_);
+      FPGAStub* stubptr=new FPGAStub(stub);
+      std::pair<FPGAStub*,L1TStub*> tmp(stubptr,l1stub);
       stubs_.push_back(tmp);
     }
   }

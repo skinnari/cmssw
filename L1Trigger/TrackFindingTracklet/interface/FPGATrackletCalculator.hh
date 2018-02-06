@@ -2809,6 +2809,10 @@ public:
     //cout << "FPGATrackletCalculator execute "<<getName()<<" "<<stubpairs_.size()<<endl;
     
     for(unsigned int l=0;l<stubpairs_.size();l++){
+      if (trackletpars_->nTracklets()>=63) {
+	cout << "Will break on too many tracklets in "<<getName()<<endl;
+	break;
+      }
       for(unsigned int i=0;i<stubpairs_[l]->nStubPairs();i++){
 
 	countall++;
@@ -4192,7 +4196,7 @@ public:
 	}
 
 	if (trackletpars_->nTracklets()>=63) {
-	  cout << "Will break on number of tracklets"<<endl;
+	  cout << "Will break on number of tracklets in "<<getName()<<endl;
 	  break;
 	}
 	

@@ -195,8 +195,7 @@ public:
       z_.set(iz,izbits,false,__LINE__,__FILE__);
       phi_.set(iphi,iphibits,true,__LINE__,__FILE__);
 
-
-
+      /*
       double Delta=stub.r()-rmean[layer-1];
       double dphi=Delta*stub.bend()*0.009/0.18/rmean[layer-1];
 
@@ -216,7 +215,11 @@ public:
       if (iphicorr<0) iphicorr=0;
       if (iphicorr>=(1<<phi_.nbits())) iphicorr=(1<<phi_.nbits())-1;
 
-      phicorr_.set(iphicorr,iphibits,true,__LINE__,__FILE__);
+        
+      */
+
+      phicorr_.set(iphi,iphibits,true,__LINE__,__FILE__);
+
       
       int iphivm=0;
       
@@ -641,6 +644,38 @@ public:
     stubaddressaste_.set(nstub,6);
   }
 
+
+  void setPhiCorr(int phiCorr){
+
+    /*    
+    int layer=layer_.value()+1;
+    
+    double Delta=stubr_-rmean[layer-1];
+    double dphi=Delta*0.5*(bend_.value()-15.0)*0.009/0.18/rmean[layer-1];
+
+    int idphi=0;
+
+    if (layer<=3) {
+      idphi=dphi/kphi;
+    } else {
+        idphi=dphi/kphi1;
+    }
+    */
+     
+    //cout << "iphi idphi "<<phi_.value()<<" "<<idphi<<endl;
+    
+    //int iphicorr=phi_.value()+idphi;
+    int iphicorr=phi_.value()+phiCorr;
+
+    //cout << "phiCorr: layer bend old, new : "<<layer<<" "<<bend_.value()<<" "<<idphi<<" "<<phiCorr<<endl;
+    
+    if (iphicorr<0) iphicorr=0;
+    if (iphicorr>=(1<<phi_.nbits())) iphicorr=(1<<phi_.nbits())-1;
+
+    phicorr_.set(iphicorr,phi_.nbits(),true,__LINE__,__FILE__);
+
+  }
+  
   void setVMBits(int bits){
     int nbits=-1;
     if (layer_.value()==0 or layer_.value()==2 or layer_.value()==4) { // L1, L3, L5
