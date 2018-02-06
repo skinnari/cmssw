@@ -358,8 +358,8 @@ public:
           for(int ibend=0;ibend<32;ibend++) {
             double bend=(ibend-15.0)/2.0; 
 
-            pttableinner_.push_back(fabs(bend-bendinner)<1.7);
-            pttableouter_.push_back(fabs(bend-bendouter)<1.7);
+            pttableinner_.push_back(fabs(bend-bendinner)<1.5);
+            pttableouter_.push_back(fabs(bend-bendouter)<1.5);
             
           }
 

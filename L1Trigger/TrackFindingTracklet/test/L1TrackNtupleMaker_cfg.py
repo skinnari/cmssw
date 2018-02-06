@@ -43,12 +43,12 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgradePLS3', '')
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
 
 if GEOMETRY == "D17":
     #D17 (tilted barrel -- latest and greatest with T5 tracker, see: https://github.com/cms-sw/cmssw/blob/CMSSW_9_3_0_pre2/Configuration/Geometry/README.md)
     Source_Files = cms.untracked.vstring(
-        "/store/relval/CMSSW_9_3_2/RelValSingleMuPt10Extended/GEN-SIM-DIGI-RAW/93X_upgrade2023_realistic_v2_2023D17noPU-v1/10000/12D20D3F-D5A6-E711-8C40-0025905A608A.root"
+    #"/store/relval/CMSSW_9_3_2/RelValSingleMuPt10Extended/GEN-SIM-DIGI-RAW/93X_upgrade2023_realistic_v2_2023D17noPU-v1/10000/12D20D3F-D5A6-E711-8C40-0025905A608A.root"
     ## these files already have the latest stubs + stub-MC associators
     ## PU=0
     # https://svnweb.cern.ch/cern/wsvn/UK-TrackTrig/software/cmssw/trunkSimpleCode9/MCsamples/932/RelVal/eclementMC/TTbar/PU0.txt
@@ -56,6 +56,9 @@ if GEOMETRY == "D17":
     # https://svnweb.cern.ch/cern/wsvn/UK-TrackTrig/software/cmssw/trunkSimpleCode9/MCsamples/932/RelVal/eclementMC/TTbar/PU140.txt
     ## PU=200
     # https://svnweb.cern.ch/cern/wsvn/UK-TrackTrig/software/cmssw/trunkSimpleCode9/MCsamples/932/RelVal/eclementMC/TTbar/PU200.txt
+    "/store/user/ejclemen/L1TT/RelVal_932/WithTruthAssociation/TTbar/PU200/output_0.root",
+    "/store/user/ejclemen/L1TT/RelVal_932/WithTruthAssociation/TTbar/PU200/output_1.root",
+    "/store/user/ejclemen/L1TT/RelVal_932/WithTruthAssociation/TTbar/PU200/output_2.root",
     )
 elif GEOMETRY == "tilted":
     Source_Files = cms.untracked.vstring(
@@ -64,7 +67,7 @@ elif GEOMETRY == "tilted":
 )
 process.source = cms.Source("PoolSource", fileNames = Source_Files)
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('MuPt10_'+GEOMETRY+'_PU0.root'), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string('TTbar_'+GEOMETRY+'_PU200.root'), closeFileFast = cms.untracked.bool(True))
 
 
 ############################################################
@@ -143,8 +146,8 @@ process.ana = cms.Path(process.L1TrackNtuple)
 #process.schedule = cms.Schedule(process.TTClusterStub,TrackTriggerAssociatorClustersStubs,process.TTTracksEmulationWithTruth,process.ana)
 
 # use this if cluster/stub associators not available 
-process.schedule = cms.Schedule(process.TTClusterStubTruth,process.TTTracksEmulationWithTruth,process.ana)
+#process.schedule = cms.Schedule(process.TTClusterStubTruth,process.TTTracksEmulationWithTruth,process.ana)
 
 # use this to only run tracking + track associator
-#process.schedule = cms.Schedule(process.TTTracksEmulationWithTruth,process.ana)
+process.schedule = cms.Schedule(process.TTTracksEmulationWithTruth,process.ana)
 
