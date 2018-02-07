@@ -258,8 +258,10 @@ public:
 
 	int iphi=(iphivmRaw-4)>>3;
 
-	if (layer_==2||layer_==4||layer_==6) {
-	  iphi=iphivmRaw>>3;
+	if (!disk) {
+	  if (layer_==2||layer_==4||layer_==6) {
+	    iphi=iphivmRaw>>3;
+	  }
 	}
     
 	

@@ -3151,13 +3151,18 @@ public:
 
 	  bool addL3=false;
 	  bool addL4=false;
+	  bool addL5=false;
+	  bool addL6=false;
 	  for(unsigned int j=0;j<4;j++){
 	    //	    cout<<" LL to L "<<lproj[j]<<"\n";
 	    bool added=false;
 	    if (tracklet->validProj(lproj[j])) {
+	      //cout << "Add tracklet "<<tracklet<<" for layer "<<lproj[j]<<endl;
 	      added=addLayerProj(tracklet,lproj[j]);
 	      if (added&&lproj[j]==3) addL3=true;
 	      if (added&&lproj[j]==4) addL4=true;
+	      if (added&&lproj[j]==5) addL5=true;
+	      if (added&&lproj[j]==6) addL6=true;
 	    }
 	  }
 
@@ -3166,9 +3171,12 @@ public:
 	    int disk=j+1;
 	    if (disk==4&&addL3) continue;
 	    if (disk==3&&addL4) continue;
+	    if (disk==2&&addL5) continue;
+	    if (disk==1&&addL6) continue;
 	    if (it<0) disk=-disk;
 	    //	    cout<<" LL to disk "<<disk<<"\n";
 	    if (tracklet->validProjDisk(abs(disk))) {
+	      //cout << "Add tracklet "<<tracklet<<" for disk "<<disk<<endl;
 	      addDiskProj(tracklet,disk);
 	    }
 	  }

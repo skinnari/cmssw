@@ -138,70 +138,134 @@ public:
     
     std::vector<std::pair<FPGATracklet*,std::pair<FPGAStub*,L1TStub*> > >  tmp;
 
-	//cout << "FPGAMatchCalcultor::mergedMatches inputs"<<endl;
-	std::vector<unsigned int> indexArray;
-	indexArray.reserve(candmatch.size());
-	for (unsigned int i=0;i<candmatch.size();i++) {
-	  indexArray.push_back(0);
-	}
+    //cout << "FPGAMatchCalcultor::mergedMatches inputs"<<endl;
+    std::vector<unsigned int> indexArray;
+    indexArray.reserve(candmatch.size());
+    for (unsigned int i=0;i<candmatch.size();i++) {
+      indexArray.push_back(0);
+    }
 
-	int bestIndex=-1;
-	do {
+    int bestIndex=-1;
+    do {
       int bestSector=100;
-	  int bestTCID=(1<<16);
-	  bestIndex=-1;
-	  for (unsigned int i=0;i<candmatch.size();i++) {
-	    if (indexArray[i]>=candmatch[i]->nMatches()) {
-		  // skip as we were at the end
-		  continue;
-		}
-		int TCID=candmatch[i]->getFPGATracklet(indexArray[i])->TCID();
-		int dSector=candmatch[i]->getFPGATracklet(indexArray[i])->homeSector()-iSector_;
-		if (dSector>2) dSector-=NSector;
-		if (dSector<-2) dSector+=NSector;
-		assert(abs(dSector)<2);
-		if (dSector==-1) dSector=2;
-		if (dSector<bestSector) {
-		  bestSector=dSector;
-		  bestTCID=TCID;
-		  bestIndex=i;
-		}
-		if (dSector==bestSector) {
-		  if (TCID<bestTCID) {
-		    bestTCID=TCID;
-			bestIndex=i;
-		  }
-		}
-	  }
-	  if (bestIndex!=-1) {
-	    tmp.push_back(candmatch[bestIndex]->getMatch(indexArray[bestIndex]));
-		indexArray[bestIndex]++;
-	  }
-	} while (bestIndex!=-1);
-
-	//cout << "In FPGAMatchCalculator::mergedMatches : "<<tmp.size()<<endl;
-	for (unsigned int i=0;i<tmp.size();i++) {
-	  //cout <<iSector_<<" "<<tmp[i].first->homeSector()<<" "<<tmp[i].first->TCID()<<endl;
-	  if (i>0) {
-	    //This allows for equal TCIDs. This means that we can e.g. have a track seeded
-	    //in L1L2 that projects to both L3 and D4. The algorithm will pick up the first hit and
-		//drop the second
-		//cout << "Tracklet sector : "<<getName()<<" "<<iSector_<<" "
-		//	 <<tmp[i-1].first->homeSector()<<" "<<tmp[i].first->homeSector()<<endl;
-
-	    if (iSector_==tmp[i-1].first->homeSector()&&
-			iSector_==tmp[i].first->homeSector()) {
-		  assert(tmp[i-1].first->TCID()<=tmp[i].first->TCID());
-		}
+      int bestTCID=(1<<16);
+      bestIndex=-1;
+      for (unsigned int i=0;i<candmatch.size();i++) {
+	if (indexArray[i]>=candmatch[i]->nMatches()) {
+	  // skip as we were at the end
+	  continue;
+	}
+	int TCID=candmatch[i]->getFPGATracklet(indexArray[i])->TCID();
+	int dSector=candmatch[i]->getFPGATracklet(indexArray[i])->homeSector()-iSector_;
+	if (dSector>2) dSector-=NSector;
+	if (dSector<-2) dSector+=NSector;
+	assert(abs(dSector)<2);
+	if (dSector==-1) dSector=2;
+	if (dSector<bestSector) {
+	  bestSector=dSector;
+	  bestTCID=TCID;
+	  bestIndex=i;
+	}
+	if (dSector==bestSector) {
+	  if (TCID<bestTCID) {
+	    bestTCID=TCID;
+	    bestIndex=i;
 	  }
 	}
-	//cout << endl;
-
-	return tmp;
-  }
+      }
+      if (bestIndex!=-1) {
+	tmp.push_back(candmatch[bestIndex]->getMatch(indexArray[bestIndex]));
+	indexArray[bestIndex]++;
+      }
+    } while (bestIndex!=-1);
+    
+    if (layer_>0) {
+      
+      int lastTCID=-1;
+      int lastTCIDplus=-1;
+      int lastTCIDminus=-1;
+      bool error=false;
+      
+      //Allow equal TCIDs since we can have multiple candidate matches
+      for(unsigned int i=1;i<tmp.size();i++){
+	if (tmp[i].first->minusNeighbor(layer_)) {
+	  //cout << "For minus: tracklet TCID "<<tracklet<<" "<<tracklet->TCID()<<" "<<inputproj_[j]->getName()<<endl;
+	  if (lastTCIDminus>tmp[i].first->TCID()) {
+	    cout << "Wrong TCID ordering for Minus projections in "<<getName()<<" last "<<lastTCIDminus<<" "<<tmp[i].first->TCID()<<endl;
+	    error=true;
+	  } else {
+	    lastTCIDminus=tmp[i].first->TCID();
+	  }
+	} else if (tmp[i].first->plusNeighbor(layer_)) {
+	  if (lastTCIDplus>tmp[i].first->TCID()) {
+	    cout << "Wrong TCID ordering for Plus projections in "<<getName()<<" last "<<lastTCIDplus<<" "<<tmp[i].first->TCID()<<endl;
+	    error=true;
+	  } else {
+	    lastTCIDplus=tmp[i].first->TCID();
+	      }
+	} else {
+	  if (lastTCID>tmp[i].first->TCID()) {
+	    cout << "Wrong TCID ordering for projections in "<<getName()<<" last "<<lastTCID<<" "<<tmp[i].first->TCID()<<endl;
+	    error=true;
+	  } else {
+	    lastTCID=tmp[i].first->TCID();
+	  }
+	}
+      }
+      
+      if (error) {
+	for(unsigned int i=1;i<tmp.size();i++){
+	  cout << "Wrong order for in "<<getName()<<" "<<i<<" "<<tmp[i].first<<" "<<tmp[i].first->TCID()<<" "
+	       <<tmp[i].first->plusNeighbor(layer_)<<" "<<tmp[i].first->minusNeighbor(layer_)<<endl;
+	}
+      }
+      
+    }
+    
 	
+	
+    //cout << "In FPGAMatchCalculator::mergedMatches : "<<tmp.size()<<endl;
+    for (unsigned int i=0;i<tmp.size();i++) {
+      //cout <<iSector_<<" "<<tmp[i].first->homeSector()<<" "<<tmp[i].first->TCID()<<endl;
+      if (i>0) {
+	//This allows for equal TCIDs. This means that we can e.g. have a track seeded
+	//in L1L2 that projects to both L3 and D4. The algorithm will pick up the first hit and
+	//drop the second
+	//cout << "Tracklet sector : "<<getName()<<" "<<iSector_<<" "
+	//	 <<tmp[i-1].first->homeSector()<<" "<<tmp[i].first->homeSector()<<endl;
+
+	if (iSector_==tmp[i-1].first->homeSector()&&
+	    iSector_==tmp[i].first->homeSector()) {
+	  assert(tmp[i-1].first->TCID()<=tmp[i].first->TCID());
+		}
+      }
+    }
+    //cout << endl;
+    
+    return tmp;
+  }
+  
   void execute() {
 
+    if (layer_>0) {
+      
+    for (unsigned int l=0;l<matches_.size();l++){
+      for(unsigned int j=1;j<matches_[l]->nMatches();j++) {
+	bool firstMinus=matches_[l]->getMatch(j-1).first->minusNeighbor(layer_);
+	bool firstPlus=matches_[l]->getMatch(j-1).first->plusNeighbor(layer_);
+	bool firstCenter=!(firstMinus||firstPlus);
+	bool secondMinus=matches_[l]->getMatch(j).first->minusNeighbor(layer_);
+	bool secondPlus=matches_[l]->getMatch(j).first->plusNeighbor(layer_);
+	bool secondCenter=!(secondMinus||secondPlus);
+	if (((!firstCenter)&&secondCenter)||
+	    (firstPlus&&secondMinus)){
+	  cout << "Wrong order in  "<<matches_[l]->getName()<<" "<<matches_[l]->getMatch(j-1).first->plusNeighbor(layer_)<<" "<<matches_[l]->getMatch(j-1).first->minusNeighbor(layer_)<<"  -  "<<
+	    matches_[l]->getMatch(j).first->plusNeighbor(layer_)<<" "<<matches_[l]->getMatch(j).first->minusNeighbor(layer_)<<endl;
+	}
+      }
+    }
+
+}
     
     //again here we will cheat a little and use the information in matches
 
@@ -217,6 +281,8 @@ public:
     std::vector<std::pair<FPGATracklet*,std::pair<FPGAStub*,L1TStub*> > > mergedMatches=mergeMatches(matches_);
     
     //for(unsigned int j=0;j<matches_.size();j++){
+    //  cout << "FPGAMatchCalculator::execute matches_.size() "<<matches_[j]->getName()<<endl;
+    //}
       //cout << "FPGAMatchCalculator::execute matches_.size() "<<matches_[j]->nMatches()<<endl;
       //for(unsigned int i=0;i<matches_[j]->nMatches();i++){
 
