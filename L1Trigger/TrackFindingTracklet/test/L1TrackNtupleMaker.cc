@@ -107,6 +107,7 @@ private:
   bool DebugMode;       // lots of debug printout statements
   bool SaveAllTracks;   // store in ntuples not only truth-matched tracks but ALL tracks
   bool SaveStubs;       // option to save also stubs in the ntuples (makes them large...)
+  bool LooseMatch;      // use loose MC-matching instead
   int L1Tk_nPar;        // use 4 or 5 parameter track fit? 
   int TP_minNStub;      // require TPs to have >= minNStub (defining efficiency denominator) (==0 means to only require >= 1 cluster)
   int TP_minNStubLayer; // require TPs to have stubs in >= minNStubLayer layers/disks (defining efficiency denominator)
@@ -225,6 +226,7 @@ L1TrackNtupleMaker::L1TrackNtupleMaker(edm::ParameterSet const& iConfig) :
   DebugMode        = iConfig.getParameter< bool >("DebugMode");
   SaveAllTracks    = iConfig.getParameter< bool >("SaveAllTracks");
   SaveStubs        = iConfig.getParameter< bool >("SaveStubs");
+  LooseMatch       = iConfig.getParameter< bool >("LooseMatch");
   L1Tk_nPar        = iConfig.getParameter< int >("L1Tk_nPar");
   TP_minNStub      = iConfig.getParameter< int >("TP_minNStub");
   TP_minNStubLayer = iConfig.getParameter< int >("TP_minNStubLayer");
@@ -923,8 +925,11 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       for (int it=0; it<(int)matchedTracks.size(); it++) {
 
 	bool tmp_trk_genuine = false;
+	bool tmp_trk_loosegenuine = false;
 	if (MCTruthTTTrackHandle->isGenuine(matchedTracks.at(it))) tmp_trk_genuine = true;
-	if (!tmp_trk_genuine) continue;
+	if (MCTruthTTTrackHandle->isLooseGenuine(matchedTracks.at(it))) tmp_trk_loosegenuine = true;
+	if (LooseMatch && !tmp_trk_loosegenuine) continue;
+	if (!LooseMatch && !tmp_trk_genuine) continue;
 
 
 	if (DebugMode) {
@@ -944,6 +949,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
 	       << " z0 = " << matchedTracks.at(it)->getPOCA(L1Tk_nPar).z() 
 	       << " nstub = " << matchedTracks.at(it)->getStubRefs().size();
 	  if (tmp_trk_genuine) cout << " (genuine!) " << endl;
+	  if (tmp_trk_loosegenuine) cout << " (loose genuine!) " << endl;
 	}
 
 
