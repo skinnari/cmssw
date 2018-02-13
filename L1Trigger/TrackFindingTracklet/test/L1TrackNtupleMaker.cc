@@ -927,7 +927,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
 	bool tmp_trk_genuine = false;
 	bool tmp_trk_loosegenuine = false;
 	if (MCTruthTTTrackHandle->isGenuine(matchedTracks.at(it))) tmp_trk_genuine = true;
-	if (MCTruthTTTrackHandle->isLooseGenuine(matchedTracks.at(it))) tmp_trk_loosegenuine = true;
+	if (MCTruthTTTrackHandle->isLooselyGenuine(matchedTracks.at(it))) tmp_trk_loosegenuine = true;
 	if (LooseMatch && !tmp_trk_loosegenuine) continue;
 	if (!LooseMatch && !tmp_trk_genuine) continue;
 
