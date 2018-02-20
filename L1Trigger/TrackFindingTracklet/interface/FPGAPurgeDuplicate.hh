@@ -79,7 +79,6 @@ public:
     // Set the sector for FPGATrack, enabling the ability to do adjacent sector removal
     for(unsigned int strk=0; strk<numTrk; strk++) {
       inputtracks_[strk]->setSector(iSector_);
-
     }
 
     for(unsigned int itrk=0; itrk<numTrk-1; itrk++) { // numTrk-1 since last track has no other to compare to
@@ -88,9 +87,8 @@ public:
       if(inputtracks_[itrk]->duplicate()==1) continue;
 
       int nStubP = 0;
-      int nStubS[500] = {0};
-      int nShare[500] = {0};
-
+      vector<int> nStubS(numTrk);
+      vector<int> nShare(numTrk);
       // Get and count primary stubs
       std::map<int, int> stubsTrk1 = inputtracks_[itrk]->stubID();
       nStubP = stubsTrk1.size();
@@ -119,12 +117,13 @@ public:
         // Chi2 duplicate removal
         if((nStubP-nShare[jtrk] < minIndStubs) || (nStubS[jtrk]-nShare[jtrk] < minIndStubs)) {
 
-          if((int)inputtracks_[itrk]->chisq() > (int)inputtracks_[jtrk]->chisq()) {
+          if((int)inputtracks_[itrk]->ichisq() > (int)inputtracks_[jtrk]->ichisq()) {
             inputtracks_[itrk]->setDuplicate(true);
           }
-          if((int)inputtracks_[itrk]->chisq() <= (int)inputtracks_[jtrk]->chisq()) {
+          else if((int)inputtracks_[itrk]->ichisq() <= (int)inputtracks_[jtrk]->ichisq()) {
             inputtracks_[jtrk]->setDuplicate(true);
           }
+          else cout << "Error: Didn't tag either track in duplicate pair." << endl;
 
         }
 

@@ -49,6 +49,11 @@ public:
     if (subname[1]!='n') {
       phibin_=10*phibin_+(subname[1]-'0');
     }
+
+    for (unsigned int i=0;i<32;i++){
+      vmbendtable_[i]=true;
+    }
+
     
   }
   
@@ -58,6 +63,10 @@ public:
     assert(binlookup>=0);
     int bin=(binlookup/8);
 
+    bool pass=passbend(stub.first->bend().value());
+
+    if (!pass) return false;
+    
     if (overlap_) {
 	if (disk_==1) {
           bool negdisk=stub.first->disk().value()<0.0;
@@ -227,6 +236,17 @@ public:
     return other_;
   }
 
+  void setbendtable(bool vmbendtable[32]){
+    for (unsigned int i=0;i<32;i++){
+      vmbendtable_[i]=vmbendtable[i];
+    }
+  }
+
+  bool passbend(unsigned int ibend) const {
+    assert(ibend<32);
+    return vmbendtable_[ibend];
+  }
+  
   
 
 private:
@@ -238,6 +258,7 @@ private:
   bool overlap_;
   double phimin_;
   double phimax_;
+  bool vmbendtable_[32];
   std::vector<std::pair<FPGAStub*,L1TStub*> > stubs_;
   std::vector<std::pair<FPGAStub*,L1TStub*> > stubsbinned_[NLONGVMBINS];
 

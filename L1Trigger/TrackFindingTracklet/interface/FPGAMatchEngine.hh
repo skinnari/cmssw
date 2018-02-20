@@ -21,21 +21,11 @@ public:
     if (subname=="L4") layer_=4;
     if (subname=="L5") layer_=5;
     if (subname=="L6") layer_=6;
-    if (subname=="F1") disk_=1;
-    if (subname=="F2") disk_=2;
-    if (subname=="F3") disk_=3;
-    if (subname=="F4") disk_=4;
-    if (subname=="F5") disk_=5;
     if (subname=="D1") disk_=1;
     if (subname=="D2") disk_=2;
     if (subname=="D3") disk_=3;
     if (subname=="D4") disk_=4;
     if (subname=="D5") disk_=5;
-    if (subname=="B1") disk_=-1;
-    if (subname=="B2") disk_=-2;
-    if (subname=="B3") disk_=-3;
-    if (subname=="B4") disk_=-4;
-    if (subname=="B5") disk_=-5;
     if (layer_==0&&disk_==0) {
       cout << name<<" subname = "<<subname<<" "<<layer_<<" "<<disk_<<endl;
     }
@@ -102,32 +92,17 @@ public:
 	      if (debug1) {
 		cout << "Found stub in "<<getName()<<endl;
 	      }
-	      std::pair<FPGAStub*,L1TStub*> stub=vmstubs_->getStubBin(ibin,i);   
-	
+	      std::pair<FPGAStub*,L1TStub*> stub=vmstubs_->getStubBin(ibin,i);
 	      countall++;
 
-	      /*This here is old debugging code keep here commented out if needed AR
-	      if (doMEMatch){
-		double zcut=10.0;
-		if (layer_==1&&proj->layer()==5) zcut=20;
-		if (layer_==1&&abs(proj->disk())==3) zcut=20;
-		if (fabs(proj->zproj(layer_)-stub.second->z())>zcut) continue;
-		double dphi=proj->phiproj(layer_)-stub.second->phi();
-		double deltaphi=two_pi/NSector;
-		dphi-=deltaphi/6.0;
-		do {
-		  if (dphi>0.5*deltaphi) dphi-=deltaphi;
-		  if (dphi<-0.5*deltaphi) dphi+=deltaphi;
-		}while (abs(dphi)>=0.5*deltaphi);
-		//cout << "layer_ dphi r*dphi "<<layer_<<" "<<dphi<<" "
-		//	   << dphi*stub.second->r() << endl;
-		if (layer_==1&&abs(dphi*stub.second->r())>0.12) continue;
-		if (layer_==2&&abs(dphi*stub.second->r())>0.15) continue;
-		if (layer_==3&&abs(dphi*stub.second->r())>0.25) continue;
-		if (abs(stub.first->phivm().value()-
-			stub.first->phivm().value())>1) continue;
-	      } // if (doMEMatch)
-	      */
+	      double projbend=bend(rmean[layer_-1],proj->rinv());
+              double stubbend=0.5*(stub.first->bend().value()-15.0);
+	      
+	      //cout << "Bend : "<<projbend<<" "<<stubbend<<endl;
+
+	      if (fabs(projbend-stubbend)>1.25) continue;
+	      
+
 	      countpass++;
 	      candmatches_->addMatch(proj,stub);
 	      if (countall>=MAXME) break;
@@ -191,7 +166,20 @@ public:
 
   } // execute()
 
+  double bend(double r, double rinv) {
 
+    double dr=0.18;
+    
+    double delta=r*dr*0.5*rinv;
+
+    double bend=-delta/0.009;
+    if (r<55.0) bend=-delta/0.01;
+
+    return bend;
+    
+  }
+
+  
 private:
 
   FPGAVMStubsME* vmstubs_;

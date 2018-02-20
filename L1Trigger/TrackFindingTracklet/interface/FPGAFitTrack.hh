@@ -647,7 +647,7 @@ public:
 ////////////// NEW CHISQ /////////////////////
     bool NewChisqDebug=false;
     double chisqfit=0.0;
-    int ichisqfit=0;
+    uint ichisqfit=0;
 
     double phifactor;
     double rzfactor;
@@ -721,10 +721,25 @@ public:
     chisqfitexact=chisqfitexact/(2*n-4);
     ichisqfit=ichisqfit/(2*n-4);
 
-    //cout << "chisqfit = " << chisqfit << " " << ichisqfit/(1<<4) << endl;
+//    cout << "chisqfit  = " << chisqfit << "  div16 = " << chisqfit/(1<<4) << endl;
+//    cout << "ichisqfit = " << ichisqfit << "  div16 = " << ichisqfit/(1<<4) << endl;
+
+
+    // Experimental strategy:
+    if(ichisqfit < (1<<8));
+    else if(ichisqfit < (1<<12)) ichisqfit = (1<<8)+(ichisqfit>>4);
+    else if(ichisqfit < (1<<16)) ichisqfit = (1<<9)+(ichisqfit>>8);
+    else if(ichisqfit < (1<<20)) ichisqfit = (1<<9)+(1<<8)+(ichisqfit>>12);
+    else ichisqfit = (1<<10)-1;
+
+//    ofstream ichifile;
+//    ichifile.open("ichi.csv",ios_base::app);
+//    ichifile << ichisqfit << endl;
+//    ichifile.close();
+    
 
     //FIXME Number too large (?) in emulation
-    ichisqfit=0;
+//    ichisqfit=0;
     
     tracklet->setFitPars(rinvfit,phi0fit,tfit,z0fit,chisqfit,
 			 rinvfitexact,phi0fitexact,tfitexact,

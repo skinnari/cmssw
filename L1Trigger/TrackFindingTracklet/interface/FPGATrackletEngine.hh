@@ -319,7 +319,14 @@ public:
 
       double phiinner[2];
       double phiouter[2];
-	
+
+      bool vmbendinner[32];
+      bool vmbendouter[32];
+      for (unsigned int i=0;i<32;i++) {
+	vmbendinner[i]=false;
+	vmbendouter[i]=false;
+      }
+      
       for (int iphiinnerbin=0;iphiinnerbin<innerphibins;iphiinnerbin++){
 	phiinner[0]=innerphimin+iphiinnerbin*(innerphimax-innerphimin)/innerphibins;
 	phiinner[1]=innerphimin+(iphiinnerbin+1)*(innerphimax-innerphimin)/innerphibins;
@@ -358,14 +365,19 @@ public:
           for(int ibend=0;ibend<32;ibend++) {
             double bend=(ibend-15.0)/2.0; 
 
-            pttableinner_.push_back(fabs(bend-bendinner)<1.5);
-            pttableouter_.push_back(fabs(bend-bendouter)<1.5);
+	    if (fabs(bend-bendinner)<bendcut) vmbendinner[ibend]=true;
+	    if (fabs(bend-bendouter)<bendcut) vmbendouter[ibend]=true;
+            pttableinner_.push_back(fabs(bend-bendinner)<bendcut);
+            pttableouter_.push_back(fabs(bend-bendouter)<bendcut);
             
           }
 
         }
       }
 
+      innervmstubs_->setbendtable(vmbendinner);
+      outervmstubs_->setbendtable(vmbendouter);
+      
       if (iSector_==0&&writeTETables) writeTETable();
       
     }

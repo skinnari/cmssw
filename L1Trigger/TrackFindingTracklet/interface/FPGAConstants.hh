@@ -50,6 +50,7 @@ static bool writeTrackProj=false;
 static bool writeTrackProjOcc=false;
 static bool writeME=false;
 static bool writeMatchCalculator=false;
+static bool writeResiduals=false;
 static bool writeProjectionTransceiver=false;
 static bool writeMatchTransceiver=false;
 static bool writeFitTrack=false;
@@ -69,6 +70,7 @@ static bool writeTrackletParsDisk=false;
 static bool writeAllCT=false; //write out .dat file containing all output tracks in bitwise format
 
 static bool writeResEff=false; //write files for making resolution & efficiency plots for standable code version
+static bool writePars=false; //write files for making plots of track parameters
 
 
 
@@ -185,19 +187,12 @@ static double zminD5=zmeanD5-dzmax;
 static double zmaxD5=zmeanD5+dzmax; 
 
 
-
-
-
-static double ptstubconsistencymatching=10.4;
-static double ptstubconsistencydiskmatching=10.0;
-static double teptconsistency=1000.5;
-static double teptconsistencydisk=1000.5;
-static double teptconsistencyoverlap=1000.5;
 static bool   enstubbend = false; 
 static double two_pi=8.0*atan(1.0);
 
 static double ptcut=2.0; //Minimum pt
 static double rinvcut=0.01*0.3*3.8/ptcut; //0.01 to convert to cm-1
+static double bendcut=1.5;
 static double z0cut=15.0;
 
 static double alphamax=5.0/(65.0*65.0);
@@ -364,14 +359,14 @@ static int it7tmpfactordisk=(1<<(it7tmpbitsdisk-idrinvbits+irinvshiftdisk))*kphi
 static double kt9disk=1.0/(1<<(2*it7tmpbitsdisk-2*it7tmpshiftdisk-2*it7shiftdisk)); 
 
 
-static int rinvbitshift=(int)(1.0+log((maxrinv/(1<<(nbitsrinv-1)))/krinv)/log(2.0));
-static int phi0bitshift=(int)(1.0+log((maxphi0/(1<<(nbitsphi0-1)))/kphi1)/log(2.0));
-static int tbitshift=(int)(1.0+log((maxt/(1<<(nbitst-1)))/kt)/log(2.0));
-static int z0bitshift=(int)(1.0+log((maxz0/(1<<(nbitsz0-1)))/kz)/log(2.0));
+static int rinvbitshift=13; //(int)(1.0+log((maxrinv/(1<<(nbitsrinv-1)))/krinv)/log(2.0));
+static int phi0bitshift=1; //(int)(1.0+log((maxphi0/(1<<(nbitsphi0-1)))/kphi1)/log(2.0));
+static int tbitshift=9; //(int)(1.0+log((maxt/(1<<(nbitst-1)))/kt)/log(2.0));
+static int z0bitshift=0; //(int)(1.0+log((maxz0/(1<<(nbitsz0-1)))/kz)/log(2.0));
 
 
-static int rinvbitshiftdisk=(int)(1.0+log((maxrinv/(1<<(nbitsrinv-1)))/krinvdisk)/log(2.0));
-static int phi0bitshiftdisk=(int)(1.0+log((maxphi0/(1<<(nbitsphi0-1)))/kphi1)/log(2.0));
+static int rinvbitshiftdisk=13; //(int)(1.0+log((maxrinv/(1<<(nbitsrinv-1)))/krinvdisk)/log(2.0));
+static int phi0bitshiftdisk=1; //(int)(1.0+log((maxphi0/(1<<(nbitsphi0-1)))/kphi1)/log(2.0));
 
 
 static double krinvpars=krinv*(1<<rinvbitshift);

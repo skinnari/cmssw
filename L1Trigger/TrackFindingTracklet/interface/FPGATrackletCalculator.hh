@@ -1169,7 +1169,7 @@ public:
     iz0 = z0;        //K = 17.8087
 
     //cout <<"Tracklet pars rinv z0: "<<irinv*krinvpars<<" "<<iz0*kzpars<<endl;
-    
+
     //test
     if (fabs(irinv*krinvpars)>rinvcut*2) {        // *2 is HACK associated with "irinv/=2" below, the irinv calculation should be corrected earlier!!
       if (debug1) {

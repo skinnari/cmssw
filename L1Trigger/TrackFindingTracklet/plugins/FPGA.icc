@@ -6,13 +6,11 @@
     for (unsigned int k=0;k<NSector;k++) {
       sectors[k]->clean();
     }
-
-    /*    
+    /*
     for (std::map<string,FPGADTC>::iterator it=dtcs.begin();it!=dtcs.end();it++){
     	it->second.clean();
     }
     */
-    
     cleanTimer.stop();
 
     bool hitlayer[6];
@@ -163,7 +161,6 @@
 	//cout << "Done add stub"<<endl;	
       }
       */
-      
 
     }
 
@@ -173,7 +170,6 @@
        if (hitdisk[ii]) nlayershit++;
      }
     }   
-
 /*
 if (writeDTCLinks) {
   //cout << "Will write DTC links"<<endl;
@@ -343,7 +339,7 @@ if (writeHitEff) {
     PDTimer.start();
     for (unsigned int k=0;k<NSector;k++) {
       sectors[k]->executePD(tracks);	  
-      if((writemem||writeifit)&&k==writememsect){
+      if(((writemem||writeifit)&&k==writememsect) || writeAllCT){
          sectors[k]->writeCT(first);
       }
     }
@@ -364,36 +360,67 @@ if (writeHitEff) {
 
     //Tag adjacent sector duplicates
     if(AdjacentRemoval) {
-        for (int itrk=0; itrk<(int)tracks.size(); itrk++) {
-            //if primary track is a duplicate, it cannot veto any...move on
-            if(!tracks[itrk]->duplicate()) {          
-        
-                for(int jtrk=itrk+1; jtrk<(int)tracks.size(); jtrk++){
-                //if secondary track is a duplicate or not in an adjacent sector, it cannot veto any...move on
-                    if(!tracks[jtrk]->duplicate() && ( abs(tracks[itrk]->sector()-tracks[jtrk]->sector())==1 || abs(tracks[itrk]->sector()-tracks[jtrk]->sector())==27)) {
+      unsigned int nTrk = tracks.size();
 
-                        //get stub information
-                        int nShare=0;
-                        std::map<int, int> stubsTrk1 = tracks[itrk]->stubID();
-                        std::map<int, int> stubsTrk2 = tracks[jtrk]->stubID();
+      // If primary track is a duplicate, it cannot veto any...move on
+      for(unsigned int itrk=0; itrk<nTrk-1; itrk++) { // nTrk-1 since last track has no other to compare to
+        if(nTrk==0) break;
+        if(tracks[itrk]->duplicate()==1) continue;
 
-                        //count shared stubs
-                        for(std::map<int, int>::iterator  st=stubsTrk1.begin(); st!=stubsTrk1.end(); st++) {
-                            if( stubsTrk2.find(st->first) != stubsTrk2.end() ) {
-                                if(st->second == stubsTrk2[st->first] && st->second != 63) { nShare++; }
-                            }             
-                        } //loop over stubs
+        int nStubP = 0;
+        vector<int> nStubS(nTrk);
+        vector<int> nShare(nTrk);
 
-                        //Decide if we should flag either of the tracks as a duplicate
-                        if(stubsTrk1.size()>=stubsTrk2.size()) {
-                            if( (((int)stubsTrk2.size()-nShare)<minIndStubs) && !tracks[itrk]->duplicate() ) tracks[jtrk]->setDuplicate(true);
-                        } else {
-                            if( (((int)stubsTrk1.size()-nShare)<minIndStubs) && !tracks[jtrk]->duplicate() ) tracks[itrk]->setDuplicate(true);
-                        }
-                    } //if second track not a duplicate already
-                } //loop over second track
-            } //if first track not a duplicate already
-        } //loop over first track
+        // Get and count primary stubs
+        std::map<int, int> stubsTrk1 = tracks[itrk]->stubID();
+        nStubP = stubsTrk1.size();
+
+        for(unsigned int jtrk=itrk+1; jtrk<nTrk; jtrk++) {
+          // Skip duplicate tracks
+          if(tracks[jtrk]->duplicate()==1) continue;
+
+          // Get and count secondary stubs
+          std::map<int, int> stubsTrk2 = tracks[jtrk]->stubID();
+          nStubS[jtrk] = stubsTrk2.size();
+
+          // Count shared stubs
+          for(std::map<int, int>::iterator  st=stubsTrk1.begin(); st!=stubsTrk1.end(); st++) {
+            if(stubsTrk2.find(st->first) != stubsTrk2.end()) {
+              if(st->second == stubsTrk2[st->first] && st->second != 63) nShare[jtrk]++;
+            }
+          }
+        }
+
+        // Tag duplicates
+        for(unsigned int jtrk=itrk+1; jtrk<nTrk; jtrk++) {
+          // Skip duplicate tracks
+          if(tracks[jtrk]->duplicate()==1) continue;
+
+          // Chi2 duplicate removal
+          if((nStubP-nShare[jtrk] < minIndStubs) || (nStubS[jtrk]-nShare[jtrk] < minIndStubs)) {
+
+            if((int)tracks[itrk]->ichisq() > (int)tracks[jtrk]->ichisq()) {
+              tracks[itrk]->setDuplicate(true);
+            }
+            else if((int)tracks[itrk]->ichisq() <= (int)tracks[jtrk]->ichisq()) {
+              tracks[jtrk]->setDuplicate(true);
+            }
+            else cout << "Error: Didn't tag either track in duplicate pair." << endl;
+
+          }
+
+        // nStub duplicate removal
+//        if((nStubP-nShare[jtrk] < minIndStubs) && (nStubP <  nStubS[jtrk])) {
+//          inputtracks_[itrk].setDuplicate(true);
+//        }
+//        if((nStubS[jtrk]-nShare[jtrk] < minIndStubs) && (nStubS[jtrk] <= nStubP)) {
+//          inputtracks_[jtrk].setDuplicate(true);
+//        }
+
+        } 
+
+      }
+
     } // Adjacent Removal
 
     if (writeResEff) {
