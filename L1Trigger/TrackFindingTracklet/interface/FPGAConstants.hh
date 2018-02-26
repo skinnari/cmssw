@@ -446,7 +446,7 @@ static int chisqzfactbits=8;
 
 //Duplicate Removal
 static int minIndStubs=3;
-static bool AdjacentRemoval=false;
+static bool AdjacentRemoval=true;
 
 #endif
 

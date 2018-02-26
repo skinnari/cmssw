@@ -161,6 +161,7 @@
 	//cout << "Done add stub"<<endl;	
       }
       */
+      
 
     }
 
@@ -170,6 +171,7 @@
        if (hitdisk[ii]) nlayershit++;
      }
     }   
+
 /*
 if (writeDTCLinks) {
   //cout << "Will write DTC links"<<endl;
@@ -396,27 +398,32 @@ if (writeHitEff) {
           // Skip duplicate tracks
           if(tracks[jtrk]->duplicate()==1) continue;
 
-          // Chi2 duplicate removal
+
           if((nStubP-nShare[jtrk] < minIndStubs) || (nStubS[jtrk]-nShare[jtrk] < minIndStubs)) {
 
-            if((int)tracks[itrk]->ichisq() > (int)tracks[jtrk]->ichisq()) {
-              tracks[itrk]->setDuplicate(true);
-            }
-            else if((int)tracks[itrk]->ichisq() <= (int)tracks[jtrk]->ichisq()) {
-              tracks[jtrk]->setDuplicate(true);
-            }
-            else cout << "Error: Didn't tag either track in duplicate pair." << endl;
+            // Only remove from adjacent sectors
+            if(abs(tracks[jtrk]->sector()-tracks[itrk]->sector())==1 || abs(tracks[jtrk]->sector()-tracks[itrk]->sector())==(int)NSector-1) { 
 
+              // Chi2 duplicate removal
+              if((int)tracks[itrk]->ichisq() > (int)tracks[jtrk]->ichisq()) {
+                tracks[itrk]->setDuplicate(true);
+              }
+              else if((int)tracks[itrk]->ichisq() <= (int)tracks[jtrk]->ichisq()) {
+                tracks[jtrk]->setDuplicate(true);
+              }
+              else cout << "Error: Didn't tag either track in duplicate pair." << endl;
+
+
+//               nStub duplicate removal
+//              if((nStubP-nShare[jtrk] < minIndStubs) && (nStubP <  nStubS[jtrk])) {
+//                inputtracks_[itrk].setDuplicate(true);
+//              }
+//              if((nStubS[jtrk]-nShare[jtrk] < minIndStubs) && (nStubS[jtrk] <= nStubP)) {
+//                inputtracks_[jtrk].setDuplicate(true);
+//              }
+
+            }
           }
-
-        // nStub duplicate removal
-//        if((nStubP-nShare[jtrk] < minIndStubs) && (nStubP <  nStubS[jtrk])) {
-//          inputtracks_[itrk].setDuplicate(true);
-//        }
-//        if((nStubS[jtrk]-nShare[jtrk] < minIndStubs) && (nStubS[jtrk] <= nStubP)) {
-//          inputtracks_[jtrk].setDuplicate(true);
-//        }
-
         } 
 
       }
