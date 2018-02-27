@@ -224,7 +224,7 @@ public:
        	int iphi=tracklet->fpgaphiproj(layer_).value();
 
 	int icorr=(ir*tracklet->fpgaphiprojder(layer_).value())>>icorrshift_;
-	
+
 	iphi+=icorr;
 	
 	int iz=tracklet->fpgazproj(layer_).value();
@@ -232,8 +232,9 @@ public:
 	
 	int izcor=(ir*tracklet->fpgazprojder(layer_).value())>>icorzshift_;
 	
-	//if (seedlayer==1) {
-	//  cout << "layer iz izcor : "<<layer_<<" "<<iz*kz*fact_<<" "<<izcor*kz*fact_<<"   FP : "<<tracklet->zproj(layer_)<<" "<<dr*tracklet->zprojder(layer_)<<endl;
+	//if (seedlayer==1&&layer_==6) {
+	//  cout << "layer iphi iphicor : "<<layer_<<" "<<tracklet->fpgaphiproj(layer_).value()*kphi1<<" "<<icorr*kphi1
+	//       <<"   FP : "<<tracklet->phiproj(layer_)<<" "<<dr*tracklet->phiprojder(layer_)<<endl;
 	//}
 
 	
@@ -277,8 +278,7 @@ public:
 	}
 	
 	assert(fabs(dr)<drmax);
-	
-	
+
 	double dphi=phi-(tracklet->phiproj(layer_)+
 			 dr*tracklet->phiprojder(layer_));
 	  
@@ -320,8 +320,7 @@ public:
 
 	
 	bool imatch=(fabs(ideltaphi)<=phimatchcut_[seedindex])&&(fabs(ideltaz*fact_)<=zmatchcut_[seedindex]);
-
-
+	
 	if (imatch) {
 	  
 	  std::pair<FPGAStub*,L1TStub*> tmp(fpgastub,stub);

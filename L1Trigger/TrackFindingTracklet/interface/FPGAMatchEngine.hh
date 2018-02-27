@@ -77,6 +77,10 @@ public:
     for(unsigned int j=0;j<vmprojs_->nTracklets();j++){
       FPGATracklet* proj=vmprojs_->getFPGATracklet(j);
 
+      if (debug1) {
+	cout << "Found projection in "<<getName()<<endl;
+      }
+
      	
 	if (layer_>0){
 
@@ -102,6 +106,9 @@ public:
 
 	      if (fabs(projbend-stubbend)>1.25) continue;
 	      
+	      if (debug1) {
+		cout << "Adding match in "<<getName()<<endl;
+	      }
 
 	      countpass++;
 	      candmatches_->addMatch(proj,stub);

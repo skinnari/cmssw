@@ -74,7 +74,7 @@ public:
     ////Separate the vm projections into zbins
     ////This determines the central bin:
     ////int zbin=3-(zproj.value()>>(zproj.nbits()-3));
-    ////But we need some range: 
+    ////But we need some range:
     unsigned int zbin1=3-(((fpgazproj_.value()>>(fpgazproj_.nbits()-5))+1)>>2);
     unsigned int zbin2=3-(((fpgazproj_.value()>>(fpgazproj_.nbits()-5))-1)>>2);
     if (zbin1>7) zbin1=0; //note that zbin1 is unsigned

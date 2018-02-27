@@ -738,6 +738,42 @@ public:
     return (r > 0.0) ? (r + 0.5) : (r - 0.5); 
   }
 
+  double rapprox(){
+    if (disk_.value()==0){
+      int lr=2;
+      if (layer_.value()>=3) {
+	lr=1;
+      }
+      return r_.value()*kr*lr+rmean[layer_.value()];
+    }
+    return r_.value()*krdisk+rmindisk;
+  }
+
+  double zapprox() {
+    if (disk_.value()==0){
+      int lz=1;
+      if (layer_.value()>=3) {
+	lz=16;
+      }
+      return z_.value()*kz*lz;
+    }
+    int sign=1;
+    if (disk_.value()<0) sign=-1;
+    return z_.value()*kz+sign*zmean[abs(disk_.value())-1];
+  }
+
+  double phiapprox(double phimin, double phimax){
+    int lphi=1;
+    if (layer_.value()>=3) {
+      lphi=8;
+    }
+    double phi=phimin-(phimax-phimin)/6.0+phi_.value()*kphi/lphi;
+    if (phi>0.5*two_pi) phi-=two_pi;
+    if (phi<-0.5*two_pi) phi+=two_pi;
+    return phi;
+  }
+
+  
 private:
 
   bool isbarrel_;

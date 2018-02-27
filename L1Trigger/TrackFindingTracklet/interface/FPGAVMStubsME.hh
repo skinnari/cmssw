@@ -26,6 +26,9 @@ public:
       //cout << "FPGAVMStubsME::addStub "<<bin<<" "<<stub.first->z().value()<<" "<<stub.first->z().nbits()<<endl;
       assert(bin>=0);
       assert(bin<MEBins);
+      if (debug1) {
+	cout << getName() << " adding stub to bin "<<bin<<endl;
+      }
       binnedstubs_[bin].push_back(stub);
     }
     else { // disk -- copied from VMStubTE

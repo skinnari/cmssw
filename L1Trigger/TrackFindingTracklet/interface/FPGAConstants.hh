@@ -81,6 +81,7 @@ static bool padding=true;
 
 static bool exactderivatives=false;  //for both the integer and float
 static bool exactderivativesforfloating=true; //only for the floating point
+static bool useapprox=true; //use approximate postion based on integer representation for floating point
 
 static bool writetrace=false; //Print out details about startup
 static bool debug1=false; //Print information about tracking
