@@ -26,7 +26,7 @@ elif GEOMETRY == "D17":
     print "using geometry " + GEOMETRY + " (tilted)"
     process.load('Configuration.Geometry.GeometryExtended2023D17Reco_cff')
     process.load('Configuration.Geometry.GeometryExtended2023D17_cff')
-elif GEOMETRY == "tilted": 
+elif GEOMETRY == "TkOnly": 
     print "using standalone tilted (T5) tracker geometry" 
     process.load('L1Trigger.TrackTrigger.TkOnlyTiltedGeom_cff')
 else:
@@ -60,7 +60,7 @@ if GEOMETRY == "D17":
     "/store/user/ejclemen/L1TT/RelVal_932/WithTruthAssociation/TTbar/PU200/output_1.root",
     "/store/user/ejclemen/L1TT/RelVal_932/WithTruthAssociation/TTbar/PU200/output_2.root",
     )
-elif GEOMETRY == "tilted":
+elif GEOMETRY == "TkOnly":
     Source_Files = cms.untracked.vstring(
         "file:MuMinus_1to10_TkOnly.root",
         "file:MuPlus_1to10_TkOnly.root",
