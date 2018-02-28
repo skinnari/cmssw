@@ -26,6 +26,9 @@ elif GEOMETRY == "D17":
     print "using geometry " + GEOMETRY + " (tilted)"
     process.load('Configuration.Geometry.GeometryExtended2023D17Reco_cff')
     process.load('Configuration.Geometry.GeometryExtended2023D17_cff')
+elif GEOMETRY == "TkOnly":
+    print "using geometry " + GEOMETRY + " (tilted)"
+    process.load('L1Trigger.TrackTrigger.TkOnlyTiltedGeom_cff')
 else:
     print "this is not a valid geometry!!!"
 
@@ -59,6 +62,10 @@ elif GEOMETRY == "D17":
     "/store/relval/CMSSW_9_3_2/RelValSingleMuPt10Extended/GEN-SIM-DIGI-RAW/93X_upgrade2023_realistic_v2_2023D17noPU-v1/10000/12D20D3F-D5A6-E711-8C40-0025905A608A.root",
     "/store/relval/CMSSW_9_3_2/RelValSingleMuPt10Extended/GEN-SIM-DIGI-RAW/93X_upgrade2023_realistic_v2_2023D17noPU-v1/10000/22AC3831-DDA6-E711-8FB7-0CC47A4D7694.root",
     "/store/relval/CMSSW_9_3_2/RelValSingleMuPt10Extended/GEN-SIM-DIGI-RAW/93X_upgrade2023_realistic_v2_2023D17noPU-v1/10000/5E4C3FB3-D7A6-E711-9D44-0025905B858C.root",
+)
+elif GEOMETRY == "TkOnly":
+    Source_Files = cms.untracked.vstring(
+    "file:MuMinus_1to10_TkOnly.root"
 )
 process.source = cms.Source("PoolSource", fileNames = Source_Files)
 
