@@ -118,12 +118,40 @@ public:
 	} // if (layer_>0)      
 	else if (disk_!=0) {
 
+	  unsigned int irproj=proj->fpgarprojdisk(disk_).value();
+
+	  unsigned int bin=3;
+	  if (irproj<50.0/krprojshiftdisk) bin=2;
+	  if (irproj<35.0/krprojshiftdisk) bin=1;
+	  if (irproj<26.0/krprojshiftdisk) bin=0;
+	  if (proj->fpgat().value()<0) bin+=4;
+
+	  for (unsigned int ibin=bin;ibin<=bin;ibin++) {
+
+	    unsigned int nstub=vmstubs_->nStubsBin(ibin);
+	    
+	    for(unsigned int i=0;i<nstub;i++){
+	      if (debug1) {
+		cout << "Found stub in "<<getName()<<endl;
+	      }
+	      std::pair<FPGAStub*,L1TStub*> stub=vmstubs_->getStubBin(ibin,i);
+	      countall++;
+
+	      countpass++;
+	      candmatches_->addMatch(proj,stub);
+	      if (countall>=MAXME) break;
+	      
+	    }
+	  }
+
+	  /*
+	      
 	  for(unsigned int i=0;i<vmstubs_->nStubs();i++){
 	    if (debug1) {
 	      cout << "Found stub in "<<getName()<<endl;
 	    }
 	    std::pair<FPGAStub*,L1TStub*> stub=vmstubs_->getStub(i);   
-	    
+
 	    
 	    int disk=disk_;
 	    if (proj->t()<0.0) disk=-disk_;
@@ -159,6 +187,7 @@ public:
 	    candmatches_->addMatch(proj,stub);
 	    if (countall>=MAXME) break;
 	  }
+	  */
 	} else { // if (layer_>0)
 	  assert(0);
 	} // if (layer_>0)

@@ -1071,7 +1071,8 @@ public:
     long int r2abs = r2 + r2mean;                // unsigned=0, Nbits=14
     long int delta_2 = (delta_0 * r2abs)>>14;    // unsigned=0, Nbits=17
     long int a2a = (delta_1 * delta_2)>>17;      // unsigned=0, Nbits=17
-    long int a2mA = (a2a*1466)>>12;              // unsigned=0, Nbits=17
+    int factor=1466*(28.0/NSector)*(28.0/NSector);
+    long int a2mA = (a2a*factor)>>12;              // unsigned=0, Nbits=17
     long int a2m = -1024 + a2mA;                 // unsigned=0, Nbits=12
     long int inv_rho = (delta_0 * a2m)>>11;      // unsigned=0, Nbits=14
 
@@ -1082,7 +1083,8 @@ public:
     long int R6 = (682 * Rabs)>>12;              // unsigned=0, Nbits=13
     long int x4 = (delta_0 * R6)>>13;            // unsigned=0, Nbits=17
     long int x6a = (delta_2 * x4)>>17;           // unsigned=0, Nbits=17
-    long int x6mA = (x6a*1466)>>12;              // unsigned=0, Nbits=17
+    factor=1466*(28.0/NSector)*(28.0/NSector);
+    long int x6mA = (x6a*factor)>>12;              // unsigned=0, Nbits=17
     long int x6m = -1024 + x6mA;                 // unsigned=0, Nbits=12
     long int phi0a = (delta_1 * x6m)>>5;         // unsigned=0, Nbits=17
     long int phi0s = phi1 + phi0a;               // unsigned=0, Nbits=18
@@ -1137,6 +1139,7 @@ public:
 		    minusNeighbor[i], plusNeighbor[i],
 		    //extras
 		    delta_0, a2m, a2);
+      if (iphiproj[i]>=(1<<nbitsphistubL456)) iphiproj[i]=(1<<nbitsphistubL456)-2; //-2 not to hit atExtreme
     }
 
 
@@ -1181,7 +1184,8 @@ public:
     long int x8 = (x1 * a2m)>>8;                 // unsigned=0, Nbits=17
     long int x20 = (683 * x8)>>12;               // unsigned=0, Nbits=15
     long int x12 = (x8 * x8)>>24;                // unsigned=0, Nbits=10
-    long int x10A = (x12*1466)>>12;              // unsigned=0, Nbits=10
+    int factor=1466*(28.0/NSector)*(28.0/NSector);
+    long int x10A = (x12*factor)>>12;              // unsigned=0, Nbits=10
     long int x10 = 1536 + x10A;                  // unsigned=0, Nbits=12
     long int x22 = (x20 * x10)>>6;               // unsigned=0, Nbits=17
     long int phiL = phi0s - x22;                 // unsigned=0, Nbits=19
@@ -1281,7 +1285,8 @@ public:
     long int x9 = (21845 * x5)>>14;           // unsigned=0, Nbits=13
     long int x24 = (x9 * invt)>>15;         // unsigned=0, Nbits=17
     long int x26 = (x25 * x25)>>18;         // unsigned=0, Nbits=10
-    long int x27A = (x26*1466)>>15;         // unsigned=0, Nbits=11
+    int factor=1466*(28.0/NSector)*(28.0/NSector);
+    long int x27A = (x26*factor)>>15;         // unsigned=0, Nbits=11
     long int x27 = -384*8 + x27A;             // unsigned=0, Nbits=11
     long int x27m = -1 * x27;               // unsigned=0, Nbits=11
     long int rD = (x24 * x27m+(1<<15))>>16;          // unsigned=0, Nbits=12    ...Anders changed this...
@@ -1412,7 +1417,8 @@ public:
     long int r2abs = r2 + rmin;                  // unsigned=0, Nbits=14
     long int delta_2 = (delta_0 * r2abs)>>14;    // unsigned=0, Nbits=17
     long int a2a = (delta_1 * delta_2)>>17;      // unsigned=0, Nbits=17
-    long int a2mA = (a2a*1466)>>12;              // unsigned=0, Nbits=17
+    int factor=1466*(28.0/NSector)*(28.0/NSector);
+    long int a2mA = (a2a*factor)>>12;              // unsigned=0, Nbits=17
     long int a2m = -1024 + a2mA;                 // unsigned=0, Nbits=12
     long int inv_rho = (delta_0 * a2m)>>11;      // unsigned=0, Nbits=14
 
@@ -1421,7 +1427,8 @@ public:
     long int R6 = (682 * R)>>12;                 // unsigned=0, Nbits=13
     long int x4 = (delta_0 * R6)>>13;            // unsigned=0, Nbits=17
     long int x6a = (delta_2 * x4)>>17;           // unsigned=0, Nbits=17
-    long int x6mA = (x6a*1466)>>12;              // unsigned=0, Nbits=17
+    factor=1466*(28.0/NSector)*(28.0/NSector);
+    long int x6mA = (x6a*factor)>>12;              // unsigned=0, Nbits=17
     long int x6m = -1024 + x6mA;                 // unsigned=0, Nbits=12
     long int phi0a = (delta_1 * x6m)>>5;         // unsigned=0, Nbits=17
     long int phi0s = phi1 + phi0a;               // unsigned=0, Nbits=18
@@ -1895,7 +1902,6 @@ public:
 
     if (dumpproj) {
       double kphiproj=kphiproj123;
-      if (rproj>60.0) kphiproj=kphiproj456;
       if (fabs(rproj-50.0)<10.0) {
 	//cout << "kphi0pars kphiproj "<<kphi0pars<<" "<<kphiproj<<endl;
 	cout << "DUMPPROJ2 :"<<irproj*kr
@@ -2548,6 +2554,7 @@ public:
 		   iphiprojLayer[i],izprojLayer[i],
 		   iphiderLayer[i],izderLayer[i],
 		   minusNeighborLayer[i], plusNeighborLayer[i]);
+	izderLayer[i]*=2; //FIXME
 	//cout << "iphiprojLayer : "<<iphiprojLayer[i]<<endl;
 	//cout << "zproj 2 der : "<<izderLayer[i]<<" "<<it<<endl;
       }
@@ -2780,7 +2787,7 @@ public:
 	}
 	
 	if (countall>=MAXTC) {
-	  cout << "Will break on MAXTC 1"<<endl;
+	  if (debug1) cout << "Will break on MAXTC 1"<<endl;
 	  break;
 	}
 	if (debug1) {
@@ -2789,7 +2796,7 @@ public:
 
       }
       if (countall>=MAXTC) {
-	cout << "Will break on MAXTC 2"<<endl;
+	if (debug1) cout << "Will break on MAXTC 2"<<endl;
 	break;
       }
     }
@@ -2989,7 +2996,7 @@ public:
     FPGAWord fpgar=tracklet->fpgarprojdisk(disk);
 
     if (fpgar.value()*krprojshiftdisk<12.0) return;
-    if (fpgar.value()*krprojshiftdisk>108.0) return;
+    if (fpgar.value()*krprojshiftdisk>112.0) return;
 
 
     if (tracklet->plusNeighborDisk(disk)) {
@@ -3386,7 +3393,7 @@ public:
 	double kphiproj=kphiproj123;
 	int lz=1;
 	if (rproj_[i]>60.0) {
-	  kphiproj=kphiproj456;
+	  kphiproj=kphiproj123;
 	  lz=16;
 	}
 	out1 <<"Trackproj "<<layer_<<" "<<rproj_[i]

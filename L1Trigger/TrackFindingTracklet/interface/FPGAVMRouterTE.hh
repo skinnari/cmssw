@@ -248,6 +248,9 @@ public:
               }
 	      for (unsigned int l=0;l<vmstubsPHI_[iphiRaw].size();l++){
 		vmstubsPHI_[iphiRaw][l]->addStub(stub);
+		if (debug1) {
+		  cout << getName()<<" adding stub to "<<vmstubsPHI_[iphiRaw][l]->getName()<<endl;
+		}
 		insert=true;
 	      }
 	    } else {  //even layers
@@ -256,6 +259,9 @@ public:
 	      assert(iphiRaw<16);
 	      for (unsigned int l=0;l<vmstubsPHI_[iphiRaw].size();l++){
 		vmstubsPHI_[iphiRaw][l]->addStub(stub);
+		if (debug1) {
+		  cout << getName()<<" adding stub to "<<vmstubsPHI_[iphiRaw][l]->getName()<<endl;
+		}
 		insert=true;
 	      }
 	    }

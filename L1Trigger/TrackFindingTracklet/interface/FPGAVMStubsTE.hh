@@ -65,7 +65,9 @@ public:
 
     bool pass=passbend(stub.first->bend().value());
 
-    if (!pass) return false;
+    if (!pass) {
+      return false;
+    }
     
     if (overlap_) {
 	if (disk_==1) {
@@ -224,6 +226,39 @@ public:
       return;
     }
 
+    if (disk_==1) {
+      int nphibin=12;
+      double dphi=dphisector/nphibin;
+      phimax=phibin()*dphi;
+      phimin=phimax-dphi;
+      return;
+    }
+
+    if (disk_==3) {
+      int nphibin=6;
+      double dphi=dphisector/nphibin;
+      phimax=phibin()*dphi;
+      phimin=phimax-dphi;
+      return;
+    }
+
+    if (disk_==2) {
+      int nphibin=12;
+      double dphi=dphisector/nphibin;
+      phimax=phibin()*dphi-dphisector/6.0;
+      phimin=phimax-dphi;
+      return;
+    }
+
+    if (disk_==4 ) {
+      int nphibin=6;
+      double dphi=dphisector/nphibin;
+      phimax=phibin()*dphi-dphisector/6.0;
+      phimin=phimax-dphi;
+      return;
+    }
+    
+    
     assert(0); //not implemented yet
     
   }

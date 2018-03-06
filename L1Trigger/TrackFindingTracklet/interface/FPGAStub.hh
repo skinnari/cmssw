@@ -678,6 +678,7 @@ public:
   
   void setVMBits(int bits){
     int nbits=-1;
+    assert(vmbits_.value()==-1); //Should never change the value; -1 means uninitialized
     if (layer_.value()==0 or layer_.value()==2 or layer_.value()==4) { // L1, L3, L5
       nbits=2*NLONGVMBITS+1+3;
     }

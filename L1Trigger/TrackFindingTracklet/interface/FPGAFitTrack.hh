@@ -470,19 +470,20 @@ public:
     int iD[4][12];
     int iMinvDt[4][12];
     double sigma[12];
+    double kfactor[12];
 
     unsigned int n=nlayers+ndisks;
    
     if (exactderivatives) {
       FPGATrackDerTable::calculateDerivatives(nlayers,r,ndisks,z,alpha,t,rinv,
-					      D,iD,MinvDt,iMinvDt,sigma);
+					      D,iD,MinvDt,iMinvDt,sigma,kfactor);
     } else {
       if (exactderivativesforfloating) {
 	derivatives->fill(tracklet->fpgat().value(),MinvDt,iMinvDt);
 	int iMinvDtDummy[4][12];
 	//int iDDummy[4][12]; FIXME - should be from lookup table
 	FPGATrackDerTable::calculateDerivatives(nlayers,r,ndisks,z,alpha,t,rinv,
-						D,iD,MinvDt,iMinvDtDummy,sigma);
+						D,iD,MinvDt,iMinvDtDummy,sigma,kfactor);
       } else {
 	derivatives->fill(tracklet->fpgat().value(),MinvDt,iMinvDt);
       }
@@ -524,10 +525,15 @@ public:
       assert(fabs(phiresidexact[i])<0.2);
       deltaexact[j++]=phiresidexact[i];
 
+      //cout << "phi iresid resid: "<<rstub[i]*kfactor[j-1]*iphiresid[i]/sigma[j-1]<<" "<<rstub[i]*phiresid[i]/sigma[j-1]<<" "<<rstub[i]*phiresidexact[i]/sigma[j-1]<<" sigma(um) "<<sigma[j-1]*10000<<endl;
+      
       idelta[j]=izresid[i];
       delta[j]=zresid[i];
       deltaexact[j++]=zresidexact[i];
- 
+
+      //cout << "z resid   : "<<kfactor[j-1]*izresid[i]/sigma[j-1]<<" "<<zresid[i]/sigma[j-1]<<" "<<zresidexact[i]/sigma[j-1]<<" sigma (cm) "<<sigma[j-1]<<endl;
+
+      
       chisqseed+=(delta[j-2]*delta[j-2]+delta[j-1]*delta[j-1]); 
       chisqseedexact+=(deltaexact[j-2]*deltaexact[j-2]+
 		       deltaexact[j-1]*deltaexact[j-1]);
@@ -590,6 +596,13 @@ public:
       idt+=((iMinvDt[2][j]*idelta[j]));
       idz0+=((iMinvDt[3][j]*idelta[j]));
 
+      //cout <<  "------------------------------------"<<endl;
+      //cout << "j delta idelta : "<<j<<" "<<delta[j]<<" "<<idelta[j]*kfactor[j]<<endl;
+      //cout << "j dt idt : "<<j<<" "<<MinvDt[2][j]*delta[j]<<" "<<((iMinvDt[2][j]*idelta[j])>>fittbitshift)*ktpars<<endl;
+      //cout << "kfactor kphiproj123 : "<<kfactor[j]<<" "<<kphiproj123<<endl;
+      //cout << "j Minv iMinv : "<<j<<" "<<MinvDt[2][j]<<" "<<iMinvDt[2][j]<<" "<<iMinvDt[2][j]*ktpars/kphiproj123/(1<<fittbitshift)<<" "
+      //   <<MinvDt[2][j]/(iMinvDt[2][j]*ktpars/kphiproj123/(1<<fittbitshift))<<endl;
+
       if (0&&j%2==0) {
 
 	cout << "DUMPFITLINNEW1"<<" "<<j
@@ -636,6 +649,10 @@ public:
     double tfit=tseed-dt;
     double z0fit=z0seed-dz0;
 
+    //cout << "tseed itseed "<<tseed<<" "<<itseed*ktpars<<endl;
+    //cout << "dt idt       "<<dt<<" "<<(idt>>fittbitshift)*ktpars<<endl;
+    //cout << "dz0 idz0     "<<dz0<<" "<<(idz0>>fitz0bitshift)*kzpars<<endl;
+    
     double rinvfitexact=rinvseedexact-drinvexact;
     double phi0fitexact=phi0seedexact-dphi0exact;
 
@@ -678,12 +695,19 @@ public:
 	D[3][k]*dz0;
 		 
 	
-      iphifactor=kphiproj456*rstub[k/2]*idelta[k]*(1<<chisqphifactbits)/sigma[k]-
+      iphifactor=kfactor[k]*rstub[k/2]*idelta[k]*(1<<chisqphifactbits)/sigma[k]-
 	iD[0][k]*idrinv-
 	iD[1][k]*idphi0-
 	iD[2][k]*idt-
 	iD[3][k]*idz0;
 
+      //double kchisqphi=1.0/(1<<chisqphifactbits);
+      //cout << "=================================================="<<endl;
+      //cout << "*** old phi resid iresid : "<<rstub[k/2]*delta[k]/sigma[k]<<" "<<kfactor[k]*rstub[k/2]*idelta[k]*(1<<chisqphifactbits)/sigma[k]/(1<<chisqphifactbits)<<" rstub "<<rstub[k/2]<<endl;
+      //cout << "phi k  D "<<k<<" "<<D[0][k]*drinv<<" "<<D[1][k]*dphi0<<" "<<D[2][k]*dt<<" "<<D[3][k]*dz0<<endl;
+      //cout << "phi k iD "<<k<<" "<<iD[0][k]*idrinv*kchisqphi<<" "<<iD[1][k]*idphi0*kchisqphi<<" "<<iD[2][k]*idt*kchisqphi<<" "<<iD[3][k]*idz0*kchisqphi<<endl;
+      //cout << "### new phi resid iresid : "<<phifactor<<" "<<iphifactor*kchisqphi<<endl;
+      
       if(NewChisqDebug){
         cout << "delta[k]/sigma = " << delta[k]/sigma[k] << "  delta[k] = " << delta[k]  << endl;
         cout << "sum = " << phifactor-delta[k]/sigma[k] << "    drinvterm = " << D[0][k]*drinv << "  dphi0term = " << D[1][k]*dphi0 << "  dtterm = " << D[2][k]*dt << "  dz0term = " << D[3][k]*dz0 << endl;
@@ -692,6 +716,8 @@ public:
 
       chisqfit+=phifactor*phifactor;
       ichisqfit+=iphifactor*iphifactor/(1<<(2*chisqphifactbits-4));
+
+      //cout << "i phi chisq :" << i << " " << phifactor*phifactor << " " << iphifactor*iphifactor/(1<<(2*chisqphifactbits-4))/16.0 << endl;
       
       k++;
 
@@ -699,12 +725,26 @@ public:
       rzfactor=delta[k]/sigma[k]+D[0][k]*drinv+D[1][k]*dphi0+D[2][k]*dt+D[3][k]*dz0;
 
 
-      irzfactor=kzproj*idelta[k]*(1<<chisqzfactbits)/sigma[k]-
+      irzfactor=kfactor[k]*idelta[k]*(1<<chisqzfactbits)/sigma[k]-
 						       iD[0][k]*idrinv-
 						       iD[1][k]*idphi0-
 						       iD[2][k]*idt-
 						       iD[3][k]*idz0;
 
+      //double kchisqz=1.0/(1<<chisqzfactbits);
+      //cout << "idrinv: "<<iD[0][k]<<" "<<idrinv<<endl;
+      //cout << "idphi0: "<<iD[1][k]<<" "<<idphi0<<endl;
+      //cout << "idt:    "<<iD[2][k]<<" "<<idt<<endl;
+      //cout << "idz0:   "<<iD[3][k]<<" "<<idz0<<endl;
+
+      //cout << "dt idt : "<<dt<<" "<<idt*ktpars/(1<<fittbitshift)<<endl;
+      
+      //cout << "old z resid : "<<delta[k]/sigma[k]<<" "<<kfactor[k]*idelta[k]/sigma[k]<<endl;
+      //cout << "r-z k  D "<<k<<" "<<D[0][k]*drinv<<" "<<D[1][k]*dphi0<<" "<<D[2][k]*dt<<" "<<D[3][k]*dz0<<endl;
+      //cout << "r-z k iD "<<k<<" "<<iD[0][k]*idrinv*kchisqz<<" "<<iD[1][k]*idphi0*kchisqz<<" "<<iD[2][k]*idt*kchisqz<<" "<<iD[3][k]*idz0*kchisqz<<endl;
+      
+      //cout << "new z resid: "<<rzfactor<<" "<<irzfactor*kchisqz<<endl;
+      
       if(NewChisqDebug){
         cout << "delta[k]/sigma = " << delta[k]/sigma[k] << "  delta[k] = " << delta[k]  << endl;
         cout << "sum = " << rzfactor-delta[k]/sigma[k] << "    drinvterm = " << D[0][k]*drinv << "  dphi0term = " << D[1][k]*dphi0 << "  dtterm = " << D[2][k]*dt << "  dz0term = " << D[3][k]*dz0 << endl;
@@ -713,9 +753,22 @@ public:
 
       chisqfit+=rzfactor*rzfactor;
       ichisqfit+=irzfactor*irzfactor/(1<<(2*chisqzfactbits-4));
+
+      //cout << "i z chisq   :" << i << " " << rzfactor*rzfactor << " " << irzfactor*irzfactor/(1<<(2*chisqzfactbits-4))/16.0 << endl;
+      
+
+      
       k++;
     }
 
+    //cout <<"chisq ichisq : "<< chisqfit << " " << ichisqfit/16.0<<endl;
+
+    
+    if (writeChiSq) {
+      static ofstream out("chisq.txt");
+      out << asinh(itfit*ktpars)<<" "<<chisqfit << " " << ichisqfit/16.0<<endl;
+    }
+    
     // Divide by degrees of freedom
     chisqfit=chisqfit/(2*n-4);
     chisqfitexact=chisqfitexact/(2*n-4);

@@ -71,8 +71,6 @@ public:
     if (rbin<0) rbin=0;
     if (rbin>=NBINS) rbin=NBINS-1;
 
-    //cout << "izbin zbin z zproj "<<izbin<<" "<<zbin<<" "<<z<<" "<<zproj<<endl;
-    
     return rbin;
     
   }

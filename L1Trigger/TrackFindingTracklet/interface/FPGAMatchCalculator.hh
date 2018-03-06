@@ -237,7 +237,6 @@ public:
 	//       <<"   FP : "<<tracklet->phiproj(layer_)<<" "<<dr*tracklet->phiprojder(layer_)<<endl;
 	//}
 
-	
 	iz+=izcor;	
 	
 	int ideltaz=fpgastub->z().value()-iz;
@@ -320,6 +319,9 @@ public:
 
 	
 	bool imatch=(fabs(ideltaphi)<=phimatchcut_[seedindex])&&(fabs(ideltaz*fact_)<=zmatchcut_[seedindex]);
+
+	//cout << getName() << "barrel ideltaphi deltaphi "<<ideltaphi*kphi1*rmean[layer_-1]<<" "<<dphi*rmean[layer_-1]<<endl;
+
 	
 	if (imatch) {
 	  
@@ -370,12 +372,8 @@ public:
 	} else {
 	
 	
-	//Disk matches are calculated here
-	//hack for now to skip stubs in the wrong (F/B) part of the detector
-	if (stub->z()*tracklet->t()<0.0) {
-	  continue;
-	  assert(0); //should never get here?
-	}
+	//check that stubs and projections in same half of detector
+	assert(stub->z()*tracklet->t()>0.0);
 	
 	int disk=disk_;
 	if (tracklet->t()<0) disk=-disk_;
@@ -470,9 +468,10 @@ public:
 	  alpha=stub->alpha(); 	
 	  dphi+=dr*alpha;
 	  dphiapprox+=drapprox*alpha;
-	  ideltaphi+=ideltar*fpgastub->alpha().value()*krprojshiftdisk*kalpha/kphiproj123;  
-	}	
-	
+	  ideltaphi+=ideltar*fpgastub->alpha().value()*krprojshiftdisk*kalpha/kphiproj123;
+	}
+
+
 	double drphicut=0.20;
 	double drcut=0.75; 
 	if (!stub->isPSmodule()) {
@@ -484,6 +483,8 @@ public:
 	
 	bool imatch=(fabs(ideltaphi)<drphicut/(kphiproj123*stub->r()))&&(fabs(ideltar)<drcut/krprojshiftdisk);
 
+	//cout << getName() << " ideltaphi deltaphi "<<ideltaphi*kphiproj123*stub->r()<<" "<<dphi*stub->r()<<endl;
+	
 	if (debug1) {
 	  cout << "imatch disk: "<<imatch<<" "<<fabs(ideltaphi)<<" "<<drphicut/(kphiproj123*stub->r())<<" "
 	       <<fabs(ideltar)<<" "<<drcut/krprojshiftdisk<<" r = "<<stub->r()<<endl;

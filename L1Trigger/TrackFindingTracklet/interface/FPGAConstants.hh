@@ -54,6 +54,7 @@ static bool writeResiduals=false;
 static bool writeProjectionTransceiver=false;
 static bool writeMatchTransceiver=false;
 static bool writeFitTrack=false;
+static bool writeChiSq=false;
 static bool writeNMatches=false;
 static bool writez0andrinv=false;
 static bool writeDiskMatch1=false;
@@ -191,9 +192,12 @@ static double zmaxD5=zmeanD5+dzmax;
 static bool   enstubbend = false; 
 static double two_pi=8.0*atan(1.0);
 
-static double ptcut=2.0; //Minimum pt
+static double ptcut=1.9; //Minimum pt
 static double rinvcut=0.01*0.3*3.8/ptcut; //0.01 to convert to cm-1
+static double ptcutte=1.6; //Minimum pt in TE
+static double rinvcutte=0.01*0.3*3.8/ptcutte; //0.01 to convert to cm-1 in TE
 static double bendcut=1.5;
+static double bendcutdisk=3.0;
 static double z0cut=15.0;
 
 static double alphamax=5.0/(65.0*65.0);
@@ -228,17 +232,19 @@ static const double routerPSdisk=65.0;
 //static int NMAXstub  = 250;
 //static int NMAXroute = 250;
 
-static unsigned int MAXSTUBSLINK = 10000; //Max stubs per link
-static unsigned int MAXLAYERROUTER = 10000; //Max stubs handled by layer router
-static unsigned int MAXDISKROUTER = 10000; //Max stubs handled by disk router
-static unsigned int MAXVMROUTER = 10000; //Max stubs handled by VM router
-static unsigned int MAXTE = 10000; //Maximum number of stub pairs to try in TE 
-static unsigned int MAXTC = 10000; //Maximum number of tracklet parameter calculations
+static unsigned int MAXOFFSET=10000; //set to 0 for regular truncation
+
+static unsigned int MAXSTUBSLINK = 36 + MAXOFFSET; //Max stubs per link
+static unsigned int MAXLAYERROUTER = 36 + MAXOFFSET; //Max stubs handled by layer router
+static unsigned int MAXDISKROUTER = 36 + MAXOFFSET; //Max stubs handled by disk router
+static unsigned int MAXVMROUTER = 36 + MAXOFFSET; //Max stubs handled by VM router
+static unsigned int MAXTE = 36 + MAXOFFSET; //Maximum number of stub pairs to try in TE 
+static unsigned int MAXTC = 36 + MAXOFFSET; //Maximum number of tracklet parameter calculations
 //static unsigned int MAXPROJECTIONTRANSCEIVER = 10000; //Maximum number of projections to neighbor
-static unsigned int MAXPROJROUTER = 10000; //Maximum number of projections to route
-static unsigned int MAXME = 10000; //Maximum number of stub-projection matches to try
-static unsigned int MAXMC = 10000; //Maximum number of match calculations
-static unsigned int MAXFIT = 10000; //Maximum number of track fits
+static unsigned int MAXPROJROUTER = 36 + MAXOFFSET; //Maximum number of projections to route
+static unsigned int MAXME = 36 + MAXOFFSET; //Maximum number of stub-projection matches to try
+static unsigned int MAXMC = 36 + MAXOFFSET; //Maximum number of match calculations
+static unsigned int MAXFIT = 36 + MAXOFFSET; //Maximum number of track fits
 
 
 static double dphisector=two_pi/NSector;
@@ -439,15 +445,17 @@ static int rresidbits=7;
 //Trackfit
 static int fitrinvbitshift=10;  //6 OK?
 static int fitphi0bitshift=6;  //4 OK?
-static int fittbitshift=6;     //4 OK?
+static int fittbitshift=10;     //4 OK? //lower number gives rounding problems
 static int fitz0bitshift=8;    //6 OK?
 
 static int chisqphifactbits=14;
-static int chisqzfactbits=8;
+static int chisqzfactbits=14;
 
 //Duplicate Removal
 static int minIndStubs=3;
 static bool AdjacentRemoval=true;
+static string RemovalType="ichi";
+//"ichi" (pairwise, keep track with best ichisq), "nstub" (pairwise, keep track with more stubs), "grid" (TMTT-like removal)
 
 #endif
 
