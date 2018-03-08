@@ -43,7 +43,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgradePLS3', '')
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10))
 
 if GEOMETRY == "D10": 
     #D10 (flat barrel)
@@ -59,23 +59,25 @@ if GEOMETRY == "D10":
 elif GEOMETRY == "D17":
     #D17 (tilted barrel -- latest and greatest with T5 tracker, see: https://github.com/cms-sw/cmssw/blob/CMSSW_9_3_0_pre2/Configuration/Geometry/README.md)
     Source_Files = cms.untracked.vstring(
-    "/store/relval/CMSSW_9_3_2/RelValSingleMuPt10Extended/GEN-SIM-DIGI-RAW/93X_upgrade2023_realistic_v2_2023D17noPU-v1/10000/12D20D3F-D5A6-E711-8C40-0025905A608A.root",
-    "/store/relval/CMSSW_9_3_2/RelValSingleMuPt10Extended/GEN-SIM-DIGI-RAW/93X_upgrade2023_realistic_v2_2023D17noPU-v1/10000/22AC3831-DDA6-E711-8FB7-0CC47A4D7694.root",
-    "/store/relval/CMSSW_9_3_2/RelValSingleMuPt10Extended/GEN-SIM-DIGI-RAW/93X_upgrade2023_realistic_v2_2023D17noPU-v1/10000/5E4C3FB3-D7A6-E711-9D44-0025905B858C.root",
+    "/store/user/ejclemen/L1TT/RelVal_932/WithTruthAssociation/TTbar/PU200/output_0.root",
+    "/store/user/ejclemen/L1TT/RelVal_932/WithTruthAssociation/TTbar/PU200/output_1.root",
+    "/store/user/ejclemen/L1TT/RelVal_932/WithTruthAssociation/TTbar/PU200/output_2.root",
 )
 elif GEOMETRY == "TkOnly":
     Source_Files = cms.untracked.vstring(
-    "file:MuMinus_1to10_TkOnly.root"
+    "file:MuMinus_1to50_TkOnly.root",
+    "file:MuPlus_1to50_TkOnly.root"
 )
 process.source = cms.Source("PoolSource", fileNames = Source_Files)
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('Muon10_'+GEOMETRY+'_PU0.root'), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string('TTbar_'+GEOMETRY+'_PU200.root'), closeFileFast = cms.untracked.bool(True))
 
 
 ############################################################
-# remake L1 stubs and/or cluster/stub truth ??
+# L1 tracking
 ############################################################
 
+# remake stubs ?
 process.load('L1Trigger.TrackTrigger.TrackTrigger_cff')
 from L1Trigger.TrackTrigger.TTStubAlgorithmRegister_cfi import *
 process.load("SimTracker.TrackTriggerAssociation.TrackTriggerAssociator_cff")
@@ -83,13 +85,12 @@ process.load("SimTracker.TrackTriggerAssociation.TrackTriggerAssociator_cff")
 if GEOMETRY == "D10": 
     TTStubAlgorithm_official_Phase2TrackerDigi_.zMatchingPS = cms.bool(False)
 
+if GEOMETRY != "TkOnly":
+    from SimTracker.TrackTriggerAssociation.TTClusterAssociation_cfi import *
+    TTClusterAssociatorFromPixelDigis.digiSimLinks = cms.InputTag("simSiPixelDigis","Tracker")
+
 process.TTClusterStub = cms.Path(process.TrackTriggerClustersStubs)
 process.TTClusterStubTruth = cms.Path(process.TrackTriggerAssociatorClustersStubs)
-
-
-############################################################
-# L1 tracking
-############################################################
 
 from L1Trigger.TrackFindingTracklet.Tracklet_cfi import *
 if GEOMETRY == "D10": 
@@ -116,7 +117,6 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackNtupleMaker',
                                        DebugMode = cms.bool(False),      # printout lots of debug statements
                                        SaveAllTracks = cms.bool(True),   # save *all* L1 tracks, not just truth matched to primary particle
                                        SaveStubs = cms.bool(False),      # save some info for *all* stubs
-                                       LooseMatch = cms.bool(False),     # turn on to use "loose" MC truth association
                                        L1Tk_nPar = cms.int32(4),         # use 4 or 5-parameter L1 track fit ??
                                        L1Tk_minNStub = cms.int32(4),     # L1 tracks with >= 4 stubs
                                        TP_minNStub = cms.int32(4),       # require TP to have >= X number of stubs associated with it
@@ -132,12 +132,18 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackNtupleMaker',
                                        MCTruthStubInputTag = cms.InputTag("TTStubAssociatorFromPixelDigis", "StubAccepted"),
                                        TrackingParticleInputTag = cms.InputTag("mix", "MergedTrackTruth"),
                                        TrackingVertexInputTag = cms.InputTag("mix", "MergedTrackTruth"),
+                                       ## tracking in jets stuff (--> requires AK4 genjet collection present!)
+                                       TrackingInJets = cms.bool(True),
+                                       GenJetInputTag = cms.InputTag("ak4GenJets", ""),
                                        )
 process.ana = cms.Path(process.L1TrackNtuple)
 
 # use this if you want to re-run the stub making
-#process.schedule = cms.Schedule(process.TTClusterStub,process.TTTracksWithTruth,process.ana)
+#process.schedule = cms.Schedule(process.TTClusterStub,process.TTClusterStubTruth,process.TTTracksWithTruth,process.ana)
 
-# run cluster/stub associators and tracking
+# use this if cluster/stub associators not available 
+#process.schedule = cms.Schedule(process.TTClusterStubTruth,process.TTTracksWithTruth,process.ana)
+
+# use this to only run tracking + track associator
 process.schedule = cms.Schedule(process.TTTracksWithTruth,process.ana)
 
