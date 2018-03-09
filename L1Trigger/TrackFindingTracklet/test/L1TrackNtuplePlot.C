@@ -40,7 +40,7 @@ void makeResidualIntervalPlot( TString type, TString dir, TString variable, TH1F
 // ----------------------------------------------------------------------------------------------------------------
 
 
-void L1TrackNtuplePlot(TString type, int TP_select_injet=0, int TP_select_pdgid=0, int TP_select_eventid=0, float TP_minPt=2.0, float TP_maxPt=100.0, float TP_maxEta=2.4) {
+void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0, int TP_select_pdgid=0, int TP_select_eventid=0, float TP_minPt=2.0, float TP_maxPt=100.0, float TP_maxEta=2.4) {
 
   // type:              this is the input file you want to process (minus ".root" extension)
   // TP_select_pdgid:   if non-zero, only select TPs with a given PDG ID
@@ -93,7 +93,7 @@ void L1TrackNtuplePlot(TString type, int TP_select_injet=0, int TP_select_pdgid=
 
   // ----------------------------------------------------------------------------------------------------------------
   // read ntuples
-  TChain* tree = new TChain("L1TrackNtuple/eventTree");
+  TChain* tree = new TChain("L1TrackNtuple"+treeName+"/eventTree");
   tree->Add(type+".root");
   
   if (tree->GetEntries() == 0) {
@@ -1756,8 +1756,8 @@ void L1TrackNtuplePlot(TString type, int TP_select_injet=0, int TP_select_pdgid=
   */
 
   TFile* fout;
-  if (doLooseMatch) fout = new TFile("output_loose_"+type+".root","recreate");
-  else fout = new TFile("output_"+type+".root","recreate");
+  if (doLooseMatch) fout = new TFile("output_loose_"+type+treeName+".root","recreate");
+  else fout = new TFile("output_"+type+treeName+".root","recreate");
   
   
   // -------------------------------------------------------------------------------------------
@@ -2119,9 +2119,9 @@ void L1TrackNtuplePlot(TString type, int TP_select_injet=0, int TP_select_pdgid=
   // ----------------------------------------------------------------------------------------------------------------
 
   // rebin pt/phi plots
-  h_tp_pt->Rebin(2);
+  h_tp_pt->Rebin(4);
   h_tp_phi->Rebin(2);
-  h_match_tp_pt->Rebin(2);
+  h_match_tp_pt->Rebin(4);
   h_match_tp_phi->Rebin(2);
 
   /*
