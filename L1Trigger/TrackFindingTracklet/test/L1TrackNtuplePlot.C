@@ -40,7 +40,7 @@ void makeResidualIntervalPlot( TString type, TString dir, TString variable, TH1F
 // ----------------------------------------------------------------------------------------------------------------
 
 
-void L1TrackNtuplePlot(TString type, bool doLooseMatch=false, int TP_select_injet=0, int TP_select_pdgid=0, int TP_select_eventid=0, float TP_minPt=2.0, float TP_maxPt=100.0, float TP_maxEta=2.4) {
+void L1TrackNtuplePlot(TString type, int TP_select_injet=0, int TP_select_pdgid=0, int TP_select_eventid=0, float TP_minPt=2.0, float TP_maxPt=100.0, float TP_maxEta=2.4) {
 
   // type:              this is the input file you want to process (minus ".root" extension)
   // TP_select_pdgid:   if non-zero, only select TPs with a given PDG ID
@@ -67,7 +67,7 @@ void L1TrackNtuplePlot(TString type, bool doLooseMatch=false, int TP_select_inje
   
   bool doDetailedPlots = false; //turn on to make full set of plots
   bool doGausFit = false;       //do gaussian fit for resolution vs eta/pt plots
-  //bool doLooseMatch = true;    //looser MC truth matching
+  bool doLooseMatch = false;    //looser MC truth matching
 
   //some counters for integrated efficiencies
   int n_all_eta2p5 = 0;
@@ -484,9 +484,11 @@ void L1TrackNtuplePlot(TString type, bool doLooseMatch=false, int TP_select_inje
 
   TH1F* h_tp_phi   = new TH1F("tp_phi",  ";Tracking particle #phi [rad]; Tracking particles / 0.1",       64, -3.2,   3.2);
   TH1F* h_tp_d0    = new TH1F("tp_d0",   ";Tracking particle d_{0} [cm]; Tracking particles / 0.01 cm",50, -0.25, 0.25);
+  TH1F* h_tp_absd0 = new TH1F("tp_absd0",";Tracking particle |d_{0}| [cm]; Tracking particles / 0.04 cm",50, 0, 2.0);
 
   TH1F* h_match_tp_phi   = new TH1F("match_tp_phi",  ";Tracking particle #phi [rad]; Tracking particles / 0.1",       64, -3.2,   3.2);
   TH1F* h_match_tp_d0    = new TH1F("match_tp_d0",   ";Tracking particle d_{0} [cm]; Tracking particles / 0.01 cm",50, -0.25, 0.25);
+  TH1F* h_match_tp_absd0 = new TH1F("match_tp_absd0",";Tracking particle d_{0} [cm]; Tracking particles / 0.04 cm",50, 0, 2.0);
 
   TH1F* h_match_trk_nstub   = new TH1F("match_trk_nstub",   ";Number of stubs; L1 tracks / 1.0", 15, 0, 15);
   TH1F* h_match_trk_nstub_C = new TH1F("match_trk_nstub_C", ";Number of stubs; L1 tracks / 1.0", 15, 0, 15);
@@ -762,8 +764,6 @@ void L1TrackNtuplePlot(TString type, bool doLooseMatch=false, int TP_select_inje
     // tracking particle loop
     for (int it=0; it<(int)tp_pt->size(); it++) {
 
-      //if (it>0) continue;
-
       // only look at TPs in (ttbar) jets ?
       if (TP_select_injet > 0) {
 	if (TP_select_injet == 1 && tp_injet->at(it) == 0) continue;       
@@ -812,6 +812,7 @@ void L1TrackNtuplePlot(TString type, bool doLooseMatch=false, int TP_select_inje
 	h_tp_phi->Fill(tp_phi->at(it));
 	h_tp_z0->Fill(tp_z0->at(it));
 	h_tp_d0->Fill(tp_d0->at(it));
+	h_tp_absd0->Fill(fabs(tp_d0->at(it)));
 	
 	if (tp_pt->at(it) < 3.0) h_tp_eta_23->Fill(tp_eta->at(it));
 	else if (tp_pt->at(it) < 5.0) h_tp_eta_35->Fill(tp_eta->at(it));
@@ -919,6 +920,7 @@ void L1TrackNtuplePlot(TString type, bool doLooseMatch=false, int TP_select_inje
 	h_match_tp_phi->Fill(tp_phi->at(it));
 	h_match_tp_z0->Fill(tp_z0->at(it));
 	h_match_tp_d0->Fill(tp_d0->at(it));
+	h_match_tp_absd0->Fill(fabs(tp_d0->at(it)));
 	
 	if (fabs(tp_eta->at(it)) < 1.0) n_match_eta1p0++;
 	else if (fabs(tp_eta->at(it)) < 1.75) n_match_eta1p75++;
@@ -1749,7 +1751,7 @@ void L1TrackNtuplePlot(TString type, bool doLooseMatch=false, int TP_select_inje
     sprintf(pttxt,"_pt%.0f",TP_minPt);
     type = type+pttxt;
   }
-
+  
   TFile* fout;
   if (doLooseMatch) fout = new TFile("output_loose_"+type+".root","recreate");
   else fout = new TFile("output_"+type+".root","recreate");
@@ -2119,7 +2121,6 @@ void L1TrackNtuplePlot(TString type, bool doLooseMatch=false, int TP_select_inje
   h_match_tp_pt->Rebin(2);
   h_match_tp_phi->Rebin(2);
 
-
   h_tp_pt->Rebin(2);
   h_match_tp_pt->Rebin(2);
   h_tp_pt_L->Rebin(2);
@@ -2185,7 +2186,6 @@ void L1TrackNtuplePlot(TString type, bool doLooseMatch=false, int TP_select_inje
   h_eff_eta_H->GetYaxis()->SetTitle("Efficiency");
   h_eff_eta_H->Divide(h_match_tp_eta_H, h_tp_eta_H, 1.0, 1.0, "B");
 
-
   h_match_tp_eta_23->Sumw2();
   h_tp_eta_23->Sumw2();
   TH1F* h_eff_eta_23 = (TH1F*) h_match_tp_eta_23->Clone();
@@ -2243,6 +2243,13 @@ void L1TrackNtuplePlot(TString type, bool doLooseMatch=false, int TP_select_inje
   h_eff_d0->GetYaxis()->SetTitle("Efficiency");
   h_eff_d0->Divide(h_match_tp_d0, h_tp_d0, 1.0, 1.0, "B");
 
+  h_match_tp_absd0->Sumw2();
+  h_tp_absd0->Sumw2();
+  TH1F* h_eff_absd0 = (TH1F*) h_match_tp_absd0->Clone();
+  h_eff_absd0->SetName("eff_absd0");
+  h_eff_absd0->GetYaxis()->SetTitle("Efficiency");
+  h_eff_absd0->Divide(h_match_tp_absd0, h_tp_absd0, 1.0, 1.0, "B");
+
 
   // set the axis range
   h_eff_pt  ->SetAxisRange(0,1.1,"Y");
@@ -2260,6 +2267,7 @@ void L1TrackNtuplePlot(TString type, bool doLooseMatch=false, int TP_select_inje
   h_eff_z0_L  ->SetAxisRange(0,1.1,"Y");
   h_eff_z0_H  ->SetAxisRange(0,1.1,"Y");
   h_eff_d0  ->SetAxisRange(0,1.1,"Y");
+  h_eff_absd0  ->SetAxisRange(0,1.1,"Y");
 
   if (type.Contains("Electron") || type.Contains("Pion") || type.Contains("Muon")) {
     h_eff_pt->SetAxisRange(0,49,"X");
@@ -2281,29 +2289,28 @@ void L1TrackNtuplePlot(TString type, bool doLooseMatch=false, int TP_select_inje
     c.SaveAs(DIR+type+"_eff_pt_zoom.png");
   }
 
-  //  if (doDetailedPlots) {
-    h_eff_pt_L->Draw();
-    h_eff_pt_L->Write();
-    sprintf(ctxt,"p_{T} < 8 GeV");
-    mySmallText(0.45,0.5,1,ctxt);
-    c.SaveAs(DIR+type+"_eff_pt_L.pdf");
-    c.SaveAs(DIR+type+"_eff_pt_L.png");
-    
+  h_eff_pt_L->Draw();
+  h_eff_pt_L->Write();
+  sprintf(ctxt,"p_{T} < 8 GeV");
+  mySmallText(0.45,0.5,1,ctxt);
+  c.SaveAs(DIR+type+"_eff_pt_L.pdf");
+  c.SaveAs(DIR+type+"_eff_pt_L.png");
+  
+  if (doDetailedPlots) {
     h_eff_pt_LC->Draw();
     h_eff_pt_LC->Write();
     sprintf(ctxt,"p_{T} < 8 GeV, |#eta|<1.0");
     mySmallText(0.45,0.5,1,ctxt);
     c.SaveAs(DIR+type+"_eff_pt_LC.pdf");
     c.SaveAs(DIR+type+"_eff_pt_LC.png");
-    
-    h_eff_pt_H->Draw();
-    h_eff_pt_H->Write();
-    sprintf(ctxt,"p_{T} > 8 GeV");
-    mySmallText(0.45,0.5,1,ctxt);
-    c.SaveAs(DIR+type+"_eff_pt_H.pdf");
-    c.SaveAs(DIR+type+"_eff_pt_H.png");
-    //  }
-
+  }
+  h_eff_pt_H->Draw();
+  h_eff_pt_H->Write();
+  sprintf(ctxt,"p_{T} > 8 GeV");
+  mySmallText(0.45,0.5,1,ctxt);
+  c.SaveAs(DIR+type+"_eff_pt_H.pdf");
+  c.SaveAs(DIR+type+"_eff_pt_H.png");
+  
   h_eff_eta->Draw();
   h_eff_eta->Write();
   c.SaveAs(DIR+type+"_eff_eta.pdf");
@@ -2315,21 +2322,21 @@ void L1TrackNtuplePlot(TString type, bool doLooseMatch=false, int TP_select_inje
     c.SaveAs(DIR+type+"_eff_eta_zoom.png");
   }
 
-  //if (doDetailedPlots) {
-    h_eff_eta_L->Draw();
-    h_eff_eta_L->Write();
-    sprintf(ctxt,"p_{T} < 8 GeV");
-    mySmallText(0.45,0.5,1,ctxt);
-    c.SaveAs(DIR+type+"_eff_eta_L.pdf");
-    c.SaveAs(DIR+type+"_eff_eta_L.png");
-    
-    h_eff_eta_H->Draw();
-    h_eff_eta_H->Write();
-    sprintf(ctxt,"p_{T} > 8 GeV");
-    mySmallText(0.45,0.5,1,ctxt);
-    c.SaveAs(DIR+type+"_eff_eta_H.pdf");
-    c.SaveAs(DIR+type+"_eff_eta_H.png");
-
+  h_eff_eta_L->Draw();
+  h_eff_eta_L->Write();
+  sprintf(ctxt,"p_{T} < 8 GeV");
+  mySmallText(0.45,0.5,1,ctxt);
+  c.SaveAs(DIR+type+"_eff_eta_L.pdf");
+  c.SaveAs(DIR+type+"_eff_eta_L.png");
+  
+  h_eff_eta_H->Draw();
+  h_eff_eta_H->Write();
+  sprintf(ctxt,"p_{T} > 8 GeV");
+  mySmallText(0.45,0.5,1,ctxt);
+  c.SaveAs(DIR+type+"_eff_eta_H.pdf");
+  c.SaveAs(DIR+type+"_eff_eta_H.png");
+  
+  if (doDetailedPlots) {
     h_eff_eta_23->Draw();
     h_eff_eta_23->Write();
     sprintf(ctxt,"2 < p_{T} < 3 GeV");
@@ -2350,9 +2357,7 @@ void L1TrackNtuplePlot(TString type, bool doLooseMatch=false, int TP_select_inje
     mySmallText(0.45,0.5,1,ctxt);
     c.SaveAs(DIR+type+"_eff_eta_5.pdf");
     c.SaveAs(DIR+type+"_eff_eta_5.png");
-    
-    
-  if (doDetailedPlots) {
+
     h_eff_z0->Draw();
     h_eff_z0->Write();
     c.SaveAs(DIR+type+"_eff_z0.pdf");
@@ -2371,11 +2376,17 @@ void L1TrackNtuplePlot(TString type, bool doLooseMatch=false, int TP_select_inje
       c.SaveAs(DIR+type+"_eff_phi_zoom.pdf");
       c.SaveAs(DIR+type+"_eff_phi_zoom.png");
     }
+
+    h_eff_d0->Draw();
+    h_eff_d0->Write();
+    c.SaveAs(DIR+type+"_eff_d0.pdf");
+    c.SaveAs(DIR+type+"_eff_d0.png");
+    
+    h_eff_absd0->Draw();
+    h_eff_absd0->Write();
+    c.SaveAs(DIR+type+"_eff_absd0.pdf");
+    c.SaveAs(DIR+type+"_eff_absd0.png");
   }
-  h_eff_d0->Draw();
-  h_eff_d0->Write();
-  c.SaveAs(DIR+type+"_eff_d0.pdf");
-  c.SaveAs(DIR+type+"_eff_d0.png");
 
   gPad->SetGridx(0);
   gPad->SetGridy(0);

@@ -478,7 +478,7 @@ void L1TrackNtupleMaker::beginJob()
   }
 
   if (SaveStubs) {
-    /*eventTree->Branch("allstub_x", &m_allstub_x);
+    eventTree->Branch("allstub_x", &m_allstub_x);
     eventTree->Branch("allstub_y", &m_allstub_y);
     eventTree->Branch("allstub_z", &m_allstub_z);
 
@@ -490,13 +490,13 @@ void L1TrackNtupleMaker::beginJob()
     eventTree->Branch("allstub_trigOffset", &m_allstub_trigOffset);
     eventTree->Branch("allstub_trigPos", &m_allstub_trigPos);
     eventTree->Branch("allstub_trigBend", &m_allstub_trigBend);
-    */
+    
     eventTree->Branch("allstub_matchTP_pdgid", &m_allstub_matchTP_pdgid);
     eventTree->Branch("allstub_matchTP_pt", &m_allstub_matchTP_pt);
     eventTree->Branch("allstub_matchTP_eta", &m_allstub_matchTP_eta);
-    /*
+    
     eventTree->Branch("allstub_matchTP_phi", &m_allstub_matchTP_phi);
-    */
+    
     eventTree->Branch("allstub_genuine", &m_allstub_genuine);
   }
 
