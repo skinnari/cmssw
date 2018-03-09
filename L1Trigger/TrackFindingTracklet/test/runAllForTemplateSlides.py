@@ -3,7 +3,10 @@ import os.path
 r.gROOT.SetBatch(1)
 r.gROOT.ProcessLine(".L L1TrackNtuplePlot.C++");
 
-treeName = '_TMTT_KF4ParamsComb'
+treeName = ''
+# For TMTT KF4ParamsComb
+# treeName = '_TMTT_KF4ParamsComb'
+
 truncationOptions = [
 'WithTruncation',
 'WithoutTruncation'
