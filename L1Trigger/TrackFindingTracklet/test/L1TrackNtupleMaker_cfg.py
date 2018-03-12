@@ -26,6 +26,9 @@ elif GEOMETRY == "D17":
     print "using geometry " + GEOMETRY + " (tilted)"
     process.load('Configuration.Geometry.GeometryExtended2023D17Reco_cff')
     process.load('Configuration.Geometry.GeometryExtended2023D17_cff')
+elif GEOMETRY == "TkOnly": 
+    print "using standalone tilted (T5) tracker geometry" 
+    process.load('L1Trigger.TrackTrigger.TkOnlyTiltedGeom_cff')
 else:
     print "this is not a valid geometry!!!"
 
@@ -40,59 +43,73 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgradePLS3', '')
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
-if GEOMETRY == "D10": 
-    #D10 (flat barrel)
-    Source_Files = cms.untracked.vstring(
-    "/store/relval/CMSSW_9_1_0_pre3/RelValSingleMuPt10Extended/GEN-SIM-DIGI-RAW/91X_upgrade2023_realistic_v1_D10-v1/10000/044925F3-5F2E-E711-A92B-0CC47A7AB7A0.root",
-    "/store/relval/CMSSW_9_1_0_pre3/RelValSingleMuPt10Extended/GEN-SIM-DIGI-RAW/91X_upgrade2023_realistic_v1_D10-v1/10000/42543260-602E-E711-A41C-0025905A48C0.root",
-    "/store/relval/CMSSW_9_1_0_pre3/RelValSingleMuPt10Extended/GEN-SIM-DIGI-RAW/91X_upgrade2023_realistic_v1_D10-v1/10000/72D6B8B7-612E-E711-A727-0CC47A4D7692.root",
-    "/store/relval/CMSSW_9_1_0_pre3/RelValSingleMuPt10Extended/GEN-SIM-DIGI-RAW/91X_upgrade2023_realistic_v1_D10-v1/10000/786DD1A7-612E-E711-84EB-0025905B855E.root",
-    "/store/relval/CMSSW_9_1_0_pre3/RelValSingleMuPt10Extended/GEN-SIM-DIGI-RAW/91X_upgrade2023_realistic_v1_D10-v1/10000/9255C706-602E-E711-BDE0-0025905A609A.root",
-    "/store/relval/CMSSW_9_1_0_pre3/RelValSingleMuPt10Extended/GEN-SIM-DIGI-RAW/91X_upgrade2023_realistic_v1_D10-v1/10000/BE75B044-602E-E711-8DC3-0CC47A4D7692.root",
-    "/store/relval/CMSSW_9_1_0_pre3/RelValSingleMuPt10Extended/GEN-SIM-DIGI-RAW/91X_upgrade2023_realistic_v1_D10-v1/10000/EA054BA3-5F2E-E711-B7F4-0025905A6084.root",
-)
-elif GEOMETRY == "D17":
+if GEOMETRY == "D17":
     #D17 (tilted barrel -- latest and greatest with T5 tracker, see: https://github.com/cms-sw/cmssw/blob/CMSSW_9_3_0_pre2/Configuration/Geometry/README.md)
     Source_Files = cms.untracked.vstring(
-    #"/store/user/ejclemen/L1TT/RelVal_932/WithTruthAssociation/TTbar/PU200/output_0.root",
-    #"/store/user/ejclemen/L1TT/RelVal_932/WithTruthAssociation/TTbar/PU200/output_1.root",
-    #"/store/user/ejclemen/L1TT/RelVal_932/WithTruthAssociation/TTbar/PU200/output_2.root",
-    "/store/relval/CMSSW_9_3_2/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU25ns_93X_upgrade2023_realistic_v2_2023D17PU200-v1/10000/0253F3E0-C4AA-E711-96FF-E0071B73C620.root"
-        )
+    ## these files already have the latest stubs + stub-MC associators
+    ## PU=0
+    # https://svnweb.cern.ch/cern/wsvn/UK-TrackTrig/software/cmssw/trunkSimpleCode9/MCsamples/932/RelVal/eclementMC/TTbar/PU0.txt
+    ## PU=140
+    # https://svnweb.cern.ch/cern/wsvn/UK-TrackTrig/software/cmssw/trunkSimpleCode9/MCsamples/932/RelVal/eclementMC/TTbar/PU140.txt
+    ## PU=200
+    # https://svnweb.cern.ch/cern/wsvn/UK-TrackTrig/software/cmssw/trunkSimpleCode9/MCsamples/932/RelVal/eclementMC/TTbar/PU200.txt
+    "/store/user/ejclemen/L1TT/RelVal_932/WithTruthAssociation/TTbar/PU200/output_0.root",
+    )
+elif GEOMETRY == "TkOnly":
+    Source_Files = cms.untracked.vstring(
+    #"file:Electron_1to50_TkOnly.root",
+    #"file:Positron_1to50_TkOnly.root",
+    "file:MuPlus_1to50_TkOnly.root",
+    "file:MuMinus_1to50_TkOnly.root",
+)
 process.source = cms.Source("PoolSource", fileNames = Source_Files)
 
 process.TFileService = cms.Service("TFileService", fileName = cms.string('TTbar_'+GEOMETRY+'_PU200.root'), closeFileFast = cms.untracked.bool(True))
 
-
-############################################################
-# remake L1 stubs and/or cluster/stub truth ??
-############################################################
-
-process.load('L1Trigger.TrackTrigger.TrackTrigger_cff')
-from L1Trigger.TrackTrigger.TTStubAlgorithmRegister_cfi import *
-process.load("SimTracker.TrackTriggerAssociation.TrackTriggerAssociator_cff")
-
-#if GEOMETRY == "D10": 
-#    TTStubAlgorithm_official_Phase2TrackerDigi_.zMatchingPS = cms.bool(False)
-
-process.TTClusterStub = cms.Path(process.TrackTriggerClustersStubs)
-process.TTClusterStubTruth = cms.Path(process.TrackTriggerAssociatorClustersStubs)
 
 
 ############################################################
 # L1 tracking
 ############################################################
 
+# remake stubs ?
+process.load('L1Trigger.TrackTrigger.TrackTrigger_cff')
+from L1Trigger.TrackTrigger.TTStubAlgorithmRegister_cfi import *
+process.load("SimTracker.TrackTriggerAssociation.TrackTriggerAssociator_cff")
+
+if GEOMETRY == "D10": 
+    TTStubAlgorithm_official_Phase2TrackerDigi_.zMatchingPS = cms.bool(False)
+
+if GEOMETRY != "TkOnly":
+    from SimTracker.TrackTriggerAssociation.TTClusterAssociation_cfi import *
+    TTClusterAssociatorFromPixelDigis.digiSimLinks = cms.InputTag("simSiPixelDigis","Tracker")
+
+process.TTClusterStub = cms.Path(process.TrackTriggerClustersStubs)
+process.TTClusterStubTruth = cms.Path(process.TrackTriggerAssociatorClustersStubs)
+
 from L1Trigger.TrackFindingTracklet.Tracklet_cfi import *
+
+#### floating-point version
+#
+#process.load("L1Trigger.TrackFindingTracklet.L1TrackletTracks_cff")
 #if GEOMETRY == "D10": 
 #    TTTracksFromTracklet.trackerGeometry = cms.untracked.string("flat")
 #TTTracksFromTracklet.asciiFileName = cms.untracked.string("evlist.txt")
+#
+## run only the tracking (no MC truth associators)
+#process.TTTracks = cms.Path(process.L1TrackletTracks)
+#
+## run the tracking AND MC truth associators)
+#process.TTTracksWithTruth = cms.Path(process.L1TrackletTracksWithAssociators)
 
-process.load("L1Trigger.TrackFindingTracklet.L1TrackletTracks_cff")
-process.TTTracks = cms.Path(process.L1TrackletTracks)
-process.TTTracksWithTruth = cms.Path(process.L1TrackletTracksWithAssociators)
+
+### emulation instead 
+process.load("L1Trigger.TrackFindingTracklet.L1TrackletEmulationTracks_cff")
+process.TTTracksEmulation = cms.Path(process.L1TrackletEmulationTracks)
+process.TTTracksEmulationWithTruth = cms.Path(process.L1TrackletEmulationTracksWithAssociators)
+#TTTracksFromTrackletEmulation.asciiFileName = cms.untracked.string("evlist.txt")
 
 
 ############################################################
@@ -117,7 +134,8 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackNtupleMaker',
                                        TP_minPt = cms.double(2.0),       # only save TPs with pt > X GeV
                                        TP_maxEta = cms.double(2.4),      # only save TPs with |eta| < X
                                        TP_maxZ0 = cms.double(30.0),      # only save TPs with |z0| < X cm
-                                       L1TrackInputTag = cms.InputTag("TTTracksFromTracklet", "Level1TTTracks"),               ## TTTrack input
+                                       #L1TrackInputTag = cms.InputTag("TTTracksFromTracklet", "Level1TTTracks"),               ## TTTrack input
+                                       L1TrackInputTag = cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks"),               ## TTTrack input
                                        MCTruthTrackInputTag = cms.InputTag("TTTrackAssociatorFromPixelDigis", "Level1TTTracks"), ## MCTruth input 
                                        # other input collections
                                        L1StubInputTag = cms.InputTag("TTStubsFromPhase2TrackerDigis","StubAccepted"),
@@ -125,14 +143,18 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackNtupleMaker',
                                        MCTruthStubInputTag = cms.InputTag("TTStubAssociatorFromPixelDigis", "StubAccepted"),
                                        TrackingParticleInputTag = cms.InputTag("mix", "MergedTrackTruth"),
                                        TrackingVertexInputTag = cms.InputTag("mix", "MergedTrackTruth"),
+                                       ## tracking in jets stuff (--> requires AK4 genjet collection present!)
+                                       TrackingInJets = cms.bool(True),
+                                       GenJetInputTag = cms.InputTag("ak4GenJets", ""),
                                        )
 process.ana = cms.Path(process.L1TrackNtuple)
 
 # use this if you want to re-run the stub making
-process.schedule = cms.Schedule(process.TTClusterStub,process.TTClusterStubTruth,process.TTTracksWithTruth,process.ana)
+#process.schedule = cms.Schedule(process.TTClusterStub,process.TTClusterStubTruth,process.TTTracksEmulationWithTruth,process.ana)
 
 # use this if cluster/stub associators not available 
-#process.schedule = cms.Schedule(process.TTClusterStubTruth,process.TTTracksWithTruth,process.ana)
+#process.schedule = cms.Schedule(process.TTClusterStubTruth,process.TTTracksEmulationWithTruth,process.ana)
 
 # use this to only run tracking + track associator
-#process.schedule = cms.Schedule(process.TTTracksWithTruth,process.ana)
+process.schedule = cms.Schedule(process.TTTracksEmulationWithTruth,process.ana)
+
