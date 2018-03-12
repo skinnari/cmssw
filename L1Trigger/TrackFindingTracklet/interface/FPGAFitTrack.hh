@@ -251,10 +251,13 @@ public:
 	  }
 	  else{
 	    int ialpha = tracklet->ialphadisk(d).value();
+	    //cout << "StubA ialpha "<<ialpha<<endl;
 	    int nalpha = tracklet->ialphadisk(d).nbits();
+	    //cout << "StubA ialpha nalpha "<<ialpha<<" "<<nalpha<<endl;
 	    nalpha = nalpha - alphaBitsTable; 
 	    ialpha = (1<<(alphaBitsTable-1)) + (ialpha>>nalpha);
-
+	    //cout << "ialpha ialphatable : "<<tracklet->ialphadisk(d).value()<<" "<<ialpha<<endl;
+	    
 	    alphaindex+=ialpha*power;
 	    power=power<<alphaBitsTable;
 	    matches2[2*(d-1)+1]='1';
@@ -326,7 +329,9 @@ public:
 	  }
 	  else{
 	    int ialpha = tracklet->ialphadisk(d).value();
+	    //cout << "StubB ialpha "<<ialpha<<endl;
 	    int nalpha = tracklet->ialphadisk(d).nbits();
+	    //cout << "StubB ialpha nalpha "<<ialpha<<" "<<nalpha<<endl;
 	    nalpha = nalpha - alphaBitsTable;
 	    ialpha = (1<<(alphaBitsTable-1)) + (ialpha>>nalpha);
 
@@ -404,7 +409,9 @@ public:
 	  }
 	  else{
 	    int ialpha = tracklet->ialphadisk(d).value();
+	    //cout << "StubC ialpha "<<ialpha<<endl;	    
 	    int nalpha = tracklet->ialphadisk(d).nbits();
+	    //cout << "StubC ialpha nalpha "<<ialpha<<" "<<nalpha<<endl;
 	    nalpha = nalpha - alphaBitsTable;
 	    ialpha = (1<<(alphaBitsTable-1)) + (ialpha>>nalpha);
 
@@ -437,6 +444,11 @@ public:
 
     FPGATrackDer* derivatives=derTable.getDerivatives(layermask, diskmask,alphaindex);
 
+    //cout << "alphaindex layermask diskmask : "<<alphaindex<<" "<<layermask<<" "<<diskmask<<endl;
+
+    //cout << "derivative : "<<derivatives->getAlphaMask()<<" "<<derivatives->getLayerMask()
+    //	 <<" "<<derivatives->getDiskMask()<<endl;
+    
     if (derivatives==0) {
       FPGAWord tmpl,tmpd;
       tmpl.set(layermask,6);
@@ -446,6 +458,8 @@ public:
       return;
     }
 
+    double ttmp=FPGATrackDerTable::gett(diskmask);
+    if (t<0) ttmp=-ttmp;
 
     if (debug1) {
       cout << "Doing trackfit in  "<<getName()<<endl;
@@ -462,7 +476,7 @@ public:
     }
     for (unsigned i=0;i<ndisks;i++){
       z[i]=sign*zmean[abs(disks[i])-1];
-      rstub[i+nlayers]=z[i]/t;
+      rstub[i+nlayers]=z[i]/ttmp;
     }
 
     double D[4][12];
@@ -475,13 +489,30 @@ public:
     unsigned int n=nlayers+ndisks;
    
     if (exactderivatives) {
+      //derivatives->fill(tracklet->fpgat().value(),MinvDt,iMinvDt);
+      //cout << "iMinvDt tab  : "<<iMinvDt[0][10]<<" "<<iMinvDt[1][10]<<" "
+      //   <<iMinvDt[2][10]<<" "<<iMinvDt[3][10]<<endl;
+      //cout << "iD tab  : "<<iD[0][10]<<" "<<iD[1][10]<<" "
+      //	   <<iD[2][10]<<" "<<iD[3][10]<<endl;
+      //double rinvtmp=0.00000001;
       FPGATrackDerTable::calculateDerivatives(nlayers,r,ndisks,z,alpha,t,rinv,
 					      D,iD,MinvDt,iMinvDt,sigma,kfactor);
+      //cout << "iMinvDt calc : "<<iMinvDt[0][10]<<" "<<iMinvDt[1][10]<<" "
+      //	   <<iMinvDt[2][10]<<" "<<iMinvDt[3][10]<<" "<<ttmp<<" "<<nlayers<<" "<<ndisks<<endl;
+      //cout << "iD calc : "<<iD[0][10]<<" "<<iD[1][10]<<" "
+      //   <<iD[2][10]<<" "<<iD[3][10]<<endl;
+      //cout << "alpha :";
+      //for (unsigned int iii=0;iii<ndisks;iii++) cout <<" "<<alpha[iii];
+      //cout << endl;
+      //cout << "z :";
+      //for (unsigned int iii=0;iii<ndisks;iii++) cout <<" "<<z[iii];
+      //cout << endl;
     } else {
       if (exactderivativesforfloating) {
 	derivatives->fill(tracklet->fpgat().value(),MinvDt,iMinvDt);
 	int iMinvDtDummy[4][12];
 	//int iDDummy[4][12]; FIXME - should be from lookup table
+	//double rinvtmp=0.00000001;
 	FPGATrackDerTable::calculateDerivatives(nlayers,r,ndisks,z,alpha,t,rinv,
 						D,iD,MinvDt,iMinvDtDummy,sigma,kfactor);
       } else {
@@ -519,6 +550,14 @@ public:
 
     for(unsigned int i=0;i<n;i++) {
 
+      
+      if (i>=nlayers) {
+	iphiresid[i]*=(t/ttmp);
+	phiresid[i]*=(t/ttmp);
+	phiresidexact[i]*=(t/ttmp);
+      }
+      
+      
       idelta[j]=iphiresid[i];
       delta[j]=phiresid[i];
       assert(fabs(phiresid[i])<0.2);
@@ -592,6 +631,7 @@ public:
       dz0_covexact+=D[3][j]*deltaexact[j];
 
       idrinv+=((iMinvDt[0][j]*idelta[j]));
+      //cout << "j idrinv : "<<j<<" "<<((iMinvDt[0][j]*idelta[j]))<<" "<<iMinvDt[0][j]<<" "<<idelta[j]<<endl;
       idphi0+=((iMinvDt[1][j]*idelta[j]));
       idt+=((iMinvDt[2][j]*idelta[j]));
       idz0+=((iMinvDt[3][j]*idelta[j]));
@@ -859,151 +899,8 @@ public:
     std::vector<FPGATracklet*> matches2=orderedMatches(fullmatch2_);
     std::vector<FPGATracklet*> matches3=orderedMatches(fullmatch3_);
     std::vector<FPGATracklet*> matches4=orderedMatches(fullmatch4_);
+
     
-    //Again taking a bit of a short cut in order to reuse old code
-    map<FPGATracklet*,int> counts;
-
-    for(unsigned int j=0;j<fullmatch1_.size();j++){
-      for(unsigned int i=0;i<fullmatch1_[j]->nMatches();i++){	
-	FPGATracklet* tracklet=fullmatch1_[j]->getFPGATracklet(i);
-	if (debug1) {
-	  cout << "In FPGAFitTrack 1 "<<fullmatch1_[j]->getName()<<" layer = "<<tracklet->layer()
-	       <<" disk = "<<tracklet->disk()<<endl;
-	}
-	if (getName()=="FT_L1L2"&&!tracklet->isBarrel()) continue;
-	if (getName()=="FT_L3L4"&&!tracklet->isBarrel()) continue;
-	if (getName()=="FT_L5L6"&&!tracklet->isBarrel()) continue;
-	if (getName()=="FT_D1D2"&&!tracklet->isDisk()) continue;
-	if (getName()=="FT_D3D4"&&!tracklet->isDisk()) continue;
-	if (getName()=="FT_D1L1"&&!tracklet->isOverlap()) continue;
-	if (getName()=="FT_D1L2"&&!tracklet->isOverlap()) continue;
-
-	if (getName()=="FT_L1L2"&&tracklet->layer()!=1) continue;
-	if (getName()=="FT_L3L4"&&tracklet->layer()!=3) continue;
-	if (getName()=="FT_L5L6"&&tracklet->layer()!=5) continue;
-	if (getName()=="FT_D1D2"&&abs(tracklet->disk())!=1) continue;
-	if (getName()=="FT_D3D4"&&abs(tracklet->disk())!=3) continue;
-	if (getName()=="FT_D1L1"&&(abs(tracklet->disk())!=1||tracklet->layer()!=1)) continue;
-	if (getName()=="FT_D1L2"&&(abs(tracklet->disk())!=1||tracklet->layer()!=2)) continue;
-	
-	if (debug1) {
-	  cout << "Found match1 for "<<tracklet<<" "<<getName()<<" "<<fullmatch1_[j]->getName()<<endl;
-	}
-	assert(tracklet->homeSector()==iSector_);
-	if (counts.find(tracklet)==counts.end()){
-	  counts[tracklet]=1;
-	}
-	else{
-	  counts[tracklet]++;
-	}
-      }
-    }
-
-    for(unsigned int j=0;j<fullmatch2_.size();j++){
-      for(unsigned int i=0;i<fullmatch2_[j]->nMatches();i++){
-	FPGATracklet* tracklet=fullmatch2_[j]->getFPGATracklet(i);
-	if (debug1) {
-	  cout << "In FPGAFitTrack 2 "<<tracklet<<" "<<getName()<<endl;
-	}
-	if (getName()=="FT_L1L2"&&!tracklet->isBarrel()) continue;
-	if (getName()=="FT_L3L4"&&!tracklet->isBarrel()) continue;
-	if (getName()=="FT_L5L6"&&!tracklet->isBarrel()) continue;
-	if (getName()=="FT_D1D2"&&!tracklet->isDisk()) continue;
-	if (getName()=="FT_D3D4"&&!tracklet->isDisk()) continue;
-	if (getName()=="FT_D1L1"&&!tracklet->isOverlap()) continue;
-	if (getName()=="FT_D1L2"&&!tracklet->isOverlap()) continue;
-
-	if (getName()=="FT_L1L2"&&tracklet->layer()!=1) continue;
-	if (getName()=="FT_L3L4"&&tracklet->layer()!=3) continue;
-	if (getName()=="FT_L5L6"&&tracklet->layer()!=5) continue;
-	if (getName()=="FT_D1D2"&&abs(tracklet->disk())!=1) continue;
-	if (getName()=="FT_D3D4"&&abs(tracklet->disk())!=3) continue;
-	if (getName()=="FT_D1L1"&&(abs(tracklet->disk())!=1||tracklet->layer()!=1)) continue;
-	if (getName()=="FT_D1L2"&&(abs(tracklet->disk())!=1||tracklet->layer()!=2)) continue;
-	
-	if (debug1) {
-	  cout << "Found match2 for "<<tracklet<<" "<<getName()<<" "<<fullmatch2_[j]->getName()<<endl;
-	}
-	assert(tracklet->homeSector()==iSector_);
-	if (counts.find(tracklet)==counts.end()){
-	  counts[tracklet]=1;
-	}
-	else{
-	  counts[tracklet]++;
-	}
-      }
-    }
-
-    for(unsigned int j=0;j<fullmatch3_.size();j++){
-      for(unsigned int i=0;i<fullmatch3_[j]->nMatches();i++){
-	FPGATracklet* tracklet=fullmatch3_[j]->getFPGATracklet(i);
-	if (debug1) {
-	  cout << "In FPGAFitTrack 3 "<<tracklet<<endl;
-	}
-	if (getName()=="FT_L1L2"&&!tracklet->isBarrel()) continue;
-	if (getName()=="FT_L3L4"&&!tracklet->isBarrel()) continue;
-	if (getName()=="FT_L5L6"&&!tracklet->isBarrel()) continue;
-	if (getName()=="FT_D1D2"&&!tracklet->isDisk()) continue;
-	if (getName()=="FT_D3D4"&&!tracklet->isDisk()) continue;
-	if (getName()=="FT_D1L1"&&!tracklet->isOverlap()) continue;
-	if (getName()=="FT_D1L2"&&!tracklet->isOverlap()) continue;
-
-	if (getName()=="FT_L1L2"&&tracklet->layer()!=1) continue;
-	if (getName()=="FT_L3L4"&&tracklet->layer()!=3) continue;
-	if (getName()=="FT_L5L6"&&tracklet->layer()!=5) continue;
-	if (getName()=="FT_D1D2"&&abs(tracklet->disk())!=1) continue;
-	if (getName()=="FT_D3D4"&&abs(tracklet->disk())!=3) continue;
-	if (getName()=="FT_D1L1"&&(abs(tracklet->disk())!=1||tracklet->layer()!=1)) continue;
-	if (getName()=="FT_D1L2"&&(abs(tracklet->disk())!=1||tracklet->layer()!=2)) continue;
-	
-	if (debug1) {
-	  cout << "Found match3 for "<<tracklet<<" "<<getName()<<" "<<fullmatch3_[j]->getName()<<endl;
-	}
-	assert(tracklet->homeSector()==iSector_);
-	if (counts.find(tracklet)==counts.end()){
-	  counts[tracklet]=1;
-	}
-	else{
-	  counts[tracklet]++;
-	}
-      }
-    }
-
-    for(unsigned int j=0;j<fullmatch4_.size();j++){
-      for(unsigned int i=0;i<fullmatch4_[j]->nMatches();i++){
-	FPGATracklet* tracklet=fullmatch4_[j]->getFPGATracklet(i);
-	if (debug1) {
-	  cout << "In FPGAFitTrack 4 "<<tracklet<<endl;
-	}
-	if (getName()=="FT_L1L2"&&!tracklet->isBarrel()) continue;
-	if (getName()=="FT_L3L4"&&!tracklet->isBarrel()) continue;
-	if (getName()=="FT_L5L6"&&!tracklet->isBarrel()) continue;
-	if (getName()=="FT_D1D2"&&!tracklet->isDisk()) continue;
-	if (getName()=="FT_D3D4"&&!tracklet->isDisk()) continue;
-	if (getName()=="FT_D1L1"&&!tracklet->isOverlap()) continue;
-	if (getName()=="FT_D1L2"&&!tracklet->isOverlap()) continue;
-
-	if (getName()=="FT_L1L2"&&tracklet->layer()!=1) continue;
-	if (getName()=="FT_L3L4"&&tracklet->layer()!=3) continue;
-	if (getName()=="FT_L5L6"&&tracklet->layer()!=5) continue;
-	if (getName()=="FT_D1D2"&&abs(tracklet->disk())!=1) continue;
-	if (getName()=="FT_D3D4"&&abs(tracklet->disk())!=3) continue;
-	if (getName()=="FT_D1L1"&&(abs(tracklet->disk())!=1||tracklet->layer()!=1)) continue;
-	if (getName()=="FT_D1L2"&&(abs(tracklet->disk())!=1||tracklet->layer()!=2)) continue;
-		
-	if (debug1) {
-	  cout << "Found match4 for "<<tracklet<<" "<<getName()<<" "<<fullmatch4_[j]->getName()<<endl;
-	}
-	assert(tracklet->homeSector()==iSector_);
-	if (counts.find(tracklet)==counts.end()){
-	  counts[tracklet]=1;
-	}
-	else{
-	  counts[tracklet]++;
-	}
-      }
-    }
-
     //New trackfit
     unsigned int indexArray[4];
     for (unsigned int i=0;i<4;i++) {

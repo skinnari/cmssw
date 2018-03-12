@@ -463,12 +463,37 @@ public:
 				   dz*tracklet->rprojderapproxdisk(disk)*dorcorr);
 	
 	double alpha=0.0;
+
+	double drphi=dphi*stub->r();
+	double drphiapprox=dphiapprox*stub->r();
 	
 	if (!stub->isPSmodule()) {
 	  alpha=stub->alpha(); 	
 	  dphi+=dr*alpha;
 	  dphiapprox+=drapprox*alpha;
-	  ideltaphi+=ideltar*fpgastub->alpha().value()*krprojshiftdisk*kalpha/kphiproj123;
+	  
+	  double alphanew=stub->alphanew();
+	  drphi+=dr*alphanew*4.57/stub->r();
+	  drphiapprox+=dr*alphanew*4.57/stub->r();
+
+	  int ialphanew=fpgastub->alphanew().value();
+
+	  int alphashift=12;
+	  double fact=(1<<alphashift)*krprojshiftdisk*4.57/(1<<(nbitsalpha-1))/stub->r2()/kphiproj123;
+	  int ifact=fact;
+	  
+	  //cout << "fact ifact "<<fact<<" "<<ifact<<endl;
+	  //cout << "alphanew  "<<alpha<<" "<<alphanew<<" "<<alphanew*4.57/stub->r2()<<" "<<ialphanew*4.57/(1<<(nbitsalpha-1))/stub->r2()<<endl;
+	  //cout << "rdphi corr  "<<dr*alpha*stub->r()<<" "<<dr*alphanew*4.57/stub->r()<<" "<<ideltar*krprojshiftdisk*ialphanew*4.57/(1<<(nbitsalpha-1))/stub->r()<<endl;
+	  //cout << "dphi drphi "<<dphi*stub->r()<<" "<<drphi<<endl;
+	  //cout << "dr ideltar : "<<dr<<" "<<ideltar*krprojshiftdisk<<endl;
+
+	  int iphialphacor=((ideltar*ialphanew*ifact)>>alphashift);
+	  
+	  //cout << "ialphacor "<<iphialphacor<<" "<<ideltar*fpgastub->alpha().value()*krprojshiftdisk*kalpha/kphiproj123<<endl;
+	  
+	  //ideltaphi+=ideltar*fpgastub->alpha().value()*krprojshiftdisk*kalpha/kphiproj123;
+	  ideltaphi+=iphialphacor;
 	}
 
 
@@ -479,10 +504,10 @@ public:
 	  drphicut=0.5; 
 	}
 
-	bool match=(fabs(dphi)<drphicut/stub->r())&&(fabs(deltar)<drcut);
+	bool match=(fabs(drphi)<drphicut)&&(fabs(deltar)<drcut);
 	
 	bool imatch=(fabs(ideltaphi)<drphicut/(kphiproj123*stub->r()))&&(fabs(ideltar)<drcut/krprojshiftdisk);
-
+	
 	//cout << getName() << " ideltaphi deltaphi "<<ideltaphi*kphiproj123*stub->r()<<" "<<dphi*stub->r()<<endl;
 	
 	if (debug1) {
@@ -564,8 +589,8 @@ public:
 	  assert(fabs(dphiapprox)<0.2);
 	  
 	  tracklet->addMatchDisk(disk,ideltaphi,ideltar,
-				 dphi,dr,dphiapprox,drapprox,
-				 stub->alphatruncated(),
+				 drphi/stub->r(),dr,drphiapprox/stub->r(),drapprox,
+				 stub->alpha(),
 				 fpgastub->stubindex().value()+((fpgastub->phiregion()-1)<<6),
 				 stub->z(),tmp);
 	  if (debug1) {

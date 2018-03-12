@@ -817,7 +817,7 @@ public:
 
     assert(abs(disk)>=1&&abs(disk)<=5);
 
-    diskresid_[abs(disk)-1].init(disk,ideltaphi,ideltar,stubid,dphi,dr,dphiapprox,drapprox,zstub,alpha,stubptrs.first->alpha(),stubptrs);
+    diskresid_[abs(disk)-1].init(disk,ideltaphi,ideltar,stubid,dphi,dr,dphiapprox,drapprox,zstub,alpha,stubptrs.first->alphanew(),stubptrs);
       
 
   }

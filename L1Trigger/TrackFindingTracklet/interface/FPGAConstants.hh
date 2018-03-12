@@ -83,6 +83,11 @@ static bool padding=true;
 static bool exactderivatives=false;  //for both the integer and float
 static bool exactderivativesforfloating=true; //only for the floating point
 static bool useapprox=true; //use approximate postion based on integer representation for floating point
+static double alphamax=5.0/(65.0*65.0);
+static int nbitsalpha=6;
+static double kalpha=alphamax/(1<<(nbitsalpha-1));
+static int alphaBitsTable=3; //For number of bits in track derivative table
+
 
 static bool writetrace=false; //Print out details about startup
 static bool debug1=false; //Print information about tracking
@@ -200,10 +205,6 @@ static double bendcut=1.5;
 static double bendcutdisk=3.0;
 static double z0cut=15.0;
 
-static double alphamax=5.0/(65.0*65.0);
-static int nbitsalpha=6;
-static double kalpha=alphamax/(1<<(nbitsalpha-1));
-static int alphaBitsTable=1; //For number of bits in track derivative table
 
 static unsigned int NSector=27; 
 static int Nphibits=2;         //Number of bits required to label the phi VM

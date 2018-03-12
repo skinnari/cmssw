@@ -386,9 +386,22 @@ public:
       double alpha=stub.alpha();
       assert(fabs(alpha)<alphamax);
       int ialpha=round_int(alpha/kalpha);
+
+      //if (stub.r()>100) cout << "r alpha ialpha : "<<stub.r()<<" "<<alpha<<" "<<ialpha<<endl;
       
       alpha_.set(ialpha,nbitsalpha,false,__LINE__,__FILE__);
 
+      double alphanew=stub.alphanew();
+      assert(fabs(alphanew)<1.0);
+      int ialphanew=alphanew*(1<<(nbitsalpha-1));
+      assert(ialphanew<(1<<(nbitsalpha-1)));
+      assert(ialphanew>=-(1<<(nbitsalpha-1)));
+      alphanew_.set(ialphanew,nbitsalpha,false,__LINE__,__FILE__);
+
+      //cout << "alphanew ialphanew "<<alphanew<<" "<<ialphanew<<" "<<alphanew_.value()<<endl;
+	    
+
+      
     }
 
   }
@@ -709,6 +722,7 @@ public:
   FPGAWord z() const { return z_; }
   FPGAWord phi() const { return phi_; }
   FPGAWord alpha() const { return alpha_; }
+  FPGAWord alphanew() const { return alphanew_; }
 
 
   int ir() const { return r_.value(); }
@@ -786,6 +800,7 @@ private:
   FPGAWord z_;
   FPGAWord phi_;
   FPGAWord alpha_;
+  FPGAWord alphanew_;
 
   FPGAWord bend_;
   

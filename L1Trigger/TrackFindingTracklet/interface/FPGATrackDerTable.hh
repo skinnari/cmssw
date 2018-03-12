@@ -172,17 +172,18 @@ public:
 
       in >>layerstr>>diskstr>>multiplicity;
 
-	  if (alphaBits_==2) {
-	    if (multiplicity==8) multiplicity=4;
-		if (multiplicity==64) multiplicity=16;
-		if (multiplicity==512) multiplicity=64;
-	  }
+      //correct multiplicity if you dont want 3 bits of alpha.
+      if (alphaBits_==2) {
+	if (multiplicity==8) multiplicity=4;
+	if (multiplicity==64) multiplicity=16;
+	if (multiplicity==512) multiplicity=64;
+      }
 
-	  if (alphaBits_==1) {
-	    if (multiplicity==8) multiplicity=2;
-		if (multiplicity==64) multiplicity=4;
-		if (multiplicity==512) multiplicity=8;
-	  }
+      if (alphaBits_==1) {
+	if (multiplicity==8) multiplicity=2;
+	if (multiplicity==64) multiplicity=4;
+	if (multiplicity==512) multiplicity=8;
+      }
 	  
       if (!in.good()) continue;
       
@@ -213,11 +214,12 @@ public:
       int diskmask=der.getDiskMask();
       int alphamask=der.getAlphaMask();
 
-      bool print=getIndex(layermask,diskmask)==17984&&alphamask==20;
+      bool print=getIndex(layermask,diskmask)==21264 && alphamask==8;
+      //bool print=getIndex(layermask,diskmask)==300 && alphamask==1;
       print=false;
 
       if (print) {
-	cout << "i "<<i<<" "<<layermask<<" "<<diskmask<<" "
+	cout << "PRINT i "<<i<<" "<<layermask<<" "<<diskmask<<" "
 	     <<alphamask<<" "<<print<<endl;
       }
 
@@ -239,43 +241,40 @@ public:
       double z[5];
       double alpha[5];
 
-      //double t=sinh(1.2);
-      //double rinv=-0.0057/2.5;
-
       double t=gett(diskmask);
       double rinv=0.00000001;
-      //cout << "layermask diskmask t :"<<layermask<<" "<<diskmask<<" "<<t<<endl;
       
       for (unsigned d=0;d<5;d++){
 	if (diskmask&(3<<(2*(4-d)))) {
 	  //disks[ndisks]=d+1;
 	  z[ndisks]=zmean[d];
 	  alpha[ndisks]=0.0;
+	  double r=r=zmean[d]/t;
+	  double r2=r*r;
 	  if (diskmask&(1<<(2*(4-d)))) {
 	    if (alphaBits_==3) {
 	      int ialpha=alphamask&7;
 	      alphamask=alphamask>>3;
-		  double r=zmean[d]/t;
-		  alpha[ndisks]=480*0.009*(ialpha-3.5)/(4.0*r*r);
-		}
-		if (alphaBits_==2) {
+	      //double r=zmean[d]/t;
+	      alpha[ndisks]=4.57*(ialpha-3.5)/4.0/r2;
+	      //alpha[ndisks]=480*0.009*(ialpha-3.5)/(4.0*r*r);
+	      if (print) cout << "PRINT 3 alpha ialpha : "<<alpha[ndisks]<<" "<<ialpha<<endl;
+	    }
+	    if (alphaBits_==2) {
 	      int ialpha=alphamask&3;
 	      alphamask=alphamask>>2;
-		  double r=zmean[d]/t;
-		  alpha[ndisks]=480*0.009*(ialpha-1.5)/(4.0*r*r);
-		}
-		if (alphaBits_==1) {
+	      //double r=zmean[d]/t;
+	      alpha[ndisks]=4.57*(ialpha-1.5)/2.0/r2;
+	      //alpha[ndisks]=480*0.009*(ialpha-1.5)/(4.0*r*r);
+	    }
+	    if (alphaBits_==1) {
 	      int ialpha=alphamask&1;
 	      alphamask=alphamask>>1;
-		  double r=zmean[d]/t;
-		  alpha[ndisks]=480*0.009*(ialpha-0.5)/(4.0*r*r);
-		}
-	    //if (d==0) alpha[ndisks]=-0.000220;
-	    //if (d==1) alpha[ndisks]=0.000244;
-	    //if (print) {
-	    //  cout << "Hit in disk "<<z[ndisks]<<" "
-		//   <<ialpha<<" "<<alpha[ndisks]<<endl;
-	    //}
+	      //double r=zmean[d]/t;
+	      alpha[ndisks]=4.57*(ialpha-0.5)/r2;
+	      //alpha[ndisks]=480*0.009*(ialpha-0.5)/(4.0*r*r);
+	      if (print) cout << "PRINT 1 alpha ialpha : "<<alpha[ndisks]<<" "<<ialpha<<endl;
+	    }
 	  }
 	  ndisks++;  
 	}
@@ -289,19 +288,27 @@ public:
       double sigma[12];
       double kfactor[12];
 
-      if (print) {
-	for(int ii=0;ii<nlayers;ii++){
-	  cout << "Layer r : "<<r[ii]<<endl;
-	}
-	for(int ii=0;ii<ndisks;ii++){
-	  cout << "Disk z alpha : "<<z[ii]<<" "<<alpha[ii]<<endl;
-	}
-      }
 
       calculateDerivatives(nlayers,r,ndisks,z,alpha,t,rinv,D,iD,MinvDt,iMinvDt,sigma,kfactor);
 
+      if (print) {
+	cout << "iMinvDt table build : "<<iMinvDt[0][10]<<" "<<iMinvDt[1][10]<<" "
+	     <<iMinvDt[2][10]<<" "<<iMinvDt[3][10]<<" "<<t<<" "<<nlayers<<" "<<ndisks<<endl;
+	cout << "alpha :";
+	for (int iii=0;iii<ndisks;iii++) cout <<" "<<alpha[iii];
+	cout << endl;
+	cout << "z :";
+	for (int iii=0;iii<ndisks;iii++) cout <<" "<<z[iii];
+	cout << endl;
 
+      }
+
+      if (print) {
+	cout << "PRINT nlayers ndisks : "<<nlayers<<" "<<ndisks<<endl;
+      }
+    
       for(int j=0;j<nlayers+ndisks;j++){
+	/*
 	if (print) {
 	  cout << "Table "<<endl;
 	  cout << MinvDt[0][2*j] <<" "
@@ -315,7 +322,8 @@ public:
 	       << MinvDt[3][2*j+1] <<" "
 	       <<endl;
 	}
-	
+	*/	
+
 	der.sett(t);
 
 	//integer
@@ -1316,7 +1324,7 @@ public:
   */
 
 
-  double gett(int diskmask) { //should use layers also..
+  static double gett(int diskmask) { //should use layers also..
 
     if (diskmask==0) return 0.0;
 
@@ -1342,6 +1350,8 @@ public:
 
     }
 
+    //cout << "diskmask tmin tmax : "<<diskmask<<" "<<tmin<<" "<<tmax<<endl;
+    
     return 0.5*(tmax+tmin);
 
   }
