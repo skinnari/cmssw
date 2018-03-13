@@ -31,9 +31,9 @@ truncationOptions = [
 ]
 
 PUs = [
-'0',
-'140',
-'200'
+'PU0',
+'PU140',
+'PU200'
 ]
 
 pGunSamples = {

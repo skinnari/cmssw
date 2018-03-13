@@ -17,8 +17,12 @@ parser.add_option('--ptlabel', metavar='F', type='string', action='store',
 (options, args) = parser.parse_args()
 argv = []
 
-userLabel = "_"+options.label
-userPtLabel = "_"+options.ptlabel
+userLabel=""
+userPtLabel=""
+if options.label != "":
+    userLabel = "_"+options.label
+if options.ptlabel != "":
+    userPtLabel = "_"+options.ptlabel
 
 # Labels for input files
 PUtypes = ["0","140","200"]
@@ -279,12 +283,12 @@ if __name__ == '__main__':
   r.gROOT.SetBatch()
 
   for sample in ['TTbar']:
-    for pdg in [11,13]:
+    for pdg in [0,11,13]:
       compareEfficiency("eff_pt_L",sample,0,pdg)
       compareEfficiency("eff_pt_H",sample,0,pdg)
       compareEfficiency("eff_eta_L",sample,0,pdg)
       compareEfficiency("eff_eta_H",sample,0,pdg)
-    for pdg in [0,1,2]:
+    for pdg in [1,2]:
       compareEfficiency("eff_pt",sample,0,pdg)
       compareEfficiency("eff_eta",sample,0,pdg)
 

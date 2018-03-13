@@ -17,8 +17,12 @@ parser.add_option('--ptlabel', metavar='F', type='string', action='store',
 (options, args) = parser.parse_args()
 argv = []
 
-userLabel = options.label
-userPtLabel = "_"+options.ptlabel
+userLabel=""
+userPtLabel=""
+if options.label != "":
+    userLabel = "_"+options.label
+if options.ptlabel != "":
+    userPtLabel = "_"+options.ptlabel
 
 # Labels for input files
 PUtypes = ["0","140","200"]
@@ -317,7 +321,6 @@ if __name__ == '__main__':
 
   for pdg in [0,1,2,11,13]:
 
-    for sample in ['TTbar']:
     if pdg == 13:
       for ptRange in ['L','H']:
         compareResolution("resVsEta_phi_"+ptRange,'TTbar',ptRange,pdg,maxY=0.02)

@@ -12,9 +12,9 @@
             "title": "Track rate vs nPU",
             "toptext": "Ntracks output per BX. ttbar $p_T > 2 / 3 / 10 GeV$",
             "plots": [
-                ["../OverlayPlots/TTbar_ntrk_pt2.pdf",    ""],
-                ["../OverlayPlots/TTbar_ntrk_pt3.pdf",    ""],
-                ["../OverlayPlots/TTbar_ntrk_pt10.pdf",   ""]
+                ["../OverlayPlots/TTbar_inclusive_ntrk_pt2.pdf",    ""],
+                ["../OverlayPlots/TTbar_inclusive_ntrk_pt3.pdf",    ""],
+                ["../OverlayPlots/TTbar_inclusive_ntrk_pt10.pdf",   ""]
             ],
             "bottomtext": ""
         },
@@ -59,8 +59,8 @@
             "title": "Tracking in ttbar jets, efficiency",
             "toptext": "Efficiency vs $p_T$, and $\\eta$ for tracks (with $p_T > 2 GeV$) in jets",
             "plots": [
-                ["../OverlayPlots/TTbar_injet_eff_eta.pdf",     "$p_T^{Jet} > 30 GeV"],
-                ["../OverlayPlots/TTbar_injet_highpt_eff_eta.pdf",   "p_T^{Jet} > 100 GeV"],
+                ["../OverlayPlots/TTbar_injet_eff_eta.pdf",     "$p_T^{Jet} > 30 GeV$"],
+                ["../OverlayPlots/TTbar_injet_highpt_eff_eta.pdf",   "$p_T^{Jet} > 100 GeV$"],
                 ["../OverlayPlots/TTbar_injet_eff_pt.pdf",    "" ],
                 ["../OverlayPlots/TTbar_injet_highpt_eff_pt.pdf",      ""]
             ],
