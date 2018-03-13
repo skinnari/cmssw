@@ -10,13 +10,13 @@ cd ../
 
 ## Run L1TrackNtuplePlot.C for all samples and options
 ```
-python runAllForTemplateSlides.py
+python runAllForTemplateSlides.py [--treeName="optional treename"] [--runPGun] [--run2GeV]
 ```
 
-## Produce overlay plots
+## Produce overlay plots (with input labels for file name and if using higher pt threshold)
 ```
-python compareEfficiency.py 
-python compareResolution.py
+python compareEfficiency.py [--label="optional username"] [--ptlabel="pt3"]
+python compareResolution.py [--label="optional username"] [--ptlabel="pt3"]
 ```
 
 ## Produce slides

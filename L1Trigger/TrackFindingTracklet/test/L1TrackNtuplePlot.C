@@ -1747,13 +1747,11 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   else if (TP_select_injet == 1) type = type+"_injet";
   else if (TP_select_injet == 2) type = type+"_injet_highpt";
 
-  /*
   if (TP_minPt > 2.0) {
     char pttxt[500];
     sprintf(pttxt,"_pt%.0f",TP_minPt);
     type = type+pttxt;
   }
-  */
 
   TFile* fout;
   if (doLooseMatch) fout = new TFile("output_loose_"+type+treeName+".root","recreate");

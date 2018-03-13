@@ -1,0 +1,75 @@
+{
+    "frontpage": {
+        "title": "L1 tracking performance",
+        "subtitle": "",
+        "author": ""
+
+    },
+
+    "slides": [
+
+        {
+            "title": "Muon gun, efficiency",
+            "toptext": "Efficiency vs $\\eta$",
+            "plots": [
+                ["../OverlayPlots/MuonPt10_eff_eta.pdf",   "$p_T^{\\mu} = 10 GeV$" ],
+                ["../OverlayPlots/MuonPt100_eff_eta.pdf",   "$p_T^{\\mu} = 100 GeV$" ]
+            ],
+            "bottomtext": ""
+        },
+
+        {
+            "title": "Muon gun, resolution",
+            "toptext": "Resolution of muons with $p_T = 10 GeV$",
+            "plots": [
+                ["../OverlayPlots/MuonPt10_resVsEta_eta.pdf",     ""],
+                ["../OverlayPlots/MuonPt10_resVsEta_phi.pdf",     ""],
+                ["../OverlayPlots/MuonPt10_resVsEta_z0.pdf",      ""]
+            ],
+            "bottomtext": ""
+        },
+
+        {
+            "title": "Muon gun, resolution",
+            "toptext": "Resolution of muons with $p_T = 100 GeV$",
+            "plots": [
+                ["../OverlayPlots/MuonPt100_resVsEta_eta.pdf",     ""],
+                ["../OverlayPlots/MuonPt100_resVsEta_phi.pdf",     ""],
+                ["../OverlayPlots/MuonPt100_resVsEta_z0.pdf",      ""]
+            ],
+            "bottomtext": ""
+        },
+
+        {
+            "title": "Electron gun, efficiency",
+            "toptext": "Efficiency vs $\\eta$",
+            "plots": [
+                ["../OverlayPlots/ElectronPt10_eff_eta.pdf",   "$p_T^{e} = 10 GeV$" ],
+                ["../OverlayPlots/ElectronPt35_eff_eta.pdf",   "$p_T^{e} = 35 GeV$" ]
+            ],
+            "bottomtext": ""
+        },
+
+        {
+            "title": "Electron gun, resolution",
+            "toptext": "Resolution of electrons with $p_T = 10 GeV$",
+            "plots": [
+                ["../OverlayPlots/ElectronPt10_resVsEta_eta.pdf",     ""],
+                ["../OverlayPlots/ElectronPt10_resVsEta_phi.pdf",     ""],
+                ["../OverlayPlots/ElectronPt10_resVsEta_z0.pdf",      ""]
+            ],
+            "bottomtext": ""
+        },
+
+        {
+            "title": "Electron gun, resolution",
+            "toptext": "Resolution of electrons with $p_T = 35 GeV$",
+            "plots": [
+                ["../OverlayPlots/ElectronPt35_resVsEta_eta.pdf",     ""],
+                ["../OverlayPlots/ElectronPt35_resVsEta_phi.pdf",     ""],
+                ["../OverlayPlots/ElectronPt35_resVsEta_z0.pdf",      ""]
+            ],
+            "bottomtext": ""
+        }
+    ]
+}
