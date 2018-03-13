@@ -965,7 +965,7 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
       
       if (fabs(tp_eta->at(it)) < 0.8) h_res_z0_C->Fill(matchtrk_z0->at(it) - tp_z0->at(it));
       else if (fabs(tp_eta->at(it)) < 1.6 && fabs(tp_eta->at(it)) >= 0.8) h_res_z0_I->Fill(matchtrk_z0->at(it) - tp_z0->at(it));
-      else if (fabs(tp_eta->at(it)) >= 1.6) h_res_z0_F->Fill(tp_z0->at(it) - tp_z0->at(it));
+      else if (fabs(tp_eta->at(it)) >= 1.6) h_res_z0_F->Fill(matchtrk_z0->at(it) - tp_z0->at(it));
       
       
       if (tp_pt->at(it) < 8.0) {
@@ -2120,26 +2120,23 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
 
   // rebin pt/phi plots
   h_tp_pt->Rebin(4);
-  h_tp_phi->Rebin(2);
   h_match_tp_pt->Rebin(4);
+  h_tp_phi->Rebin(2);
   h_match_tp_phi->Rebin(2);
 
-  /*
-  h_tp_pt->Rebin(2);
-  h_match_tp_pt->Rebin(2);
   h_tp_pt_L->Rebin(2);
   h_match_tp_pt_L->Rebin(2);
   h_tp_pt_LC->Rebin(2);
   h_match_tp_pt_LC->Rebin(2);
   h_tp_pt_H->Rebin(2);
   h_match_tp_pt_H->Rebin(2);
+
   h_tp_eta->Rebin(2);
   h_match_tp_eta->Rebin(2);
   h_tp_eta_L->Rebin(2);
   h_match_tp_eta_L->Rebin(2);
   h_tp_eta_H->Rebin(2);
   h_match_tp_eta_H->Rebin(2);
-  */
 
   // calculate the effeciency
   h_match_tp_pt->Sumw2();
