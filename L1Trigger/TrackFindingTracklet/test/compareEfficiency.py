@@ -105,6 +105,14 @@ def mySmallText(x, y, color, text):
   l.SetNDC();
   l.SetTextColor(color);
   l.DrawLatex(x,y,text);
+def myItalicText(x, y, color, text):
+  tsize=0.038;
+  l = r.TLatex();
+  l.SetTextSize(tsize); 
+  l.SetTextFont(52); 
+  l.SetNDC();
+  l.SetTextColor(color);
+  l.DrawLatex(x,y,text);
 
 def getAllHistogramsFromFile( what, sample, ptRange, pdgid, rebin, normToOne=False ):
 
@@ -276,8 +284,6 @@ def compareEfficiency(what, sample, ptRange=0, pdgid=0,rebin=0, normToOne=False,
 
   canvas.Print(outputFileName);
 
-  canvas.Print(outputFileName.replace('.pdf','.C'));
-
   
 if __name__ == '__main__':
   r.gROOT.SetBatch()
@@ -288,10 +294,10 @@ if __name__ == '__main__':
       compareEfficiency("eff_pt_H",sample,0,pdg)
       compareEfficiency("eff_eta_L",sample,0,pdg)
       compareEfficiency("eff_eta_H",sample,0,pdg)
-    for pdg in [1,2]:
+    for pdg in [0,1,2,11,13]:
       compareEfficiency("eff_pt",sample,0,pdg)
       compareEfficiency("eff_eta",sample,0,pdg)
-
+  
     compareEfficiency("ntrk_pt2",sample,0,0,rebin=4, normToOne=True, legPosition="topright")
     compareEfficiency("ntrk_pt3",sample,0,0,rebin=4, normToOne=True, legPosition="topright")
     compareEfficiency("ntrk_pt10",sample,0,0,rebin=4, normToOne=True, legPosition="topright")

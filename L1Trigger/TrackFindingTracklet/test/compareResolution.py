@@ -105,6 +105,14 @@ def mySmallText(x, y, color, text):
   l.SetNDC();
   l.SetTextColor(color);
   l.DrawLatex(x,y,text);
+def myItalicText(x, y, color, text):
+  tsize=0.038;
+  l = r.TLatex();
+  l.SetTextSize(tsize); 
+  l.SetTextFont(52); 
+  l.SetNDC();
+  l.SetTextColor(color);
+  l.DrawLatex(x,y,text);
 
 def getAllHistogramsFromFile( what, sample, ptRange, pdgid, maxY=-1 ):
 
@@ -298,6 +306,8 @@ def compareResolution(what, sample, ptRange=0, pdgid=0,maxY=-1,legPosition=''):
   l, l1 = setupLegend(sample,histograms68,histograms90,PULabels,legPosition=legPosition)
   l.Draw()
   l1.Draw()
+
+  
   # Save canvas
   outputDir = 'OverlayPlots'+userPtLabel
   if not os.path.isdir(outputDir):
@@ -320,7 +330,7 @@ if __name__ == '__main__':
   r.gROOT.SetBatch()
 
   for pdg in [0,1,2,11,13]:
-
+  
     if pdg == 13:
       for ptRange in ['L','H']:
         compareResolution("resVsEta_phi_"+ptRange,'TTbar',ptRange,pdg,maxY=0.02)
@@ -341,6 +351,7 @@ if __name__ == '__main__':
       compareResolution("resVsPt2_ptRel",'TTbar',0,pdg,maxY=0.5)
       compareResolution("resVsPt2_eta",'TTbar',0,pdg,maxY=0.03)
 
+  
 #  pGunSamples = {
 #      'MuonPt10' : 13,
 #      'MuonPt100' : 13,

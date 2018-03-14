@@ -23,7 +23,9 @@ argv = []
 r.gROOT.SetBatch(1)
 r.gROOT.ProcessLine(".L L1TrackNtuplePlot.C++");
 
-treeName = "_"+options.name
+treeName = ""
+if options.name != "":
+    treeName = "_"+options.name
 
 truncationOptions = [
 'WithTruncation',
@@ -53,7 +55,7 @@ for PU in PUs:
 		if not os.path.isfile( inputFile+'.root' ): 
 			continue
 		print '---> ',inputFile
- 		run ( 'L1TrackNtuplePlot("{inputFile}","{treeName}")'.format(inputFile=inputFile, treeName=treeName) )
+                run ( 'L1TrackNtuplePlot("{inputFile}","{treeName}",0,0,0,3)'.format(inputFile=inputFile, treeName=treeName) )
  		print '---------> Muons'
  		run ( 'L1TrackNtuplePlot("{inputFile}","{treeName}",0,13,0,3)'.format(inputFile=inputFile, treeName=treeName) )
  		print '---------> Electrons'
@@ -64,13 +66,13 @@ for PU in PUs:
 		print 'In high pt jet'
 		run ( 'L1TrackNtuplePlot("{inputFile}","{treeName}",2,0,0,3)'.format(inputFile=inputFile, treeName=treeName) )
         
-        if options.run2GeV:
-            print "----> 2 GeV threshold instead"
-            run ( 'L1TrackNtuplePlot("{inputFile}","{treeName}",0,0,0,3)'.format(inputFile=inputFile, treeName=treeName) )
-            run ( 'L1TrackNtuplePlot("{inputFile}","{treeName}",0,13)'.format(inputFile=inputFile, treeName=treeName) )
-            run ( 'L1TrackNtuplePlot("{inputFile}","{treeName}",0,11)'.format(inputFile=inputFile, treeName=treeName) )
-            run ( 'L1TrackNtuplePlot("{inputFile}","{treeName}",1)'.format(inputFile=inputFile, treeName=treeName) )
-            run ( 'L1TrackNtuplePlot("{inputFile}","{treeName}",2)'.format(inputFile=inputFile, treeName=treeName) )
+                if options.run2GeV:
+                    print "----> 2 GeV threshold instead"
+                    run ( 'L1TrackNtuplePlot("{inputFile}","{treeName}",0)'.format(inputFile=inputFile, treeName=treeName) )
+                    run ( 'L1TrackNtuplePlot("{inputFile}","{treeName}",0,13)'.format(inputFile=inputFile, treeName=treeName) )
+                    run ( 'L1TrackNtuplePlot("{inputFile}","{treeName}",0,11)'.format(inputFile=inputFile, treeName=treeName) )
+                    run ( 'L1TrackNtuplePlot("{inputFile}","{treeName}",1)'.format(inputFile=inputFile, treeName=treeName) )
+                    run ( 'L1TrackNtuplePlot("{inputFile}","{treeName}",2)'.format(inputFile=inputFile, treeName=treeName) )
 
         print "Done"
 
