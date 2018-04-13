@@ -13,8 +13,9 @@ public:
  
   }
 
-  L1TStub(int simtrackid, int iphi, int iz, int layer, int ladder, int module, int strip,
+  L1TStub(int eventid, int simtrackid, int iphi, int iz, int layer, int ladder, int module, int strip,
 	  double x, double y, double z, double sigmax, double sigmaz, double pt, double bend, int isPSmodule, int isFlipped){
+    eventid_=eventid;
     simtrackid_=simtrackid;
     iphi_=iphi;
     iz_=iz;
@@ -34,12 +35,13 @@ public:
 
     allstubindex_=999;
 
+    /*
     if (layer_>999&&z_<0.0) {
       //cout <<"Flipping pt sign"<<endl;
       pt_=-pt_;
       bend_ = -bend_;
     }
-
+    */
   }
 
   void AddInnerDigi(int ladder, int module, int irphi,int iz){
@@ -67,7 +69,8 @@ public:
 	<< ladder_ << "\t" 
 	<< module_ << "\t"
 	<< strip_<< "\t"
-	<< -1 << "\t"
+	<< eventid_ << "\t"
+	<< simtrackid_ << "\t"
 	<< pt_ << "\t" 
 	<< x_ << "\t" 
 	<< y_ << "\t" 
@@ -84,7 +87,8 @@ public:
 	<< ladder_ << "\t" 
 	<< module_ << "\t"
 	<< strip_<< "\t"
-	<< -1 << "\t"
+	<< eventid_ << "\t"
+	<< simtrackid_ << "\t"
 	<< pt_ << "\t" 
 	<< x_ << "\t" 
 	<< y_ << "\t" 
@@ -186,6 +190,7 @@ public:
     this->y_=r*sin(phi);
   }
 
+  int eventid() const { return eventid_;}
   int simtrackid() const { return simtrackid_;}
 
   void setAllStubIndex(unsigned int index) { allstubindex_=index; }
@@ -226,6 +231,7 @@ public:
 
 private:
 
+  int eventid_;
   int simtrackid_;
   unsigned int iphi_;
   unsigned int iz_;
