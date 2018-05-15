@@ -29,18 +29,19 @@ public:
 		const int maxZToKill,
 		const int minRToKill,
 		const int maxRToKill,
-		const double fractionToKillInLayers,
-		const double fractionToKillEverywhere
+		const double fractionOfStubsToKillInLayers,
+		const double fractionOfStubsToKillEverywhere
   	);
 
   bool killStub( const TTStub<Ref_Phase2TrackerDigi_>* stub );
 
   bool killStubInDeadModule( const TTStub<Ref_Phase2TrackerDigi_>* stub );
 
-  vector<DetId> getListOfDeadModules() { return deadModules_ ;}
+  map<DetId, float> getListOfDeadModules() { return deadModules_ ;}
 
 private:
 	void chooseModulesToKill();
+	void addDeadLayerModulesToDeadModuleList();
 
 	unsigned int killScenario_;
 	const TrackerTopology* trackerTopology_;
@@ -53,11 +54,11 @@ private:
 	int maxZToKill_;
 	int minRToKill_;
 	int maxRToKill_;
-	double fractionToKillInLayers_;
-	double fractionToKillEverywhere_;
+	double fractionOfStubsToKillInLayers_;
+	double fractionOfStubsToKillEverywhere_;
 	double fractionOfModulesToKillEverywhere_;
 
-	vector<DetId> deadModules_;
+	map<DetId, float> deadModules_;
 };
 
 #endif

@@ -175,6 +175,8 @@ private:
   edm::FileInPath processingModulesFile; 
   edm::FileInPath wiresFile; 
 
+  int failscenario_;
+
   double phiWindowSF_;
 
   string asciiEventOutName_;
@@ -238,6 +240,8 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig) :
 {
 
   produces< std::vector< TTTrack< Ref_Phase2TrackerDigi_ > > >( "Level1TTTracks" ).setBranchAlias("Level1TTTracks");
+
+  failscenario_ = iConfig.getUntrackedParameter<int>("failscenario",0);
 
   phiWindowSF_ = iConfig.getUntrackedParameter<double>("phiWindowSF",1.0);
 
@@ -461,8 +465,16 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   // ------------------------------------------------------------------------------------------
   // check killing stubs for stress test
   
+  int failtype = 0;
+  if (failscenario_ < 0 || failscenario_ > 5) {
+    std::cout << "invalid fail scenario! ignoring input" << std::endl;
+  }
+  else {
+    failtype = failscenario_;
+  }
+
   StubKiller* my_stubkiller = new StubKiller();
-  my_stubkiller->initialise(1, tTopo, theTrackerGeom);
+  my_stubkiller->initialise(failtype, tTopo, theTrackerGeom);
   
   // ------------------------------------------------------------------------------------------
 
@@ -739,11 +751,9 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
       if (tempStubPtr->getTriggerDisplacement() > 100.) {
 	if (doMyDebug) std::cout << "... if FE inefficiencies calculated, this stub is thrown out! " << endl;
       }
-      /*
       else if (killthis) {
 	if (doMyDebug) std::cout << "killing this stub!" << std::endl;
       }
-      */
       else {
 	if (doMyDebug) std::cout << "... add this stub to the event!" << std::endl;
 	if (ev.addStub(layer,ladder,module,strip,eventID,simtrackID,stub_pt,stub_bend,
