@@ -157,6 +157,8 @@ private:
   /// Containers of parameters passed by python configuration file
   edm::ParameterSet config;
 
+  int failscenario_;
+
   double phiWindowSF_;
 
   string asciiEventOutName_;
@@ -226,6 +228,8 @@ L1TrackProducer::L1TrackProducer(edm::ParameterSet const& iConfig) :
 {
 
   produces< std::vector< TTTrack< Ref_Phase2TrackerDigi_ > > >( "Level1TTTracks" ).setBranchAlias("Level1TTTracks");
+
+  failscenario_ = iConfig.getUntrackedParameter<int>("failscenario",0);
 
   phiWindowSF_ = iConfig.getUntrackedParameter<double>("phiWindowSF",1.0);
 
@@ -340,8 +344,16 @@ void L1TrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   // ------------------------------------------------------------------------------------------
   // check killing stubs for stress test
   
+  int failtype = 0;
+  if (failscenario_ < 0 || failscenario_ > 5) {
+    std::cout << "invalid fail scenario! ignoring input" << std::endl;
+  }
+  else {
+    failtype = failscenario_;
+  }
+
   StubKiller* my_stubkiller = new StubKiller();
-  my_stubkiller->initialise(1, tTopo, theTrackerGeom);
+  my_stubkiller->initialise(failtype, tTopo, theTrackerGeom);
   
   // ------------------------------------------------------------------------------------------
 
@@ -627,7 +639,6 @@ void L1TrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	stub_bend=-stub_bend;
       }
 
-
       if (irphi.size()!=0) {
       	strip=irphi[0];
       }
@@ -644,11 +655,9 @@ void L1TrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       if (tempStubPtr->getTriggerDisplacement() > 100.) {
 	if (doMyDebug) std::cout << "... if FE inefficiencies calculated, this stub is thrown out! " << std::endl;
       }
-      /*
       else if (killthis) {
 	if (doMyDebug) std::cout << "killing this stub!" << std::endl;
       }
-      */
       else {
 	if (doMyDebug) std::cout << "... add this stub to the event!" << std::endl;
 	if (ev.addStub(layer,ladder,module,strip,eventID,simtrackID,stub_pt,stub_bend,

@@ -25,6 +25,8 @@ TTTracksFromTrackletEmulation = cms.EDProducer("L1FPGATrackProducer",
                                                TrackingParticleInputTag = cms.InputTag("mix", "MergedTrackTruth"),
                                                TrackingVertexInputTag = cms.InputTag("mix", "MergedTrackTruth"),
                                                BeamSpotSource = cms.InputTag("offlineBeamSpot"),
+                                               asciiFileName = cms.untracked.string(""),
+                                               failscenario = cms.untracked.int32(0),
                                                trackerGeometryType  = cms.untracked.string(""),  #tilted barrel is assumed, use "flat" if running on flat
                                                # specific emulation inputs
                                                fitPatternFile  = cms.FileInPath('L1Trigger/TrackFindingTracklet/test/fitpattern.txt'),
