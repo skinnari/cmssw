@@ -422,7 +422,8 @@ void L1TrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	float sim_phi = iterTP->g4Tracks().at(it).momentum().phi();
 
 	/// Get the corresponding vertex
-	int vertexIndex = iterTP->g4Tracks().at(it).vertIndex();
+	unsigned int vertexIndex = iterTP->g4Tracks().at(it).vertIndex();
+	if (vertexIndex >= simVtxHandle->size() ) continue;
 	const SimVertex& theSimVertex = (*simVtxHandle)[vertexIndex];
 	math::XYZTLorentzVectorD trkVtxPos = theSimVertex.position();
 	GlobalPoint trkVtxCorr = GlobalPoint( trkVtxPos.x() - bsPosition.x(), 
