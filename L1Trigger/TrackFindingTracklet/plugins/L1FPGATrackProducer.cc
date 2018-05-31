@@ -823,8 +823,13 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
     TTTrack<Ref_Phase2TrackerDigi_> aTrack;
 
-    aTrack.setSector(999); //this is currently not retrained by the algorithm
-    aTrack.setWedge(999); //not used by the tracklet implementations
+    unsigned int trksector = track->sector();
+    unsigned int trkseed = 0; 
+    if (abs(track->seed()) < 10 || track->seed() > 10) trkseed = (unsigned int) (track->seed());
+    else trkseed = (unsigned int) (abs(track->seed())+20);
+
+    aTrack.setSector(trksector); //tracklet phi sector
+    aTrack.setWedge(trkseed);    //not a wedge but useful to keep the seed information... 
 
     //First do the 4 parameter fit
     GlobalPoint bsPosition4par(0.0,0.0,track->z0());
