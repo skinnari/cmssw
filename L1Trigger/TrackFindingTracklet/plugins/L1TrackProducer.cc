@@ -158,6 +158,7 @@ private:
   edm::ParameterSet config;
 
   int failscenario_;
+  StubKiller* my_stubkiller;
 
   double phiWindowSF_;
 
@@ -264,6 +265,30 @@ void L1TrackProducer::endRun(const edm::Run& run, const edm::EventSetup& iSetup)
 // BEGIN JOB
 void L1TrackProducer::beginRun(const edm::Run& run, const edm::EventSetup& iSetup )
 {
+
+  iSetup.get<TrackerTopologyRcd>().get(tTopoHandle);
+  iSetup.get<TrackerDigiGeometryRecord>().get(tGeomHandle);
+
+  const TrackerTopology* const tTopo = tTopoHandle.product();
+  const TrackerGeometry* const theTrackerGeom = tGeomHandle.product();
+
+  // ------------------------------------------------------------------------------------------
+  // check killing stubs for stress test
+  
+  int failtype = 0;
+  if (failscenario_ < 0 || failscenario_ > 5) {
+    std::cout << "invalid fail scenario! ignoring input" << std::endl;
+  }
+  else {
+    failtype = failscenario_;
+  }
+
+  my_stubkiller = new StubKiller();
+  my_stubkiller->initialise(failtype, tTopo, theTrackerGeom);
+  
+  // ------------------------------------------------------------------------------------------
+
+
 }
 
 //////////
@@ -339,23 +364,6 @@ void L1TrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   const TrackerTopology* const tTopo = tTopoHandle.product();
   const TrackerGeometry* const theTrackerGeom = tGeomHandle.product();
-
-
-  // ------------------------------------------------------------------------------------------
-  // check killing stubs for stress test
-  
-  int failtype = 0;
-  if (failscenario_ < 0 || failscenario_ > 5) {
-    std::cout << "invalid fail scenario! ignoring input" << std::endl;
-  }
-  else {
-    failtype = failscenario_;
-  }
-
-  StubKiller* my_stubkiller = new StubKiller();
-  my_stubkiller->initialise(failtype, tTopo, theTrackerGeom);
-  
-  // ------------------------------------------------------------------------------------------
 
 
   /*
