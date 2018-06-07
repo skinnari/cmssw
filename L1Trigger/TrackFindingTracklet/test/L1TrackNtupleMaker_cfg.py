@@ -81,17 +81,17 @@ process.TTClusterStubTruth = cms.Path(process.TrackTriggerAssociatorClustersStub
 
 from L1Trigger.TrackFindingTracklet.Tracklet_cfi import *
 
-#### floating-point version
-#
+### floating-point version
 #process.load("L1Trigger.TrackFindingTracklet.L1TrackletTracks_cff")
 #if GEOMETRY == "D10": 
 #    TTTracksFromTracklet.trackerGeometry = cms.untracked.string("flat")
 #TTTracksFromTracklet.asciiFileName = cms.untracked.string("evlist.txt")
+#TTTracksFromTracklet.failscenario = cms.untracked.int32(0)
 #
 ## run only the tracking (no MC truth associators)
 #process.TTTracks = cms.Path(process.L1TrackletTracks)
-#
-## run the tracking AND MC truth associators)
+
+# run the tracking AND MC truth associators)
 #process.TTTracksWithTruth = cms.Path(process.L1TrackletTracksWithAssociators)
 
 
@@ -100,6 +100,8 @@ process.load("L1Trigger.TrackFindingTracklet.L1TrackletEmulationTracks_cff")
 process.TTTracksEmulation = cms.Path(process.L1TrackletEmulationTracks)
 process.TTTracksEmulationWithTruth = cms.Path(process.L1TrackletEmulationTracksWithAssociators)
 #TTTracksFromTrackletEmulation.asciiFileName = cms.untracked.string("evlist.txt")
+#TTTracksFromTrackletEmulation.failscenario = cms.untracked.int32(0)
+
 
 
 ############################################################
@@ -122,10 +124,10 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackNtupleMaker',
                                        TP_minNStub = cms.int32(4),       # require TP to have >= X number of stubs associated with it
                                        TP_minNStubLayer = cms.int32(4),  # require TP to have stubs in >= X layers/disks
                                        TP_minPt = cms.double(2.0),       # only save TPs with pt > X GeV
-                                       TP_maxEta = cms.double(2.4),      # only save TPs with |eta| < X
+                                       TP_maxEta = cms.double(2.5),      # only save TPs with |eta| < X
                                        TP_maxZ0 = cms.double(30.0),      # only save TPs with |z0| < X cm
-                                       #L1TrackInputTag = cms.InputTag("TTTracksFromTracklet", "Level1TTTracks"),               ## TTTrack input
-                                       L1TrackInputTag = cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks"),               ## TTTrack input
+                                       #L1TrackInputTag = cms.InputTag("TTTracksFromTracklet", "Level1TTTracks"),                ## TTTrack input
+                                       L1TrackInputTag = cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks"),        ## TTTrack input
                                        MCTruthTrackInputTag = cms.InputTag("TTTrackAssociatorFromPixelDigis", "Level1TTTracks"), ## MCTruth input 
                                        # other input collections
                                        L1StubInputTag = cms.InputTag("TTStubsFromPhase2TrackerDigis","StubAccepted"),
