@@ -59,9 +59,10 @@ if GEOMETRY == "D10":
 elif GEOMETRY == "D17":
     #D17 (tilted barrel -- latest and greatest with T5 tracker, see: https://github.com/cms-sw/cmssw/blob/CMSSW_9_3_0_pre2/Configuration/Geometry/README.md)
     Source_Files = cms.untracked.vstring(
-    "/store/user/ejclemen/L1TT/RelVal_932/WithTruthAssociation/TTbar/PU200/output_0.root",
-    "/store/user/ejclemen/L1TT/RelVal_932/WithTruthAssociation/TTbar/PU200/output_1.root",
-    "/store/user/ejclemen/L1TT/RelVal_932/WithTruthAssociation/TTbar/PU200/output_2.root",
+    #"/store/user/ejclemen/L1TT/RelVal_932/WithTruthAssociation/TTbar/PU200/output_0.root",
+    #"/store/user/ejclemen/L1TT/RelVal_932/WithTruthAssociation/TTbar/PU200/output_1.root",
+    #"/store/user/ejclemen/L1TT/RelVal_932/WithTruthAssociation/TTbar/PU200/output_2.root",
+    "/store/user/skinnari/TTbar_93X/PU200/output_0.root"
 )
 elif GEOMETRY == "TkOnly":
     Source_Files = cms.untracked.vstring(
@@ -122,7 +123,7 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackNtupleMaker',
                                        TP_minNStub = cms.int32(4),       # require TP to have >= X number of stubs associated with it
                                        TP_minNStubLayer = cms.int32(4),  # require TP to have stubs in >= X layers/disks
                                        TP_minPt = cms.double(2.0),       # only save TPs with pt > X GeV
-                                       TP_maxEta = cms.double(2.4),      # only save TPs with |eta| < X
+                                       TP_maxEta = cms.double(2.5),      # only save TPs with |eta| < X
                                        TP_maxZ0 = cms.double(30.0),      # only save TPs with |z0| < X cm
                                        L1TrackInputTag = cms.InputTag("TTTracksFromTracklet", "Level1TTTracks"),               ## TTTrack input
                                        MCTruthTrackInputTag = cms.InputTag("TTTrackAssociatorFromPixelDigis", "Level1TTTracks"), ## MCTruth input 
