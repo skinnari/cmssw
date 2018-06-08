@@ -78,11 +78,15 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
     L1Tk_maxChi2 = L1Tk_TIGHT_maxChi2;
     L1Tk_maxChi2dof = L1Tk_TIGHT_maxChi2dof;
   }
-
   
   bool doDetailedPlots = false; //turn on to make full set of plots
   bool doGausFit = false;       //do gaussian fit for resolution vs eta/pt plots
   bool doLooseMatch = false;    //looser MC truth matching
+
+  // tracklet variables
+  bool ReadTracklet = false;
+  // int L1Tk_seed=0;
+
 
   //some counters for integrated efficiencies
   int n_all_eta2p5 = 0;
@@ -99,11 +103,6 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   int ntp_pt2 = 0;
   int ntp_pt3 = 0;
   int ntp_pt10 = 0;
-
-  //int ntrk_4stub_pt3 = 0;
-  //int ntrk_4stub_pt10 = 0;
-  //int ntrk_4stubchi2_pt3 = 0;
-  //int ntrk_4stubchi2_pt10 = 0;
 
 
   // ----------------------------------------------------------------------------------------------------------------
@@ -130,7 +129,6 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   vector<int>*   tp_pdgid;
   vector<int>*   tp_nmatch;
   vector<int>*   tp_nstub;
-  //vector<int>*   tp_nstublayer;
   vector<int>*   tp_eventid;
   vector<int>*   tp_injet;
   vector<int>*   tp_injet_highpt;
@@ -143,6 +141,7 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   vector<float>* matchtrk_z0;
   vector<float>* matchtrk_chi2;
   vector<int>*   matchtrk_nstub;
+  vector<int>*   matchtrk_seed;
   vector<int>*   matchtrk_injet;
   vector<int>*   matchtrk_injet_highpt;
 
@@ -152,18 +151,12 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   vector<float>* trk_phi;
   vector<float>* trk_chi2;
   vector<int>*   trk_nstub;
+  vector<int>*   trk_seed;
   vector<int>*   trk_injet;
   vector<int>*   trk_injet_highpt;
   vector<int>*   trk_fake;
   vector<int>*   trk_genuine;
   vector<int>*   trk_loose;
-
-  //vector<float>* jet_eta;
-  //vector<float>* jet_pt;
-  //vector<float>* jet_tp_sumpt;
-  //vector<float>* jet_matchtrk_sumpt;
-  //vector<float>* jet_trk_sumpt;
-
 
   TBranch* b_tp_pt;
   TBranch* b_tp_eta;
@@ -174,7 +167,6 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   TBranch* b_tp_pdgid;
   TBranch* b_tp_nmatch;
   TBranch* b_tp_nstub;
-  //TBranch* b_tp_nstublayer;
   TBranch* b_tp_eventid;
   TBranch* b_tp_injet;
   TBranch* b_tp_injet_highpt;
@@ -186,6 +178,7 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   TBranch* b_matchtrk_z0;
   TBranch* b_matchtrk_chi2; 
   TBranch* b_matchtrk_nstub;
+  TBranch* b_matchtrk_seed;
   TBranch* b_matchtrk_injet;
   TBranch* b_matchtrk_injet_highpt;
 
@@ -194,17 +187,12 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   TBranch* b_trk_phi; 
   TBranch* b_trk_chi2; 
   TBranch* b_trk_nstub; 
+  TBranch* b_trk_seed; 
   TBranch* b_trk_injet;
   TBranch* b_trk_injet_highpt;
   TBranch* b_trk_fake; 
   TBranch* b_trk_genuine; 
   TBranch* b_trk_loose; 
-
-  //TBranch* b_jet_eta;
-  //TBranch* b_jet_pt;
-  //TBranch* b_jet_tp_sumpt;
-  //TBranch* b_jet_matchtrk_sumpt;
-  //TBranch* b_jet_trk_sumpt;
 
   tp_pt  = 0;
   tp_eta = 0;
@@ -215,7 +203,6 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   tp_pdgid = 0;
   tp_nmatch = 0;
   tp_nstub = 0;
-  //tp_nstublayer = 0;
   tp_eventid = 0;
   tp_injet = 0;
   tp_injet_highpt = 0;
@@ -227,6 +214,7 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   matchtrk_z0  = 0;
   matchtrk_chi2  = 0; 
   matchtrk_nstub = 0;
+  matchtrk_seed = 0;
   matchtrk_injet = 0;
   matchtrk_injet_highpt = 0;
 
@@ -235,17 +223,12 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   trk_phi = 0; 
   trk_chi2 = 0; 
   trk_nstub = 0; 
+  trk_seed = 0; 
   trk_injet = 0;
   trk_injet_highpt = 0;
   trk_fake = 0; 
   trk_genuine = 0; 
   trk_loose = 0; 
-
-  //jet_eta = 0;
-  //jet_pt = 0;
-  //jet_tp_sumpt = 0;
-  //jet_matchtrk_sumpt = 0;
-  //jet_trk_sumpt = 0;
 
 
   tree->SetBranchAddress("tp_pt",     &tp_pt,     &b_tp_pt);
@@ -258,7 +241,6 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   if (doLooseMatch) tree->SetBranchAddress("tp_nloosematch", &tp_nmatch, &b_tp_nmatch);
   else tree->SetBranchAddress("tp_nmatch", &tp_nmatch, &b_tp_nmatch);
   tree->SetBranchAddress("tp_nstub",      &tp_nstub,      &b_tp_nstub);
-  //tree->SetBranchAddress("tp_nstublayer", &tp_nstublayer, &b_tp_nstublayer);
   tree->SetBranchAddress("tp_eventid",    &tp_eventid,    &b_tp_eventid);
   if (TP_select_injet > 0) {
     tree->SetBranchAddress("tp_injet",   &tp_injet,   &b_tp_injet);
@@ -273,6 +255,7 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
     tree->SetBranchAddress("loosematchtrk_z0",    &matchtrk_z0,    &b_matchtrk_z0);
     tree->SetBranchAddress("loosematchtrk_chi2",  &matchtrk_chi2,  &b_matchtrk_chi2);
     tree->SetBranchAddress("loosematchtrk_nstub", &matchtrk_nstub, &b_matchtrk_nstub);
+    if (ReadTracklet) tree->SetBranchAddress("loosematchtrk_seed",  &matchtrk_seed,  &b_matchtrk_seed);
     if (TP_select_injet > 0) {
       tree->SetBranchAddress("loosematchtrk_injet",   &matchtrk_injet,   &b_matchtrk_injet);
       tree->SetBranchAddress("loosematchtrk_injet_highpt",   &matchtrk_injet_highpt,   &b_matchtrk_injet_highpt);
@@ -286,6 +269,7 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
     tree->SetBranchAddress("matchtrk_z0",    &matchtrk_z0,    &b_matchtrk_z0);
     tree->SetBranchAddress("matchtrk_chi2",  &matchtrk_chi2,  &b_matchtrk_chi2);
     tree->SetBranchAddress("matchtrk_nstub", &matchtrk_nstub, &b_matchtrk_nstub);
+    if (ReadTracklet) tree->SetBranchAddress("matchtrk_seed",  &matchtrk_seed,  &b_matchtrk_seed);
     if (TP_select_injet > 0) {
       tree->SetBranchAddress("matchtrk_injet",   &matchtrk_injet,   &b_matchtrk_injet);
       tree->SetBranchAddress("matchtrk_injet_highpt",   &matchtrk_injet_highpt,   &b_matchtrk_injet_highpt);
@@ -297,6 +281,7 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   tree->SetBranchAddress("trk_phi",  &trk_phi,  &b_trk_phi);
   tree->SetBranchAddress("trk_chi2", &trk_chi2, &b_trk_chi2);
   tree->SetBranchAddress("trk_nstub",   &trk_nstub,   &b_trk_nstub);
+  if (ReadTracklet) tree->SetBranchAddress("trk_seed",    &trk_seed,    &b_trk_seed);
   tree->SetBranchAddress("trk_fake",    &trk_fake,    &b_trk_fake);
   tree->SetBranchAddress("trk_genuine", &trk_genuine, &b_trk_genuine);
   tree->SetBranchAddress("trk_loose",   &trk_loose,   &b_trk_loose);
@@ -305,17 +290,6 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
     tree->SetBranchAddress("trk_injet_highpt",   &trk_injet_highpt,   &b_trk_injet_highpt);
   }
   
-  /*
-  if (TP_select_injet > 0) {
-    tree->SetBranchAddress("jet_eta", &jet_eta, &b_jet_eta);
-    tree->SetBranchAddress("jet_pt",  &jet_pt,  &b_jet_pt);
-    tree->SetBranchAddress("jet_tp_sumpt",   &jet_tp_sumpt,   &b_jet_tp_sumpt);
-    tree->SetBranchAddress("jet_trk_sumpt",  &jet_trk_sumpt, &b_jet_trk_sumpt);
-    if (doLooseMatch) tree->SetBranchAddress("jet_loosematchtrk_sumpt",  &jet_matchtrk_sumpt, &b_jet_matchtrk_sumpt);
-    else tree->SetBranchAddress("jet_matchtrk_sumpt",  &jet_matchtrk_sumpt, &b_jet_matchtrk_sumpt);
-  }
-  */
-
 
   // ----------------------------------------------------------------------------------------------------------------
   // histograms
@@ -494,11 +468,11 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   // total track rates 
 
   TH1F* h_trk_all_vspt        = new TH1F("trk_all_vspt",       ";Track p_{T} [GeV]; ",50,0,25);
-  TH1F* h_trk_loose_vspt      = new TH1F("trk_loose_vspt",     ";Track p_{T} [GeV]; ",50,0,25);
+  TH1F* h_trk_loose_vspt      = new TH1F("trk_loose_vspt",     ";Track p_{T} [GeV]; ",50,0,25); 
   TH1F* h_trk_genuine_vspt    = new TH1F("trk_genuine_vspt",   ";Track p_{T} [GeV]; ",50,0,25);
   TH1F* h_trk_notloose_vspt   = new TH1F("trk_notloose_vspt",  ";Track p_{T} [GeV]; ",50,0,25); //(same as "fake" according to the trk_fake labeling)
   TH1F* h_trk_notgenuine_vspt = new TH1F("trk_notgenuine_vspt",";Track p_{T} [GeV]; ",50,0,25);
-  TH1F* h_trk_match_vspt      = new TH1F("trk_match_vspt",     ";Track p_{T} [GeV]; ",50,0,25);
+  TH1F* h_trk_duplicate_vspt  = new TH1F("trk_duplicate_vspt", ";Track p_{T} [GeV]; ",50,0,25); //where a TP is genuinely matched to more than one L1 track
   TH1F* h_tp_vspt             = new TH1F("tp_vspt",            ";TP p_{T} [GeV]; ",   50,0,25);
 
 
@@ -665,9 +639,9 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   TH1F* h_resVsEta_d0_H[nETARANGE];
 
   for (int i=0; i<nETARANGE; i++) {
-    h_resVsEta_eta[i]   = new TH1F("resVsEta_eta_"+etarange[i],   ";#eta residual (L1 - sim); L1 tracks / 0.0002", 100,-0.01,0.01);
-    h_resVsEta_eta_L[i] = new TH1F("resVsEta_eta_L_"+etarange[i], ";#eta residual (L1 - sim); L1 tracks / 0.0002", 100,-0.01,0.01);
-    h_resVsEta_eta_H[i] = new TH1F("resVsEta_eta_H_"+etarange[i], ";#eta residual (L1 - sim); L1 tracks / 0.0002", 100,-0.01,0.01);
+    h_resVsEta_eta[i]   = new TH1F("resVsEta2_eta_"+etarange[i],   ";#eta residual (L1 - sim); L1 tracks / 0.0002", 100,-0.01,0.01);
+    h_resVsEta_eta_L[i] = new TH1F("resVsEta2_eta_L_"+etarange[i], ";#eta residual (L1 - sim); L1 tracks / 0.0002", 100,-0.01,0.01);
+    h_resVsEta_eta_H[i] = new TH1F("resVsEta2_eta_H_"+etarange[i], ";#eta residual (L1 - sim); L1 tracks / 0.0002", 100,-0.01,0.01);
 
     h_resVsEta_z0[i]   = new TH1F("resVsEta2_z0_"+etarange[i],   ";z_{0} residual (L1 - sim) [cm]; L1 tracks / 0.01",   100,-1, 1);
     h_resVsEta_z0_L[i] = new TH1F("resVsEta2_z0_L_"+etarange[i], ";z_{0} residual (L1 - sim) [cm]; L1 tracks / 0.01",   100,-1, 1);
@@ -681,9 +655,9 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
     h_resVsEta_ptRel_L[i] = new TH1F("resVsEta2_ptRel_L_"+etarange[i],";p_{T} residual (L1 - sim) / p_{T}; L1 tracks / 0.02", 100,-0.1,0.1);
     h_resVsEta_ptRel_H[i] = new TH1F("resVsEta2_ptRel_H_"+etarange[i],";p_{T} residual (L1 - sim) / p_{T}; L1 tracks / 0.02", 100,-0.25,0.25);
 
-    h_resVsEta_d0[i]    = new TH1F("resVsEta_d0_"+etarange[i],   ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.004",    100,-0.02, 0.02);
-    h_resVsEta_d0_L[i]  = new TH1F("resVsEta_d0_L_"+etarange[i], ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.004",    100,-0.02, 0.02);
-    h_resVsEta_d0_H[i]  = new TH1F("resVsEta_d0_H_"+etarange[i], ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.004",    100,-0.02, 0.02);
+    h_resVsEta_d0[i]    = new TH1F("resVsEta2_d0_"+etarange[i],   ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.004",    100,-0.02, 0.02);
+    h_resVsEta_d0_L[i]  = new TH1F("resVsEta2_d0_L_"+etarange[i], ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.004",    100,-0.02, 0.02);
+    h_resVsEta_d0_H[i]  = new TH1F("resVsEta2_d0_H_"+etarange[i], ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.004",    100,-0.02, 0.02);
 
   }
   // ----------------------------------------------------------------------------------------------------------------
@@ -783,30 +757,31 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
 	if (TP_select_injet == 2 && trk_injet_highpt->at(it) == 0) continue;       
       }
 
-      if (trk_pt->at(it) > 2.0 && fabs(trk_eta->at(it))<TP_maxEta) {
+      if (fabs(trk_eta->at(it)) > TP_maxEta) continue;
+
+      if (trk_pt->at(it) > 2.0) {
 	ntrk_pt2++;
 	ntrkevt_pt2++;
-	if (trk_genuine->at(it) == 1) ntrkevt_genuine_pt2++;
 	h_trk_all_vspt->Fill(trk_pt->at(it));
+	if (trk_genuine->at(it) == 1) {
+	  ntrkevt_genuine_pt2++;
+	  h_trk_genuine_vspt->Fill(trk_pt->at(it));
+	}
+	else h_trk_notgenuine_vspt->Fill(trk_pt->at(it));
 	if (trk_loose->at(it) == 1) h_trk_loose_vspt->Fill(trk_pt->at(it));
 	else h_trk_notloose_vspt->Fill(trk_pt->at(it));
-	if (trk_genuine->at(it) == 1) h_trk_genuine_vspt->Fill(trk_pt->at(it));
-	else h_trk_notgenuine_vspt->Fill(trk_pt->at(it));
       }
-      if (trk_pt->at(it) > 3.0 && fabs(trk_eta->at(it))<TP_maxEta) {
+      if (trk_pt->at(it) > 3.0) {
 	ntrk_pt3++;
 	ntrkevt_pt3++;
 	if (trk_genuine->at(it) == 1) ntrkevt_genuine_pt3++;
-	//if (trk_nstub->at(it) > 3) ntrk_4stub_pt3++;
-	//if (trk_nstub->at(it) > 3 && trk_chi2->at(it) < 100.) ntrk_4stubchi2_pt3++;
       }
-      if (trk_pt->at(it) > 10.0 && fabs(trk_eta->at(it))<TP_maxEta) {
+      if (trk_pt->at(it) > 10.0) {
 	ntrk_pt10++;
 	ntrkevt_pt10++;
 	if (trk_genuine->at(it) == 1) ntrkevt_genuine_pt10++;
-	//if (trk_nstub->at(it) > 3) ntrk_4stub_pt10++;
-	//if (trk_nstub->at(it) > 3 && trk_chi2->at(it) < 100.) ntrk_4stubchi2_pt10++;
       }
+
     }
 
 
@@ -830,18 +805,16 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
       }
       
       // total track rates
-      //if (tp_nstub->at(it) >= 4 && tp_nstublayer->at(it) >= 4 && fabs(tp_dxy->at(it)) < 1 && fabs(tp_eta->at(it)) < TP_maxEta) {
       if (fabs(tp_dxy->at(it)) < 1 && fabs(tp_eta->at(it)) < TP_maxEta) { //the stub requirements are applied when making the ntuples
       	if (tp_pt->at(it) > 2.0) {
 	  ntp_pt2++;
 	  h_tp_vspt->Fill(tp_pt->at(it));
-	  if (tp_nmatch->at(it) > 0) {
-	    for (int inm=0; inm<tp_nmatch->at(it); inm++) h_trk_match_vspt->Fill(matchtrk_pt->at(it));
+	  // duplicate rate
+	  if (tp_nmatch->at(it) > 1) {
+	    for (int inm=1; inm<tp_nmatch->at(it); inm++) h_trk_duplicate_vspt->Fill(matchtrk_pt->at(it));
 	  }
 	}
-	if (tp_pt->at(it) > 3.0) {
-	  ntp_pt3++;
-	}
+	if (tp_pt->at(it) > 3.0) ntp_pt3++;
 	if (tp_pt->at(it) > 10.0) ntp_pt10++;
       }
 
@@ -905,6 +878,12 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
       // ----------------------------------------------------------------------------------------------------------------
       // use only tracks with min X stubs
       if (matchtrk_nstub->at(it) < L1Tk_minNstub) continue;
+
+      if (ReadTracklet) {
+	int thisseed=matchtrk_seed->at(it);
+	if (thisseed>25) thisseed = thisseed-20;
+	if ((L1Tk_seed != 0) && (thisseed != L1Tk_seed)) continue;
+      }
 
 
       // ----------------------------------------------------------------------------------------------------------------
@@ -1370,13 +1349,9 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   }
 
   // resolution vs. eta histograms
-  TH1F* h2_resVsEta_eta   = new TH1F("resVsEta2_eta",   ";Tracking particle |#eta|; #eta resolution", nETARANGE,0,2.4);
-  TH1F* h2_resVsEta_eta_L = new TH1F("resVsEta2_eta_L", ";Tracking particle |#eta|; #eta resolution", nETARANGE,0,2.4);
-  TH1F* h2_resVsEta_eta_H = new TH1F("resVsEta2_eta_H", ";Tracking particle |#eta|; #eta resolution", nETARANGE,0,2.4);
-
-  TH1F* h2_mresVsEta_eta   = new TH1F("mresVsEta2_eta",   ";Tracking particle |#eta|; Mean(#eta residual)", nETARANGE,0,2.4);
-  TH1F* h2_mresVsEta_eta_L = new TH1F("mresVsEta2_eta_L", ";Tracking particle |#eta|; Mean(#eta residual)", nETARANGE,0,2.4);
-  TH1F* h2_mresVsEta_eta_H = new TH1F("mresVsEta2_eta_H", ";Tracking particle |#eta|; Mean(#eta residual)", nETARANGE,0,2.4);
+  TH1F* h2_resVsEta_eta   = new TH1F("resVsEta_eta",   ";Tracking particle |#eta|; #eta resolution", nETARANGE,0,2.4);
+  TH1F* h2_resVsEta_eta_L = new TH1F("resVsEta_eta_L", ";Tracking particle |#eta|; #eta resolution", nETARANGE,0,2.4);
+  TH1F* h2_resVsEta_eta_H = new TH1F("resVsEta_eta_H", ";Tracking particle |#eta|; #eta resolution", nETARANGE,0,2.4);
 
   TH1F* h2_resVsEta_z0   = new TH1F("resVsEta_z0",   ";Tracking particle |#eta|; z_{0} resolution [cm]", nETARANGE,0,2.4);
   TH1F* h2_resVsEta_z0_L = new TH1F("resVsEta_z0_L", ";Tracking particle |#eta|; z_{0} resolution [cm]", nETARANGE,0,2.4);
@@ -1386,18 +1361,24 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   TH1F* h2_resVsEta_phi_L = new TH1F("resVsEta_phi_L", ";Tracking particle |#eta|; #phi resolution [rad]", nETARANGE,0,2.4);
   TH1F* h2_resVsEta_phi_H = new TH1F("resVsEta_phi_H", ";Tracking particle |#eta|; #phi resolution [rad]", nETARANGE,0,2.4);
 
-  TH1F* h2_resVsEta_ptRel   = new TH1F("resVsEta_ptRel", ";Tracking particle |#eta|; p_{T} resolution / p_{T}", nETARANGE,0,2.4);
+  TH1F* h2_resVsEta_ptRel   = new TH1F("resVsEta_ptRel", ";Tracking particle |#eta|; p_{T} resolution / p_{T}",   nETARANGE,0,2.4);
   TH1F* h2_resVsEta_ptRel_L = new TH1F("resVsEta_ptRel_L", ";Tracking particle |#eta|; p_{T} resolution / p_{T}", nETARANGE,0,2.4);
   TH1F* h2_resVsEta_ptRel_H = new TH1F("resVsEta_ptRel_H", ";Tracking particle |#eta|; p_{T} resolution / p_{T}", nETARANGE,0,2.4);
 
-  TH1F* h2_resVsEta_d0  = new TH1F("resVsEta2_d0",  ";Tracking particle |#eta|; d_{0} resolution [cm]", nETARANGE,0,2.4);
-  TH1F* h2_resVsEta_d0_L  = new TH1F("resVsEta2_d0_L",  ";Tracking particle |#eta|; d_{0} resolution [cm]", nETARANGE,0,2.4);
-  TH1F* h2_resVsEta_d0_H  = new TH1F("resVsEta2_d0_H",  ";Tracking particle |#eta|; d_{0} resolution [cm]", nETARANGE,0,2.4);
+  TH1F* h2_resVsEta_d0    = new TH1F("resVsEta_d0",  ";Tracking particle |#eta|; d_{0} resolution [cm]",   nETARANGE,0,2.4);
+  TH1F* h2_resVsEta_d0_L  = new TH1F("resVsEta_d0_L",  ";Tracking particle |#eta|; d_{0} resolution [cm]", nETARANGE,0,2.4);
+  TH1F* h2_resVsEta_d0_H  = new TH1F("resVsEta_d0_H",  ";Tracking particle |#eta|; d_{0} resolution [cm]", nETARANGE,0,2.4);
 
+  // mean of residuals
+  TH1F* h2_mresVsEta_eta   = new TH1F("mresVsEta_eta",  ";Tracking particle |#eta|; Mean(#eta residual)",       nETARANGE,0,2.4);
+  TH1F* h2_mresVsEta_z0    = new TH1F("mresVsEta_z0",   ";Tracking particle |#eta|; Mean(z_{0} residual) [cm]", nETARANGE,0,2.4);
+  TH1F* h2_mresVsEta_phi   = new TH1F("mresVsEta_phi",  ";Tracking particle |#eta|; Mean(phi residual) [rad]",  nETARANGE,0,2.4);
+  TH1F* h2_mresVsEta_ptRel = new TH1F("mresVsEta_ptRel",";Tracking particle |#eta|; Mean(ptrel residual)",      nETARANGE,0,2.4);
 
+  // 68 / 90 / 99% residuals
   TH1F* h2_resVsEta_eta_68  = new TH1F("resVsEta_eta_68",   ";Tracking particle |#eta|; #eta resolution", nETARANGE,0,2.4);
-  TH1F* h2_resVsEta_eta_90   = new TH1F("resVsEta_eta_90",   ";Tracking particle |#eta|; #eta resolution", nETARANGE,0,2.4);
-  TH1F* h2_resVsEta_eta_99   = new TH1F("resVsEta_eta_99",   ";Tracking particle |#eta|; #eta resolution", nETARANGE,0,2.4);
+  TH1F* h2_resVsEta_eta_90  = new TH1F("resVsEta_eta_90",   ";Tracking particle |#eta|; #eta resolution", nETARANGE,0,2.4);
+  TH1F* h2_resVsEta_eta_99  = new TH1F("resVsEta_eta_99",   ";Tracking particle |#eta|; #eta resolution", nETARANGE,0,2.4);
 
   TH1F* h2_resVsEta_z0_68   = new TH1F("resVsEta_z0_68",   ";Tracking particle |#eta|; z_{0} resolution [cm]", nETARANGE,0,2.4);
   TH1F* h2_resVsEta_z0_90   = new TH1F("resVsEta_z0_90",   ";Tracking particle |#eta|; z_{0} resolution [cm]", nETARANGE,0,2.4);
@@ -1478,13 +1459,6 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
     h2_resVsEta_eta_H->SetBinContent(i+1, h_resVsEta_eta_H[i]->GetRMS());
     h2_resVsEta_eta_H->SetBinError(  i+1, h_resVsEta_eta_H[i]->GetRMSError());
 
-    h2_mresVsEta_eta  ->SetBinContent(i+1, h_resVsEta_eta[i]  ->GetMean());
-    h2_mresVsEta_eta  ->SetBinError(  i+1, h_resVsEta_eta[i]  ->GetMeanError());
-    h2_mresVsEta_eta_L->SetBinContent(i+1, h_resVsEta_eta_L[i]->GetMean());
-    h2_mresVsEta_eta_L->SetBinError(  i+1, h_resVsEta_eta_L[i]->GetMeanError());
-    h2_mresVsEta_eta_H->SetBinContent(i+1, h_resVsEta_eta_H[i]->GetMean());
-    h2_mresVsEta_eta_H->SetBinError(  i+1, h_resVsEta_eta_H[i]->GetMeanError());
-
     h2_resVsEta_z0 ->SetBinContent(i+1, h_resVsEta_z0[i] ->GetRMS());
     h2_resVsEta_z0 ->SetBinError(  i+1, h_resVsEta_z0[i] ->GetRMSError());
     h2_resVsEta_z0_L ->SetBinContent(i+1, h_resVsEta_z0_L[i] ->GetRMS());
@@ -1505,6 +1479,15 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
     h2_resVsEta_ptRel_L->SetBinError(  i+1, h_resVsEta_ptRel_L[i]->GetRMSError());
     h2_resVsEta_ptRel_H->SetBinContent(i+1, h_resVsEta_ptRel_H[i]->GetRMS());
     h2_resVsEta_ptRel_H->SetBinError(  i+1, h_resVsEta_ptRel_H[i]->GetRMSError());
+
+    h2_mresVsEta_eta  ->SetBinContent(i+1, h_resVsEta_eta[i]  ->GetMean());
+    h2_mresVsEta_eta  ->SetBinError(  i+1, h_resVsEta_eta[i]  ->GetMeanError());
+    h2_mresVsEta_z0   ->SetBinContent(i+1, h_resVsEta_z0[i]   ->GetMean());
+    h2_mresVsEta_z0   ->SetBinError(  i+1, h_resVsEta_z0[i]   ->GetMeanError());
+    h2_mresVsEta_phi  ->SetBinContent(i+1, h_resVsEta_phi[i]  ->GetMean());
+    h2_mresVsEta_phi  ->SetBinError(  i+1, h_resVsEta_phi[i]  ->GetMeanError());
+    h2_mresVsEta_ptRel->SetBinContent(i+1, h_resVsEta_ptRel[i]->GetMean());
+    h2_mresVsEta_ptRel->SetBinError(  i+1, h_resVsEta_ptRel[i]->GetMeanError());
 
     h2_resVsEta_d0->SetBinContent(i+1, h_resVsEta_d0[i] ->GetRMS());
     h2_resVsEta_d0->SetBinError(  i+1, h_resVsEta_d0[i] ->GetRMSError());
@@ -1818,6 +1801,14 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   if (useTightCuts) type = type+"_tight";  
   if (useDeadRegion) type = type+"_dead";
 
+  if (ReadTracklet) {
+    if (L1Tk_seed != 0) {
+      char seedtxt[500];
+      sprintf(seedtxt,"_seed%i",L1Tk_seed);
+      type = type+seedtxt;
+    }
+  }
+
   if (TP_minPt > 2.0) {
     char pttxt[500];
     sprintf(pttxt,"_pt%.0f",TP_minPt);
@@ -2094,9 +2085,32 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
     h2_resVsEta_eta_L->Write();
     h2_resVsEta_eta_H->Write();
 
+    h2_resVsEta_z0->Draw();
+    c.SaveAs(DIR+type+"_resVsEta_z0_rms.png");
+    h2_resVsEta_eta->Draw();
+    c.SaveAs(DIR+type+"_resVsEta_eta_rms.png");
+    h2_resVsEta_ptRel->Draw();
+    c.SaveAs(DIR+type+"_resVsEta_ptRel_rms.png");
+    h2_resVsEta_phi->Draw();
+    c.SaveAs(DIR+type+"_resVsEta_phi_rms.png");
+
+
+    h2_mresVsEta_z0->Draw();
+    h2_mresVsEta_z0->Write();
+    c.SaveAs(DIR+type+"_mean-resVsEta_z0.png");
+
+    h2_mresVsEta_eta->Draw();
     h2_mresVsEta_eta->Write();
-    h2_mresVsEta_eta_L->Write();
-    h2_mresVsEta_eta_H->Write();
+    c.SaveAs(DIR+type+"_mean-resVsEta_eta.png");
+
+    h2_mresVsEta_ptRel->Draw();
+    h2_mresVsEta_ptRel->Write();
+    c.SaveAs(DIR+type+"_mean-resVsEta_ptRel.png");
+
+    h2_mresVsEta_phi->Draw();
+    h2_mresVsEta_phi->Write();
+    c.SaveAs(DIR+type+"_mean-resVsEta_phi.png");
+    
 
     h2_resVsEta_z0->Write();
     h2_resVsEta_z0_L->Write();
@@ -2743,7 +2757,7 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   h_trk_genuine_vspt->Sumw2();
   h_trk_notloose_vspt->Sumw2();
   h_trk_notgenuine_vspt->Sumw2();
-  h_trk_match_vspt->Sumw2();
+  h_trk_duplicate_vspt->Sumw2();
   h_tp_vspt->Sumw2();
 
 
@@ -2769,20 +2783,16 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   c.SaveAs(DIR+type+"_notloose.png");
   c.SaveAs(DIR+type+"_notloose.pdf");
 
-  // fraction of un-matched tracks
-  TH1F* h_trk_unmatch_vspt = (TH1F*) h_trk_all_vspt->Clone(); 
-  h_trk_unmatch_vspt->SetName("trk_unmatch_vspt");
-  h_trk_unmatch_vspt->Add(h_trk_match_vspt,-1);  
+  // fraction of DUPLICATE tracks (genuine and not matched)
+  TH1F* h_duplicatefrac_pt = (TH1F*) h_trk_duplicate_vspt->Clone();
+  h_duplicatefrac_pt->SetName("duplicatefrac_pt");
+  h_duplicatefrac_pt->GetYaxis()->SetTitle("Duplicate fraction");
+  h_duplicatefrac_pt->Divide(h_trk_duplicate_vspt, h_trk_all_vspt, 1.0, 1.0, "B");
 
-  TH1F* h_unmatchfrac_pt = (TH1F*) h_trk_unmatch_vspt->Clone();
-  h_unmatchfrac_pt->SetName("unmatchfrac_pt");
-  h_unmatchfrac_pt->GetYaxis()->SetTitle("Unmatched fraction");
-  h_unmatchfrac_pt->Divide(h_trk_unmatch_vspt, h_trk_all_vspt, 1.0, 1.0, "B");
-
-  h_unmatchfrac_pt->Write();
-  h_unmatchfrac_pt->Draw();
-  c.SaveAs(DIR+type+"_unmatchfrac.png");
-  c.SaveAs(DIR+type+"_unmatchfrac.pdf");
+  h_duplicatefrac_pt->Write();
+  h_duplicatefrac_pt->Draw();
+  c.SaveAs(DIR+type+"_duplicatefrac.png");
+  c.SaveAs(DIR+type+"_duplicatefrac.pdf");
 
 
 
@@ -2794,8 +2804,7 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   h_trk_genuine_vspt->Scale(1.0/nevt);
   h_trk_notloose_vspt->Scale(1.0/nevt);
   h_trk_notgenuine_vspt->Scale(1.0/nevt);
-  h_trk_match_vspt->Scale(1.0/nevt);
-  h_trk_unmatch_vspt->Scale(1.0/nevt);
+  h_trk_duplicate_vspt->Scale(1.0/nevt);
   h_tp_vspt->Scale(1.0/nevt);
 
   h_tp_vspt->GetYaxis()->SetTitle("Tracks / event");
@@ -2803,11 +2812,11 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   h_tp_vspt->SetLineColor(4);
   h_tp_vspt->SetLineStyle(2);
 
-  h_trk_unmatch_vspt->SetLineColor(2);
-  h_trk_unmatch_vspt->SetLineStyle(2);
+  h_trk_notgenuine_vspt->SetLineColor(2);
+  h_trk_notgenuine_vspt->SetLineStyle(1);
 
-  h_trk_notgenuine_vspt->SetLineColor(8);
-  h_trk_notgenuine_vspt->SetLineStyle(2);
+  h_trk_duplicate_vspt->SetLineColor(8);
+  h_trk_duplicate_vspt->SetLineStyle(2);
 
   float max = h_tp_vspt->GetMaximum();
   if (h_trk_all_vspt->GetMaximum() > max) max = h_trk_all_vspt->GetMaximum();
@@ -2816,16 +2825,15 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   h_tp_vspt->Draw("hist");
   h_trk_all_vspt->Draw("same,hist");
   h_tp_vspt->Draw("same,hist");
-  h_trk_unmatch_vspt->Draw("same,hist");
   h_trk_notgenuine_vspt->Draw("same,hist");
+  h_trk_duplicate_vspt->Draw("same,hist");
 
   h_trk_all_vspt->Write();
   h_trk_loose_vspt->Write();
   h_trk_genuine_vspt->Write();
   h_trk_notloose_vspt->Write();
   h_trk_notgenuine_vspt->Write();
-  h_trk_match_vspt->Write();
-  h_trk_unmatch_vspt->Write();
+  h_trk_duplicate_vspt->Write();
   h_tp_vspt->Write();
 
   char txt[500];
@@ -2838,9 +2846,9 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   mySmallText(0.5,0.79,4,txt3);
   mySmallText(0.5,0.74,4,txt2);
 
-  sprintf(txt,"# unmatched tracks/event = %.1f",h_trk_unmatch_vspt->GetSum());
-  mySmallText(0.5,0.69,2,txt);
   sprintf(txt,"# !genuine tracks/event = %.1f",h_trk_notgenuine_vspt->GetSum());
+  mySmallText(0.5,0.69,2,txt);
+  sprintf(txt,"# duplicates/event = %.1f",h_trk_duplicate_vspt->GetSum());
   mySmallText(0.5,0.64,8,txt);
 
   c.SaveAs(DIR+type+"_trackrate_vspt.png");
@@ -2951,12 +2959,6 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   cout << "# tracks/event (pt > 2.0) = " << (float)ntrk_pt2/nevt << endl;
   cout << "# tracks/event (pt > 3.0) = " << (float)ntrk_pt3/nevt << endl;
   cout << "# tracks/event (pt > 10.0) = " << (float)ntrk_pt10/nevt << endl;
-
-  //cout << "# tracks/event (pt > 3.0), 4stubs = " << (float)ntrk_4stub_pt3/nevt << endl;
-  //cout << "# tracks/event (pt > 10.0), 4stubs = " << (float)ntrk_4stub_pt10/nevt << endl;
-  //cout << "# tracks/event (pt > 3.0), 4stubs+chi2 = " << (float)ntrk_4stubchi2_pt3/nevt << endl;
-  //cout << "# tracks/event (pt > 10.0), 4stubs+chi2 = " << (float)ntrk_4stubchi2_pt10/nevt << endl;
-
 
 }
 
