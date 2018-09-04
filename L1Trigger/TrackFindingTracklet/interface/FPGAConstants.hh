@@ -4,7 +4,7 @@
 //Uncomment if you want root output
 //#define USEROOT
 
-static bool hourglass=false;
+static bool hourglass=true;
 
 //Gemetry extensions
 static std::string geomext=hourglass?"hourglass":"new";  
@@ -259,17 +259,19 @@ static const double routerPSdisk=65.0;
 
 static unsigned int MAXOFFSET=10000; //set to 0 for regular truncation
 
-static unsigned int MAXSTUBSLINK = 54 + MAXOFFSET; //Max stubs per link
-static unsigned int MAXLAYERROUTER = 54 + MAXOFFSET; //Max stubs handled by layer router
-static unsigned int MAXDISKROUTER = 54 + MAXOFFSET; //Max stubs handled by disk router
-static unsigned int MAXVMROUTER = 54 + MAXOFFSET; //Max stubs handled by VM router
-static unsigned int MAXTE = 54 + MAXOFFSET; //Maximum number of stub pairs to try in TE 
-static unsigned int MAXTC = 54 + MAXOFFSET; //Maximum number of tracklet parameter calculations
+static unsigned int OFFSET=hourglass?162:54; 
+
+static unsigned int MAXSTUBSLINK = OFFSET+MAXOFFSET; //Max stubs per link
+static unsigned int MAXLAYERROUTER = OFFSET+MAXOFFSET; //Max stubs handled by layer router
+static unsigned int MAXDISKROUTER = OFFSET+MAXOFFSET; //Max stubs handled by disk router
+static unsigned int MAXVMROUTER = OFFSET+MAXOFFSET; //Max stubs handled by VM router
+static unsigned int MAXTE = OFFSET+MAXOFFSET; //Maximum number of stub pairs to try in TE 
+static unsigned int MAXTC = OFFSET+MAXOFFSET; //Maximum number of tracklet parameter calculations
 //static unsigned int MAXPROJECTIONTRANSCEIVER = 10000; //Maximum number of projections to neighbor
-static unsigned int MAXPROJROUTER = 54 + MAXOFFSET; //Maximum number of projections to route
-static unsigned int MAXME = 54 + MAXOFFSET; //Maximum number of stub-projection matches to try
-static unsigned int MAXMC = 54 + MAXOFFSET; //Maximum number of match calculations
-static unsigned int MAXFIT = 54 + MAXOFFSET; //Maximum number of track fits
+static unsigned int MAXPROJROUTER = OFFSET+MAXOFFSET; //Maximum number of projections to route
+static unsigned int MAXME = OFFSET+MAXOFFSET; //Maximum number of stub-projection matches to try
+static unsigned int MAXMC = OFFSET+MAXOFFSET; //Maximum number of match calculations
+static unsigned int MAXFIT = OFFSET+MAXOFFSET; //Maximum number of track fits
 
 
 static double dphisector=two_pi/NSector;
