@@ -761,8 +761,6 @@ public:
 	    cout << "FPGAMatchCalculator found match in disk "<<getName()<<endl;
 	  }
 
-	  cout << "dphi = " << dphi << " dphiapprox = " << dphiapprox << endl;
-
 	  assert(fabs(dphi)<0.2);
 	  assert(fabs(dphiapprox)<0.2);
 
