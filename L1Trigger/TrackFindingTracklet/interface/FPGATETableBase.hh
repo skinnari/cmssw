@@ -23,12 +23,23 @@ public:
   }
 
 
-  void writeVMTable(std::string name) {
+  void writeVMTable(std::string name, bool positive=true) {
     
     ofstream out;
     out.open(name.c_str());
     for(unsigned int i=0;i<table_.size();i++){
-      out << i << " "  <<table_[i]<<endl;
+
+      assert(nbits_>0);
+
+      int itable = table_[i];
+      if (positive) {
+	if (table_[i] < 0) itable = (1<<nbits_)-1; 
+      }
+      
+      FPGAWord tmp;  
+      tmp.set(itable, nbits_,positive,__LINE__,__FILE__);
+      
+      out << tmp.str() << endl;
     }
     out.close();
   }
@@ -37,7 +48,8 @@ public:
 protected:
 
   vector<int> table_;
-
+  int nbits_;
+  
 };
 
 

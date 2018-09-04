@@ -28,20 +28,49 @@ public:
     phimax_=phimax;
 
     indexphi_ = {0,0,0,0,0};
+
+      string subname=name.substr(5,7);
+
+      phiregion_=subname[3]-'A';
+      phiregionoverlap_=-1;
+
+      if (phiregion_>8) {
+	if (subname[3]=='X') phiregionoverlap_=0;
+	if (subname[3]=='Y') phiregionoverlap_=1;
+	if (subname[3]=='Z') phiregionoverlap_=2;
+	if (subname[3]=='W') phiregionoverlap_=3;
+	if (subname[3]=='Q') phiregionoverlap_=4;
+	if (subname[3]=='R') phiregionoverlap_=5;
+	if (subname[3]=='S') phiregionoverlap_=6;
+	if (subname[3]=='T') phiregionoverlap_=7;
+	if (phiregionoverlap_!=-1) phiregion_=-1;
+      }
+
+      string subnamelayer=getName().substr(3,2);
+      layerdisk_=subnamelayer[1]-'0';
+
+      isLayer_=subnamelayer[0]=='L';
+      isDisk_=subnamelayer[0]=='D';
+
+    
   }
 
-  void addStub(L1TStub& al1stub, FPGAStub& stub) {
+  void addStub(L1TStub& al1stub, FPGAStub& stub, string dtc="") {
 
     static bool first=true;
     static FPGAVMRouterPhiCorrTable phiCorrLayers[6];
 
     if (first) {
       for (int l=0;l<6;l++){
-        phiCorrLayers[l].init(l+1,5,3);
+	int nbits=3;
+	if (l>=3) nbits=4;
+        phiCorrLayers[l].init(l+1,nbits,3);
       }
       first=false;
     }
-
+    
+    //cout << getName()<<" addStub "<<stub.layer().value()+1<<" "<<al1stub.phi()<<" "<<al1stub.z()<<endl;
+    
     if (stub.layer().value()!=-1) {
 
       FPGAWord r=stub.r();
@@ -56,178 +85,242 @@ public:
     }
     
     bool add=false;
-    int iphivmRaw=stub.iphivmRaw();
     unsigned int asindex = 0;
-      
-    if (stub.layer().value()!=-1) {
-      //cout << "FPGAInputLink::addStub "<<stub.layer().value()<<endl;
+    int iphivmRaw=stub.iphivmRaw();
+    
+    
+    if (hourglass) {
 
-      
-      string subname=getName().substr(5,7);
-      string subnamelayer=getName().substr(3,2);
-      
-      int layer=stub.layer().value()+1;
-
-      if (!((layer==1&&subnamelayer=="L1")||
-	    (layer==2&&subnamelayer=="L2")||
-	    (layer==3&&subnamelayer=="L3")||
-	    (layer==4&&subnamelayer=="L4")||
-	    (layer==5&&subnamelayer=="L5")||
-	    (layer==6&&subnamelayer=="L6"))){
-	return;
+      if (stub.layer().value()==-1 && isLayer() ) return; 
+      if (stub.layer().value()!=-1 && isDisk() ) return;
+      if (stub.layer().value()!=-1){
+	if (stub.layer().value()+1!=layerdisk()) return;
+      } else {
+	if (abs(stub.disk().value())!=layerdisk()) return;
       }
 
-      if ((subname.substr(5,2)=="ZP"&&stub.z().value()>0)||
-          (subname.substr(5,2)=="ZM"&&stub.z().value()<=0)) {
-        if (stub.phiregion().value()==0) asindex = indexphi_[0]++;
-        else if (stub.phiregion().value()==1) asindex = indexphi_[1]++;
-        else if (stub.phiregion().value()==2) asindex = indexphi_[2]++;
-        else if (stub.phiregion().value()==3) asindex = indexphi_[3]++;
-        else {
-          // Stub iphiRaw<4 or iphiRaw>27. It is used in TE but not ME, and is not stored in the AS memory filled by VMRouterME. Use an extra index to keep track of them.
-          asindex = indexphi_[4]++;
-        }
+      int phibin=-1;
+      if (stub.layer().value()!=-1) {
+	if (phiregionoverlap()==-1) {
+	  phibin=iphivmRaw/(32/nallstubslayers[layerdisk()-1]);
+	} else {
+	  phibin=iphivmRaw/(32/nallstubsoverlaplayers[layerdisk()-1]);
+	}
+      } else {
+	phibin=iphivmRaw/(32/nallstubsdisks[layerdisk()-1]); 
+      }
+
+      if (phibin!=phiregion() && phibin!=phiregionoverlap()) return;
+
+
+      
+ 
+      //cout << getName()<<" "<<getName().substr(10,dtc.size())<<" "<<dtc<<endl;
+      
+      if (getName().substr(10,dtc.size())!=dtc) return;
+
+      string half=getName().substr(getName().size()-3,3);
+      if (half[1]!='n') {
+	half=getName().substr(getName().size()-1,1);
+      }
+      //cout << "iSector half iphivmRaw: "<<iSector_<<" "<<half<<" "<<iphivmRaw<<endl;
+      assert(half[0]=='A' || half[0]=='B');
+
+
+      double sectorphi=al1stub.phi();
+      if (sectorphi<0.0) sectorphi+=two_pi;
+
+      while (sectorphi>3*two_pi/(2*NSector)) {
+	sectorphi-=(two_pi/NSector);
       }
       
-      if (layer==2&&subnamelayer=="L2"&&(subname=="PHIW_ZP"||subname=="PHIQ_ZP")) {
-	if (al1stub.z()>25.0) {
+      
+      if (half[0]=='B' && iphivmRaw<=15) return;
+      if (half[0]=='A' && iphivmRaw>15) return;
+      
+
+      
+      //cout << getName() << " adding stub to phibin : "<<phibin<<" iphivmRaw "<<iphivmRaw<<endl;
+      add=true;
+
+
+    } else {
+      if (stub.layer().value()!=-1) {
+	string subname=getName().substr(5,7);
+	string subnamelayer=getName().substr(3,2);
+	
+	int layer=stub.layer().value()+1;
+
+	if (!((layer==1&&subnamelayer=="L1")||
+	      (layer==2&&subnamelayer=="L2")||
+	      (layer==3&&subnamelayer=="L3")||
+	      (layer==4&&subnamelayer=="L4")||
+	      (layer==5&&subnamelayer=="L5")||
+	      (layer==6&&subnamelayer=="L6"))){
+	  return;
+	}
+	
+	if ((subname.substr(5,2)=="ZP"&&stub.z().value()>0)||
+	    (subname.substr(5,2)=="ZM"&&stub.z().value()<=0)) {
+	  if (stub.phiregion().value()==0) asindex = indexphi_[0]++;
+	  else if (stub.phiregion().value()==1) asindex = indexphi_[1]++;
+	  else if (stub.phiregion().value()==2) asindex = indexphi_[2]++;
+	  else if (stub.phiregion().value()==3) asindex = indexphi_[3]++;
+	  else {
+	    // Stub iphiRaw<4 or iphiRaw>27. It is used in TE but not ME, and is not stored in the AS memory filled by VMRouterME. Use an extra index to keep track of them.
+	    asindex = indexphi_[4]++;
+	  }
+	}
+
+	if (layer==2&&subnamelayer=="L2"&&(subname=="PHIW_ZP"||subname=="PHIQ_ZP")) {
+	  if (al1stub.z()>25.0) {
 	  if (iphivmRaw>=4 && iphivmRaw<=15 && subname=="PHIW_ZP") add=true;     //overlap
 	  if (iphivmRaw>=16 && iphivmRaw<=27 && subname=="PHIQ_ZP") add=true;    //overlap
+	  }
 	}
-      }
-      if (layer==2&&subnamelayer=="L2"&&(subname=="PHIW_ZM"||subname=="PHIQ_ZM")) {
-	if (al1stub.z()<-25.0) {
-	  if (iphivmRaw>=4 && iphivmRaw<=15 && subname=="PHIW_ZM") add=true;     //overlap
+	if (layer==2&&subnamelayer=="L2"&&(subname=="PHIW_ZM"||subname=="PHIQ_ZM")) {
+	  if (al1stub.z()<-25.0) {
+	    if (iphivmRaw>=4 && iphivmRaw<=15 && subname=="PHIW_ZM") add=true;     //overlap
 	  if (iphivmRaw>=16 && iphivmRaw<=27 && subname=="PHIQ_ZM") add=true;    //overlap
+	  }
 	}
-      }
-
-      //Special case --- L3 is grouped with D1 for overlap seeding
 	
-      //if (layer==3&&subnamelayer=="L3"&&(subname=="PHIW_ZP"||subname=="PHIQ_ZP")) {
-      //	if (al1stub.z()>40.0) {
-      //	    if (iphivmRaw>=0 && iphivmRaw<=19 && subname=="PHIW_ZP") add=true;     //overlap
-      //	    if (iphivmRaw>=12 && iphivmRaw<=31 && subname=="PHIQ_ZP") add=true;    //overlap
-      //	  }
-      //}
+	//Special case --- L3 is grouped with D1 for overlap seeding
+	
+	//if (layer==3&&subnamelayer=="L3"&&(subname=="PHIW_ZP"||subname=="PHIQ_ZP")) {
+	//	if (al1stub.z()>40.0) {
+	//	    if (iphivmRaw>=0 && iphivmRaw<=19 && subname=="PHIW_ZP") add=true;     //overlap
+	//	    if (iphivmRaw>=12 && iphivmRaw<=31 && subname=="PHIQ_ZP") add=true;    //overlap
+	//	  }
+	//}
+	
+	//if (layer==3&&subnamelayer=="L3"&&(subname=="PHIW_ZM"||subname=="PHIQ_ZM")) {
+	//	if (al1stub.z()<-40.0) {
+	//	    if (iphivmRaw>=0 && iphivmRaw<=19 && subname=="PHIW_ZM") add=true;     //overlap
+	//	    if (iphivmRaw>=12 && iphivmRaw<=31 && subname=="PHIQ_ZM") add=true;    //overlap
+	//	  }
+	//}
+	
+	
+	if (!((layer==1&&subnamelayer=="L1")||
+	      (layer==2&&subnamelayer=="L2")||
+	      (layer==3&&subnamelayer=="L3")||
+	      (layer==4&&subnamelayer=="L4")||
+	      (layer==5&&subnamelayer=="L5")||
+	      (layer==6&&subnamelayer=="L6"))){
+	  return;
+	}
+      
+	//cout << "Stub candidate in "<<getName()<<" "<<subnamelayer<<" "<<subname<<" "<<iphivmRaw<<" "
+	//	 <<al1stub.phi()<<" "
+	// 	 <<al1stub.z()<<endl;
+	
+	int ASPHI = stub.phiregion().value()+1;  // AllStub phi region
+	
+	if (subnamelayer=="L1"||subnamelayer=="L3"||subnamelayer=="L5"){
+	  if (stub.z().value()>0) {
+	    if (ASPHI==1 && subname=="PHI1_ZP") add=true;
+	    if (ASPHI==2 && subname=="PHI2_ZP") add=true;
+	    if (ASPHI==3 && subname=="PHI3_ZP") add=true;
+	    /*
+	      if (subnamelayer=="L1") {
+	      if (iphivmRaw>=4 && iphivmRaw<=7 && subname=="PHI1_ZP") add=true;
+	      if (iphivmRaw>=8 && iphivmRaw<=11 && subname=="PHI2_ZP") add=true;
+	      if (iphivmRaw>=12 && iphivmRaw<=15 && subname=="PHI3_ZP") add=true;
+	      if (iphivmRaw>=16 && iphivmRaw<=19 && subname=="PHI4_ZP") add=true;
+	      if (iphivmRaw>=20 && iphivmRaw<=23 && subname=="PHI5_ZP") add=true;
+	      if (iphivmRaw>=24 && iphivmRaw<=27 && subname=="PHI6_ZP") add=true;
+	      } else {
+	      if (iphivmRaw>=4 && iphivmRaw<=11 && subname=="PHI1_ZP") add=true;
+	      if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHI2_ZP") add=true;
+	      if (iphivmRaw>=20 && iphivmRaw<=27 && subname=="PHI3_ZP") add=true;
+	      }
+	    */
+	    //these are for TE
+	    if ((subnamelayer=="L1"&&fabs(al1stub.z())<87.0)||subnamelayer=="L3"||subnamelayer=="L5"){
+	      if (iphivmRaw>=4 && iphivmRaw<=11 && subname=="PHIA_ZP") add=true;
+	      if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHIB_ZP") add=true;
+	      if (iphivmRaw>=20 && iphivmRaw<=27 && subname=="PHIC_ZP") add=true;
+	    }
+	    if ((subnamelayer=="L1"&&fabs(al1stub.z())>80.0)||subnamelayer=="L3"||subnamelayer=="L5"){
+	      if (iphivmRaw>=4 && iphivmRaw<=15 && subname=="PHIX_ZP") add=true;     //overlap
+	      if (iphivmRaw>=16 && iphivmRaw<=27 && subname=="PHIY_ZP") add=true;    //overlap
+	    }
+	  } else {
+	    if (ASPHI==1 && subname=="PHI1_ZM") add=true;
+	    if (ASPHI==2 && subname=="PHI2_ZM") add=true;
+	    if (ASPHI==3 && subname=="PHI3_ZM") add=true;
+	    /*
+	      if (subnamelayer=="L1") {
+	      if (iphivmRaw>=4 && iphivmRaw<=7 && subname=="PHI1_ZM") add=true;
+	      if (iphivmRaw>=8 && iphivmRaw<=11 && subname=="PHI2_ZM") add=true;
+	      if (iphivmRaw>=12 && iphivmRaw<=15 && subname=="PHI3_ZM") add=true;
+	      if (iphivmRaw>=16 && iphivmRaw<=19 && subname=="PHI4_ZM") add=true;
+	      if (iphivmRaw>=20 && iphivmRaw<=23 && subname=="PHI5_ZM") add=true;
+	      if (iphivmRaw>=24 && iphivmRaw<=27 && subname=="PHI6_ZM") add=true;
+	      } else {
+	      if (iphivmRaw>=4 && iphivmRaw<=11 && subname=="PHI1_ZM") add=true;
+	      if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHI2_ZM") add=true;
+	      if (iphivmRaw>=20 && iphivmRaw<=27 && subname=="PHI3_ZM") add=true;
+	      }
+	    */
+	    //these are for TE
+	    if ((subnamelayer=="L1"&&fabs(al1stub.z())<87.0)||subnamelayer=="L3"||subnamelayer=="L5"){
+	      if (iphivmRaw>=4 && iphivmRaw<=11 && subname=="PHIA_ZM") add=true;
+	      if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHIB_ZM") add=true;
+	      if (iphivmRaw>=20 && iphivmRaw<=27 && subname=="PHIC_ZM") add=true;
+	    }
+	    if ((subnamelayer=="L1"&&fabs(al1stub.z())>80.0)||subnamelayer=="L3"||subnamelayer=="L5"){
+	      if (iphivmRaw>=4 && iphivmRaw<=15 && subname=="PHIX_ZM") add=true;   //overlap
+	      if (iphivmRaw>=16 && iphivmRaw<=27 && subname=="PHIY_ZM") add=true;	//overlap  
+	    }
+	  }
+	}
 
-      //if (layer==3&&subnamelayer=="L3"&&(subname=="PHIW_ZM"||subname=="PHIQ_ZM")) {
-      //	if (al1stub.z()<-40.0) {
-      //	    if (iphivmRaw>=0 && iphivmRaw<=19 && subname=="PHIW_ZM") add=true;     //overlap
-      //	    if (iphivmRaw>=12 && iphivmRaw<=31 && subname=="PHIQ_ZM") add=true;    //overlap
-      //	  }
-      //}
       
-      //cout << "Stub candidate in "<<getName()<<" "<<subnamelayer<<" "<<subname<<" "<<iphivmRaw<<" "
-      //	 <<al1stub.phi()<<" "
-      // 	 <<al1stub.z()<<endl;
-      
-      int ASPHI = stub.phiregion().value()+1;  // AllStub phi region
-      
-      if (subnamelayer=="L1"||subnamelayer=="L3"||subnamelayer=="L5"){
-	if (stub.z().value()>0) {
-      if (ASPHI==1 && subname=="PHI1_ZP") add=true;
-      if (ASPHI==2 && subname=="PHI2_ZP") add=true;
-      if (ASPHI==3 && subname=="PHI3_ZP") add=true;
-      /*
-	  if (subnamelayer=="L1") {
-	    if (iphivmRaw>=4 && iphivmRaw<=7 && subname=="PHI1_ZP") add=true;
-	    if (iphivmRaw>=8 && iphivmRaw<=11 && subname=="PHI2_ZP") add=true;
-	    if (iphivmRaw>=12 && iphivmRaw<=15 && subname=="PHI3_ZP") add=true;
-	    if (iphivmRaw>=16 && iphivmRaw<=19 && subname=="PHI4_ZP") add=true;
-	    if (iphivmRaw>=20 && iphivmRaw<=23 && subname=="PHI5_ZP") add=true;
-	    if (iphivmRaw>=24 && iphivmRaw<=27 && subname=="PHI6_ZP") add=true;
+	if (subnamelayer=="L2"||subnamelayer=="L4"||subnamelayer=="L6"){
+	  if (stub.z().value()>0) {
+	    //remember that these are for ME
+	    if (ASPHI==1 && subname=="PHI1_ZP") add=true;
+	    if (ASPHI==2 && subname=="PHI2_ZP") add=true;
+	    if (ASPHI==3 && subname=="PHI3_ZP") add=true;
+	    if (ASPHI==4 && subname=="PHI4_ZP") add=true;
+	    /*
+	      if (iphivmRaw>=4 && iphivmRaw<=7 && subname=="PHI1_ZP") add=true;
+	      if (iphivmRaw>=8 && iphivmRaw<=15 && subname=="PHI2_ZP") add=true;
+	      if (iphivmRaw>=16 && iphivmRaw<=23 && subname=="PHI3_ZP") add=true;
+	      if (iphivmRaw>=24 && iphivmRaw<=27 && subname=="PHI4_ZP") add=true;
+	    */
+	    //these are for TE
+	    if (iphivmRaw>=0 && iphivmRaw<=7 && subname=="PHIA_ZP") add=true;
+	    if (iphivmRaw>=8 && iphivmRaw<=15 && subname=="PHIB_ZP") add=true;
+	    if (iphivmRaw>=16 && iphivmRaw<=23 && subname=="PHIC_ZP") add=true;
+	    if (iphivmRaw>=24 && iphivmRaw<=31 && subname=="PHID_ZP") add=true;
 	  } else {
-	    if (iphivmRaw>=4 && iphivmRaw<=11 && subname=="PHI1_ZP") add=true;
-	    if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHI2_ZP") add=true;
-	    if (iphivmRaw>=20 && iphivmRaw<=27 && subname=="PHI3_ZP") add=true;
-	  }
-      */
-	  //these are for TE
-	  if ((subnamelayer=="L1"&&fabs(al1stub.z())<87.0)||subnamelayer=="L3"||subnamelayer=="L5"){
-	    if (iphivmRaw>=4 && iphivmRaw<=11 && subname=="PHIA_ZP") add=true;
-	    if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHIB_ZP") add=true;
-	    if (iphivmRaw>=20 && iphivmRaw<=27 && subname=="PHIC_ZP") add=true;
-	  }
-	  if ((subnamelayer=="L1"&&fabs(al1stub.z())>80.0)||subnamelayer=="L3"||subnamelayer=="L5"){
-	    if (iphivmRaw>=4 && iphivmRaw<=15 && subname=="PHIX_ZP") add=true;     //overlap
-	    if (iphivmRaw>=16 && iphivmRaw<=27 && subname=="PHIY_ZP") add=true;    //overlap
-	  }
-	} else {
-      if (ASPHI==1 && subname=="PHI1_ZM") add=true;
-      if (ASPHI==2 && subname=="PHI2_ZM") add=true;
-      if (ASPHI==3 && subname=="PHI3_ZM") add=true;
-      /*
-	  if (subnamelayer=="L1") {
-	    if (iphivmRaw>=4 && iphivmRaw<=7 && subname=="PHI1_ZM") add=true;
-	    if (iphivmRaw>=8 && iphivmRaw<=11 && subname=="PHI2_ZM") add=true;
-	    if (iphivmRaw>=12 && iphivmRaw<=15 && subname=="PHI3_ZM") add=true;
-	    if (iphivmRaw>=16 && iphivmRaw<=19 && subname=="PHI4_ZM") add=true;
-	    if (iphivmRaw>=20 && iphivmRaw<=23 && subname=="PHI5_ZM") add=true;
-	    if (iphivmRaw>=24 && iphivmRaw<=27 && subname=="PHI6_ZM") add=true;
-	  } else {
-	    if (iphivmRaw>=4 && iphivmRaw<=11 && subname=="PHI1_ZM") add=true;
-	    if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHI2_ZM") add=true;
-	    if (iphivmRaw>=20 && iphivmRaw<=27 && subname=="PHI3_ZM") add=true;
-	  }
-      */
-	  //these are for TE
-	  if ((subnamelayer=="L1"&&fabs(al1stub.z())<87.0)||subnamelayer=="L3"||subnamelayer=="L5"){
-	    if (iphivmRaw>=4 && iphivmRaw<=11 && subname=="PHIA_ZM") add=true;
-	    if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHIB_ZM") add=true;
-	    if (iphivmRaw>=20 && iphivmRaw<=27 && subname=="PHIC_ZM") add=true;
-	  }
-	  if ((subnamelayer=="L1"&&fabs(al1stub.z())>80.0)||subnamelayer=="L3"||subnamelayer=="L5"){
-	    if (iphivmRaw>=4 && iphivmRaw<=15 && subname=="PHIX_ZM") add=true;   //overlap
-	    if (iphivmRaw>=16 && iphivmRaw<=27 && subname=="PHIY_ZM") add=true;	//overlap  
+	    //remember that these are for ME
+	    if (ASPHI==1 && subname=="PHI1_ZM") add=true;
+	    if (ASPHI==2 && subname=="PHI2_ZM") add=true;
+	    if (ASPHI==3 && subname=="PHI3_ZM") add=true;
+	    if (ASPHI==4 && subname=="PHI4_ZM") add=true;
+	    /*
+	      if (iphivmRaw>=4 && iphivmRaw<=7 && subname=="PHI1_ZM") add=true;
+	      if (iphivmRaw>=8 && iphivmRaw<=15 && subname=="PHI2_ZM") add=true;
+	      if (iphivmRaw>=16 && iphivmRaw<=23 && subname=="PHI3_ZM") add=true;
+	      if (iphivmRaw>=24 && iphivmRaw<=27 && subname=="PHI4_ZM") add=true;
+	    */
+	    //these are for TE
+	    if (iphivmRaw>=0 && iphivmRaw<=7 && subname=="PHIA_ZM") add=true;
+	    if (iphivmRaw>=8 && iphivmRaw<=15 && subname=="PHIB_ZM") add=true;
+	    if (iphivmRaw>=16 && iphivmRaw<=23 && subname=="PHIC_ZM") add=true;
+	    if (iphivmRaw>=24 && iphivmRaw<=31 && subname=="PHID_ZM") add=true;
 	  }
 	}
       }
-
-      
-      if (subnamelayer=="L2"||subnamelayer=="L4"||subnamelayer=="L6"){
-	if (stub.z().value()>0) {
-	  //remember that these are for ME
-      if (ASPHI==1 && subname=="PHI1_ZP") add=true;
-      if (ASPHI==2 && subname=="PHI2_ZP") add=true;
-      if (ASPHI==3 && subname=="PHI3_ZP") add=true;
-      if (ASPHI==4 && subname=="PHI4_ZP") add=true;
-      /*
-	  if (iphivmRaw>=4 && iphivmRaw<=7 && subname=="PHI1_ZP") add=true;
-	  if (iphivmRaw>=8 && iphivmRaw<=15 && subname=="PHI2_ZP") add=true;
-	  if (iphivmRaw>=16 && iphivmRaw<=23 && subname=="PHI3_ZP") add=true;
-	  if (iphivmRaw>=24 && iphivmRaw<=27 && subname=="PHI4_ZP") add=true;
-      */
-	  //these are for TE
-	  if (iphivmRaw>=0 && iphivmRaw<=7 && subname=="PHIA_ZP") add=true;
-	  if (iphivmRaw>=8 && iphivmRaw<=15 && subname=="PHIB_ZP") add=true;
-	  if (iphivmRaw>=16 && iphivmRaw<=23 && subname=="PHIC_ZP") add=true;
-	  if (iphivmRaw>=24 && iphivmRaw<=31 && subname=="PHID_ZP") add=true;
-	} else {
-	  //remember that these are for ME
-      if (ASPHI==1 && subname=="PHI1_ZM") add=true;
-      if (ASPHI==2 && subname=="PHI2_ZM") add=true;
-      if (ASPHI==3 && subname=="PHI3_ZM") add=true;
-      if (ASPHI==4 && subname=="PHI4_ZM") add=true;
-      /*
-	  if (iphivmRaw>=4 && iphivmRaw<=7 && subname=="PHI1_ZM") add=true;
-	  if (iphivmRaw>=8 && iphivmRaw<=15 && subname=="PHI2_ZM") add=true;
-	  if (iphivmRaw>=16 && iphivmRaw<=23 && subname=="PHI3_ZM") add=true;
-	  if (iphivmRaw>=24 && iphivmRaw<=27 && subname=="PHI4_ZM") add=true;
-      */
-	  //these are for TE
-	  if (iphivmRaw>=0 && iphivmRaw<=7 && subname=="PHIA_ZM") add=true;
-	  if (iphivmRaw>=8 && iphivmRaw<=15 && subname=="PHIB_ZM") add=true;
-	  if (iphivmRaw>=16 && iphivmRaw<=23 && subname=="PHIC_ZM") add=true;
-	  if (iphivmRaw>=24 && iphivmRaw<=31 && subname=="PHID_ZM") add=true;
-	}
-      }
-    }
-    else if (stub.disk().value()!=0) {
-      //cout << "FPGAInputLink::addStub in disk "<<stub.disk().value()<<endl;
-    
-      string subname=getName().substr(5,4);
-      string subnamelayer=getName().substr(3,2);
+      else if (stub.disk().value()!=0) {
+	//cout << "FPGAInputLink::addStub in disk "<<stub.disk().value()<<endl;
+	
+	string subname=getName().substr(5,4);
+	string subnamelayer=getName().substr(3,2);
       
       int disk=stub.disk().value();
 
@@ -274,62 +367,62 @@ public:
       
       if (subnamelayer=="F1"||subnamelayer=="F3"||subnamelayer=="F5"||
 	  subnamelayer=="B1"||subnamelayer=="B3"||subnamelayer=="B5"){
-        if (ASPHI==1 && subname=="PHI1") add=true;
-        if (ASPHI==2 && subname=="PHI2") add=true;
-        if (ASPHI==3 && subname=="PHI3") add=true;
-        /*
-	if (iphivmRaw>=4 && iphivmRaw<=11 && subname=="PHI1") add=true;
-	if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHI2") add=true;
-	if (iphivmRaw>=20 && iphivmRaw<=27 && subname=="PHI3") add=true;
-        */
-	//these are for TE
-	if ((subnamelayer=="F1"||subnamelayer=="B1")&&(subname=="PHIA"||subname=="PHIB"||subname=="PHIC"||subname=="PHID")){
-	  if (iphivmRaw>=4 && iphivmRaw<=17 && subname=="PHIA") add=true;
-	  if (iphivmRaw>=4 && iphivmRaw<=17 && subname=="PHIB") add=true;
-	  if (iphivmRaw>=14 && iphivmRaw<=27 && subname=="PHIC") add=true;
-	  if (iphivmRaw>=14 && iphivmRaw<=27 && subname=="PHID") add=true;
-	}else{
-	  if (iphivmRaw>=4 && iphivmRaw<=15 && subname=="PHIA") add=true;
-	  if (iphivmRaw>=16 && iphivmRaw<=27 && subname=="PHIB") add=true;
-	  if (al1stub.r()<47.0) {
+	  if (ASPHI==1 && subname=="PHI1") add=true;
+	  if (ASPHI==2 && subname=="PHI2") add=true;
+	  if (ASPHI==3 && subname=="PHI3") add=true;
+	  /*
+	    if (iphivmRaw>=4 && iphivmRaw<=11 && subname=="PHI1") add=true;
+	    if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHI2") add=true;
+	    if (iphivmRaw>=20 && iphivmRaw<=27 && subname=="PHI3") add=true;
+	  */
+	  //these are for TE
+	  if ((subnamelayer=="F1"||subnamelayer=="B1")&&(subname=="PHIA"||subname=="PHIB"||subname=="PHIC"||subname=="PHID")){
+	    if (iphivmRaw>=4 && iphivmRaw<=17 && subname=="PHIA") add=true;
+	    if (iphivmRaw>=4 && iphivmRaw<=17 && subname=="PHIB") add=true;
+	    if (iphivmRaw>=14 && iphivmRaw<=27 && subname=="PHIC") add=true;
+	    if (iphivmRaw>=14 && iphivmRaw<=27 && subname=="PHID") add=true;
+	  }else{
+	    if (iphivmRaw>=4 && iphivmRaw<=15 && subname=="PHIA") add=true;
+	    if (iphivmRaw>=16 && iphivmRaw<=27 && subname=="PHIB") add=true;
+	    if (al1stub.r()<47.0) {
 	    if (iphivmRaw>=0 && iphivmRaw<=19 && subname=="PHIX") add=true;
 	    if (iphivmRaw>=12 && iphivmRaw<=31 && subname=="PHIY") add=true;
+	    }
+	  }
+	}
+	
+	
+	if (subnamelayer=="F2"||subnamelayer=="F4"||
+	    subnamelayer=="B2"||subnamelayer=="B4"){
+	  //remember that these are for ME
+	  if (ASPHI==1 && subname=="PHI1") add=true;
+	  if (ASPHI==2 && subname=="PHI2") add=true;
+	  if (ASPHI==3 && subname=="PHI3") add=true;
+	  /*
+	    if (iphivmRaw>=4 && iphivmRaw<=11 && subname=="PHI1") add=true;
+	    if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHI2") add=true;
+	    if (iphivmRaw>=20 && iphivmRaw<=27 && subname=="PHI3") add=true;
+	  */
+	  //these are for TE
+	  if ((subnamelayer=="F2"||subnamelayer=="B2")&&(subname=="PHIA"||subname=="PHIB"||subname=="PHIC"||subname=="PHID")){
+	    if (iphivmRaw>=0 && iphivmRaw<=13 && subname=="PHIA") add=true;
+	    if (iphivmRaw>=4 && iphivmRaw<=19 && subname=="PHIB") add=true;
+	    if (iphivmRaw>=12 && iphivmRaw<=27 && subname=="PHIC") add=true;
+	    if (iphivmRaw>=18 && iphivmRaw<=31 && subname=="PHID") add=true;
+	  }else{
+	    if (iphivmRaw>=0 && iphivmRaw<=19 && subname=="PHIA") add=true;
+	    if (iphivmRaw>=12 && iphivmRaw<=31 && subname=="PHIB") add=true;
 	  }
 	}
       }
-
-      
-      if (subnamelayer=="F2"||subnamelayer=="F4"||
-	  subnamelayer=="B2"||subnamelayer=="B4"){
-	//remember that these are for ME
-        if (ASPHI==1 && subname=="PHI1") add=true;
-        if (ASPHI==2 && subname=="PHI2") add=true;
-        if (ASPHI==3 && subname=="PHI3") add=true;
-        /*
-	if (iphivmRaw>=4 && iphivmRaw<=11 && subname=="PHI1") add=true;
-	if (iphivmRaw>=12 && iphivmRaw<=19 && subname=="PHI2") add=true;
-	if (iphivmRaw>=20 && iphivmRaw<=27 && subname=="PHI3") add=true;
-        */
-	//these are for TE
-	if ((subnamelayer=="F2"||subnamelayer=="B2")&&(subname=="PHIA"||subname=="PHIB"||subname=="PHIC"||subname=="PHID")){
-	  if (iphivmRaw>=0 && iphivmRaw<=13 && subname=="PHIA") add=true;
-	  if (iphivmRaw>=4 && iphivmRaw<=19 && subname=="PHIB") add=true;
-	  if (iphivmRaw>=12 && iphivmRaw<=27 && subname=="PHIC") add=true;
-	  if (iphivmRaw>=18 && iphivmRaw<=31 && subname=="PHID") add=true;
-	}else{
-	  if (iphivmRaw>=0 && iphivmRaw<=19 && subname=="PHIA") add=true;
-	  if (iphivmRaw>=12 && iphivmRaw<=31 && subname=="PHIB") add=true;
-	}
-      }
     }
-  
       
     if (!add) {
       //cout << "Will not add stub" << endl;
       return;
     }
     if (debug1) {
-      cout << "Will add stub in "<<getName()<<" iphiwmRaw = "<<iphivmRaw<<" phi="<<al1stub.phi()<<" z="<<al1stub.z()<<" r="<<al1stub.r()<<endl;
+      cout << "Will add stub in "<<getName()<<" phimin_ phimax_ "<<phimin_<<" "<<phimax_<<" "<<"iphiwmRaw = "<<iphivmRaw<<" phi="<<al1stub.phi()<<" z="<<al1stub.z()<<" r="<<al1stub.r()<<endl;
     }
     if (stubs_.size()<MAXSTUBSLINK) {
       L1TStub* l1stub=new L1TStub(al1stub);
@@ -861,7 +954,18 @@ public:
     indexphi_.resize(5,0);
   }
 
+  double phimin() const {return phimin_;}
+  double phimax() const {return phimax_;}
 
+  int phiregion() const {return phiregion_;}
+  int phiregionoverlap() const {return phiregionoverlap_;}
+
+  int layerdisk() const {return layerdisk_;}
+
+  bool isLayer() const {return isLayer_;}
+  bool isDisk() const {return isDisk_;}
+  
+  
 private:
 
   double phimin_;
@@ -870,6 +974,16 @@ private:
 
   // index array for counting the number of stubs in each phi region for AS memories
   vector<unsigned int> indexphi_;
+
+  int phiregion_;
+  int phiregionoverlap_;
+  
+  int layerdisk_;
+
+  int isLayer_;
+  int isDisk_;
+
+  
 };
 
 #endif

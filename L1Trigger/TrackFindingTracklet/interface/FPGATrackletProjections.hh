@@ -92,9 +92,7 @@ public:
   }
 
   void writeTPROJ(bool first) {
-
-    //cout << "In writeTPROJ "<<tracklets_.size()<<"\t"<<name_<<" "<<layer_<<" "<<disk_<<endl;
-
+    
     std::string fname="MemPrints/TrackletProjections/TrackletProjections_";
     fname+=getName();
     fname+="_";
@@ -114,20 +112,18 @@ public:
     out_ << "BX = "<<(bitset<3>)bx_ << " Event : " << event_ << endl;
 
     for (unsigned int j=0;j<tracklets_.size();j++){
- 
       string proj= (layer_>0&&tracklets_[j]->validProj(layer_))?
 	tracklets_[j]->trackletprojstrlayer(layer_)
 	: tracklets_[j]->trackletprojstrdisk(disk_);
-	if (j<16) out_ <<"0";
-	out_ << hex << j << dec ;
-	out_ << " "<< proj <<endl;
+      if (j<16) out_ <<"0";
+      out_ << hex << j << dec ;
+      out_ << " "<< proj <<endl;
     }
     out_.close();
 
     bx_++;
     event_++;
     if (bx_>7) bx_=0;
-
   }
 
   int layer() const { return layer_;}

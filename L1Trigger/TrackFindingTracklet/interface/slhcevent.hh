@@ -725,11 +725,52 @@ public:
   Digi digi(int i) { return digis_[i]; }
   */
 
+  void layersHit(int simeventid, int simtrackid, int &nlayers, int &ndisks){
+
+    int l1=0;
+    int l2=0;
+    int l3=0;
+    int l4=0;
+    int l5=0;
+    int l6=0;
+
+    int d1=0;
+    int d2=0;
+    int d3=0;
+    int d4=0;
+    int d5=0;
+
+    for (unsigned int istub=0; istub<stubs_.size(); istub++){
+      if (stubs_[istub].simtrackid()==simtrackid&&stubs_[istub].eventid()==simeventid){
+	if (stubs_[istub].layer()==0) l1=1;
+        if (stubs_[istub].layer()==1) l2=1;
+        if (stubs_[istub].layer()==2) l3=1;
+        if (stubs_[istub].layer()==3) l4=1;
+	if (stubs_[istub].layer()==4) l5=1;
+        if (stubs_[istub].layer()==5) l6=1;
+
+        if (abs(stubs_[istub].disk())==1) d1=1;
+        if (abs(stubs_[istub].disk())==2) d2=1;
+        if (abs(stubs_[istub].disk())==3) d3=1;
+        if (abs(stubs_[istub].disk())==4) d4=1;
+        if (abs(stubs_[istub].disk())==5) d5=1;
+      }
+
+    }
+
+    nlayers=l1+l2+l3+l4+l5+l6;
+    ndisks=d1+d2+d3+d4+d5;
+
+
+  }
+
+
+  
   int nstubs() { return stubs_.size(); }
 
   L1TStub stub(int i) { return stubs_[i]; }
 
-  int nsimtracks() { return simtracks_.size(); }
+  unsigned int nsimtracks() { return simtracks_.size(); }
 
   L1SimTrack simtrack(int i) { return simtracks_[i]; }
 

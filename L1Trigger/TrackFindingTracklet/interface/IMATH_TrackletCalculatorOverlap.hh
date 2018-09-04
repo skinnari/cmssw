@@ -2,7 +2,7 @@
 #define IMATH_TRACKLETCALCULATOROVERLAP_H
 
 #include "FPGAConstants.hh"
-#include "L1Trigger/TrackFindingTracklet/interface/imath.h"
+#include "imath.h"
 
 //
 // FPGAConstants used:
@@ -43,6 +43,45 @@ public:
       invt.initLUT(0.);
     }
     
+    valid_phiL_0.add_cut(&t_layer_cut);
+    valid_phiL_1.add_cut(&t_layer_cut);
+    valid_phiL_2.add_cut(&t_layer_cut);
+
+    valid_der_phiL.add_cut(&t_layer_cut);
+
+    valid_zL_0.add_cut(&t_layer_cut);
+    valid_zL_1.add_cut(&t_layer_cut);
+    valid_zL_2.add_cut(&t_layer_cut);
+
+    valid_der_zL.add_cut(&t_layer_cut);
+
+    valid_phiD_0.add_cut(&t_disk_cut_left);
+    valid_phiD_1.add_cut(&t_disk_cut_left);
+    valid_phiD_2.add_cut(&t_disk_cut_left);
+    valid_phiD_3.add_cut(&t_disk_cut_left);
+
+    valid_der_phiD.add_cut(&t_disk_cut_left);
+
+    valid_rD_0.add_cut(&t_disk_cut_left);
+    valid_rD_1.add_cut(&t_disk_cut_left);
+    valid_rD_2.add_cut(&t_disk_cut_left);
+    valid_rD_3.add_cut(&t_disk_cut_left);
+
+    valid_der_rD.add_cut(&t_disk_cut_left);
+
+    valid_phiD_0.add_cut(&t_disk_cut_right);
+    valid_phiD_1.add_cut(&t_disk_cut_right);
+    valid_phiD_2.add_cut(&t_disk_cut_right);
+    valid_phiD_3.add_cut(&t_disk_cut_right);
+
+    valid_der_phiD.add_cut(&t_disk_cut_right);
+
+    valid_rD_0.add_cut(&t_disk_cut_right);
+    valid_rD_1.add_cut(&t_disk_cut_right);
+    valid_rD_2.add_cut(&t_disk_cut_right);
+    valid_rD_3.add_cut(&t_disk_cut_right);
+
+    valid_der_rD.add_cut(&t_disk_cut_right);
   }
   
   //max values
@@ -51,14 +90,14 @@ public:
   double    a2a_max = 0.1;
   double     x8_max = 1.;
   double    x22_max = 0.3;
-  double    x13_max = 2.;
+  double    x13_max = 300.;
   double deltaZ_max = 8.;
   double der_phiD_max = 0.002;
   
   // constants 
   //
   var_param plus2{"plus2",2.,10};
-  var_param plus6{"plus6",6.,10};
+  var_param plus1{"plus1",1.,10};
   var_param minus1{"minus1",-1,10};
   //
   //
@@ -96,56 +135,50 @@ public:
   var_inv  drinv{"drinv",&dr, 0, 18, 23, 0, var_inv::mode::pos};
   
   var_subtract dphi{"dphi",&phi2,&phi1,dphisector/4.};
-  var_subtract dz{"dz",&z2abs,&z1, 50.};
+  var_subtract dz{"dz",&z2abs,&z1, 100.};
   
-  var_mult delta0{"delta0",&dphi, &drinv, delta0_max};
+  var_mult delta0{"delta0",&dphi, &drinv, 8*delta0_max};
   var_mult deltaZ{"deltaZ",&dz,   &drinv, deltaZ_max};
   var_mult delta1{"delta1",&r1abs, &delta0};
   var_mult delta2{"delta2",&r2, &delta0};
-  var_mult a2a{"a2a",&delta1, &delta2, a2a_max};
+  var_mult a2a{"a2a",&delta1, &delta2, 32*a2a_max};
   var_nounits a2b{"a2b",&a2a};
   var_subtract a2{"a2",&plus2,&a2b,3.};
-  var_neg   a2n{"a2",&a2};
+  var_neg   a2n{"a2n",&a2};
   var_shift a{"a",&a2,1};
 
   var_add Rabs{"Rabs",&r1abs,&r2};
   var_timesC R6{"R6",&Rabs,1./6.,12};
 
   var_mult x4 {"x4",&R6, &delta0};
-  var_mult x6a{"x6a",&delta2,&x4, 0.02};
+  var_mult x6a{"x6a",&delta2,&x4, 0.64};
   var_nounits x6b{"x6b",&x6a};
   var_add  x6m{"x6m",&minus1,&x6b, 2.};
   var_mult phi0a{"phi0a",&delta1,&x6m, dphisector};
 
-  var_mult     z0a{"z0a",&r1abs, &deltaZ, 120.};
+  var_mult     z0a{"z0a",&r1abs, &deltaZ, 240.};
   
   var_add  phi0{"phi0",&phi1,&phi0a, 2*dphisector};
-  var_mult     rinv{"rinv",&a2n, &delta0, maxrinv};
+  var_mult     rinv{"rinv",&a2n, &delta0, 8*maxrinv};
   var_mult     t{"t",&a, &deltaZ, 7.9};
-  var_subtract z0{"z0",&z1,&z0a,20.};
+  var_subtract z0{"z0",&z1,&z0a,320.};
 
   var_adjustK rinv_final{"rinv_final",&rinv, kphi1/kr*pow(2,rinv_shift)};
   var_adjustK phi0_final{"phi0_final",&phi0, kphi1*pow(2,phi0_shift)};
   var_adjustK t_final{"t_final",&t,          kz/kr*pow(2,t_shift)};
   var_adjustK z0_final{"z0_final",&z0,       kz*pow(2,z0_shift)};
 
-
-
-//projection to r
-  
+  //projection to r
+  //
   var_shift  x2{"x2",&delta0,1};
 
   var_mult   x1_0{"x1_0",&x2,&rproj0};
   var_mult   x1_1{"x1_1",&x2,&rproj1};
   var_mult   x1_2{"x1_2",&x2,&rproj2};
 
-  var_mult   x8_0{"x8_0",&x1_0,&a2n, x8_max};
-  var_mult   x8_1{"x8_1",&x1_1,&a2n, x8_max};
-  var_mult   x8_2{"x8_2",&x1_2,&a2n, x8_max};
-
-  var_timesC x20_0{"x20_0",&x8_0,1./6.};
-  var_timesC x20_1{"x20_1",&x8_1,1./6.};
-  var_timesC x20_2{"x20_2",&x8_2,1./6.};
+  var_mult   x8_0{"x8_0",&x1_0,&a2n, 2*x8_max};
+  var_mult   x8_1{"x8_1",&x1_1,&a2n, 2*x8_max};
+  var_mult   x8_2{"x8_2",&x1_2,&a2n, 2*x8_max};
 
   var_mult    x12_0{"x12_0",&x8_0,&x8_0};
   var_mult    x12_1{"x12_1",&x8_1,&x8_1};
@@ -155,19 +188,24 @@ public:
   var_nounits x12A_1{"x12A_1",&x12_1};
   var_nounits x12A_2{"x12A_2",&x12_2};
 
-  var_add     x10_0{"x10_0",&plus6,&x12A_0};
-  var_add     x10_1{"x10_1",&plus6,&x12A_1};
-  var_add     x10_2{"x10_2",&plus6,&x12A_2};
+  var_timesC x20_0{"x20_0",&x12A_0,1./6.};
+  var_timesC x20_1{"x20_1",&x12A_1,1./6.};
+  var_timesC x20_2{"x20_2",&x12A_2,1./6.};
 
-  var_mult    x22_0{"x22_0",&x20_0,&x10_0, x22_max};
-  var_mult    x22_1{"x22_1",&x20_1,&x10_1, x22_max};
-  var_mult    x22_2{"x22_2",&x20_2,&x10_2, x22_max};
+  var_add     x10_0{"x10_0",&plus1,&x20_0};
+  var_add     x10_1{"x10_1",&plus1,&x20_1};
+  var_add     x10_2{"x10_2",&plus1,&x20_2};
+
+  var_mult    x22_0{"x22_0",&x8_0,&x10_0, 4*x22_max};
+  var_mult    x22_1{"x22_1",&x8_1,&x10_1, 4*x22_max};
+  var_mult    x22_2{"x22_2",&x8_2,&x10_2, 4*x22_max};
 
   var_subtract phiL_0{"phiL_0",&phi0_final, &x22_0, -1, phi0_final.get_nbits()+1};
   var_subtract phiL_1{"phiL_1",&phi0_final, &x22_1, -1, phi0_final.get_nbits()+1};
   var_subtract phiL_2{"phiL_2",&phi0_final, &x22_2, -1, phi0_final.get_nbits()+1};
 
-  var_mult der_phiL{"der_phiL",&x2, &a2};
+  var_shift x3{"x3",&rinv,1};
+  var_neg der_phiL{"der_phiL",&x3};
 
   var_adjustK phiL_0_final{"phiL_0_final",&phiL_0,               kphi1*pow(2,SS_phiL_shift)};
   var_adjustK phiL_1_final{"phiL_1_final",&phiL_1,               kphi1*pow(2,SS_phiL_shift)};
@@ -179,13 +217,9 @@ public:
   var_mult   x11_1{"x11_1",&rproj1, &t};
   var_mult   x11_2{"x11_2",&rproj2, &t};
 
-  var_timesC x21_0{"x21_0",&x11_0,1./6.};
-  var_timesC x21_1{"x21_1",&x11_1,1./6.};
-  var_timesC x21_2{"x21_2",&x11_2,1./6.};
-
-  var_mult   x23_0{"x23_0",&x21_0,&x10_0, 800};
-  var_mult   x23_1{"x23_1",&x21_1,&x10_1, 800};
-  var_mult   x23_2{"x23_2",&x21_2,&x10_2, 800};
+  var_mult   x23_0{"x23_0",&x11_0,&x10_0, 400};
+  var_mult   x23_1{"x23_1",&x11_1,&x10_1, 400};
+  var_mult   x23_2{"x23_2",&x11_2,&x10_2, 400};
 
   var_add    zL_0{"zL_0",&z0,&x23_0};
   var_add    zL_1{"zL_1",&z0,&x23_1};
@@ -196,10 +230,11 @@ public:
   var_adjustK zL_2_final{"zL_2_final",&zL_2,                     kz*pow(2,PS_zL_shift)};
 
   var_adjustK der_zL_final{"der_zL_final",&t_final,        kz/kr*pow(2,PS_zderL_shift)};
+
   
   //projection to z
   //
-  var_inv   invt{"invt",&t_final, 0., 20, 28, 1, var_inv::mode::both, 13};
+  var_inv   invt{"invt",&t_final, 0., 18, 26, 1, var_inv::mode::both, 13};
 
   var_mult       x7{"x7",&x2, &a2};
   
@@ -208,39 +243,29 @@ public:
   var_subtract   x5_2{"x5_2",&zproj2,&z0};
   var_subtract   x5_3{"x5_3",&zproj3,&z0};
 
-  var_mult      x13_0{"x13_0",&x5_0,&x7,x13_max};
-  var_mult      x13_1{"x13_1",&x5_1,&x7,x13_max};
-  var_mult      x13_2{"x13_2",&x5_2,&x7,x13_max};
-  var_mult      x13_3{"x13_3",&x5_3,&x7,x13_max};
+  var_mult      x13_0{"x13_0",&x5_0,&invt, x13_max};
+  var_mult      x13_1{"x13_1",&x5_1,&invt, x13_max};
+  var_mult      x13_2{"x13_2",&x5_2,&invt, x13_max};
+  var_mult      x13_3{"x13_3",&x5_3,&invt, x13_max};
 
-  var_mult      x25_0{"x25_0",&x13_0,&invt, dphisector};
-  var_mult      x25_1{"x25_1",&x13_1,&invt, dphisector};
-  var_mult      x25_2{"x25_2",&x13_2,&invt, dphisector};
-  var_mult      x25_3{"x25_3",&x13_3,&invt, dphisector};
+  var_mult      x25_0{"x25_0",&x13_0,&x7, 4*dphisector};
+  var_mult      x25_1{"x25_1",&x13_1,&x7, 4*dphisector};
+  var_mult      x25_2{"x25_2",&x13_2,&x7, 4*dphisector};
+  var_mult      x25_3{"x25_3",&x13_3,&x7, 4*dphisector};
 
-  var_add      phiD_0{"phiD_0",&phi0,&x25_0, 2*dphisector};
-  var_add      phiD_1{"phiD_1",&phi0,&x25_1, 2*dphisector};
-  var_add      phiD_2{"phiD_2",&phi0,&x25_2, 2*dphisector};
-  var_add      phiD_3{"phiD_3",&phi0,&x25_3, 2*dphisector};
+  var_add      phiD_0{"phiD_0",&phi0,&x25_0, 4*dphisector};
+  var_add      phiD_1{"phiD_1",&phi0,&x25_1, 4*dphisector};
+  var_add      phiD_2{"phiD_2",&phi0,&x25_2, 4*dphisector};
+  var_add      phiD_3{"phiD_3",&phi0,&x25_3, 4*dphisector};
 
   var_adjustK phiD_0_final{"phiD_0_final",&phiD_0,     kphi1*pow(2,SS_phiD_shift)};
   var_adjustK phiD_1_final{"phiD_1_final",&phiD_1,     kphi1*pow(2,SS_phiD_shift)};
   var_adjustK phiD_2_final{"phiD_2_final",&phiD_2,     kphi1*pow(2,SS_phiD_shift)};
   var_adjustK phiD_3_final{"phiD_3_final",&phiD_3,     kphi1*pow(2,SS_phiD_shift)};
   
-  var_mult der_phiD{"der_phiD",&x7, &invt, der_phiD_max};
+  var_mult der_phiD{"der_phiD",&x7, &invt, 8*der_phiD_max};
 
   var_adjustK der_phiD_final{"der_phiD_final",&der_phiD, kphi1/kr*pow(2,SS_phiderD_shift)};
-
-  var_timesC     x9_0{"x9_0",&x5_0,1./6.};
-  var_timesC     x9_1{"x9_1",&x5_1,1./6.};
-  var_timesC     x9_2{"x9_2",&x5_2,1./6.};
-  var_timesC     x9_3{"x9_3",&x5_3,1./6.};
-
-  var_mult      x24_0{"x24_0",&x9_0,&invt};
-  var_mult      x24_1{"x24_1",&x9_1,&invt};
-  var_mult      x24_2{"x24_2",&x9_2,&invt};
-  var_mult      x24_3{"x24_3",&x9_3,&invt};
 
   var_mult      x26_0{"x26_0",&x25_0,&x25_0};
   var_mult      x26_1{"x26_1",&x25_1,&x25_1};
@@ -252,15 +277,20 @@ public:
   var_nounits  x26A_2{"x26A_2",&x26_2};
   var_nounits  x26A_3{"x26A_3",&x26_3};
 
-  var_subtract x27m_0{"x27_0",&plus6,&x26A_0};
-  var_subtract x27m_1{"x27_1",&plus6,&x26A_1};
-  var_subtract x27m_2{"x27_2",&plus6,&x26A_2};
-  var_subtract x27m_3{"x27_3",&plus6,&x26A_3};
+  var_timesC     x9_0{"x9_0",&x26A_0,1./6.};
+  var_timesC     x9_1{"x9_1",&x26A_1,1./6.};
+  var_timesC     x9_2{"x9_2",&x26A_2,1./6.};
+  var_timesC     x9_3{"x9_3",&x26A_3,1./6.};
 
-  var_mult       rD_0{"rD_0",&x24_0, &x27m_0, rmaxdisk};
-  var_mult       rD_1{"rD_1",&x24_1, &x27m_1, rmaxdisk};
-  var_mult       rD_2{"rD_2",&x24_2, &x27m_2, rmaxdisk};
-  var_mult       rD_3{"rD_3",&x24_3, &x27m_3, rmaxdisk};
+  var_subtract x27m_0{"x27_0",&plus1,&x9_0};
+  var_subtract x27m_1{"x27_1",&plus1,&x9_1};
+  var_subtract x27m_2{"x27_2",&plus1,&x9_2};
+  var_subtract x27m_3{"x27_3",&plus1,&x9_3};
+
+  var_mult       rD_0{"rD_0",&x13_0, &x27m_0, rmaxdisk};
+  var_mult       rD_1{"rD_1",&x13_1, &x27m_1, rmaxdisk};
+  var_mult       rD_2{"rD_2",&x13_2, &x27m_2, rmaxdisk};
+  var_mult       rD_3{"rD_3",&x13_3, &x27m_3, rmaxdisk};
 
   var_adjustK rD_0_final{"rD_0_final",&rD_0,                      kr*pow(2,PS_rD_shift)};
   var_adjustK rD_1_final{"rD_1_final",&rD_1,                      kr*pow(2,PS_rD_shift)};
@@ -268,6 +298,86 @@ public:
   var_adjustK rD_3_final{"rD_3_final",&rD_3,                      kr*pow(2,PS_rD_shift)};
 
   var_adjustK der_rD_final{"der_rD_final",&invt,            kr/kz*pow(2,PS_rderD_shift)};
+
+  var_cut t_final_cut{&t_final,-10,10};
+  var_cut rinv_final_cut{&rinv_final,-rinvcut,rinvcut};
+  var_cut z0_final_cut{&z0_final,-z0cut,z0cut};
+
+  var_cut r1abs_cut{&r1abs,-rmaxL6,rmaxL6};
+  var_cut z2abs_cut{&z2abs,-zmaxD5,zmaxD5};
+  var_cut dr_cut{&dr,-dr_max,dr_max};
+  var_cut dphi_cut{&dphi,-dphisector/4.,dphisector/4.};
+  var_cut dz_cut{&dz,-50.,50.};
+  var_cut delta0_cut{&delta0,-delta0_max,delta0_max};
+  var_cut deltaZ_cut{&deltaZ,-deltaZ_max,deltaZ_max};
+  var_cut a2a_cut{&a2a,-a2a_max,a2a_max};
+  var_cut a2_cut{&a2,-3.,3.};
+  var_cut x6a_cut{&x6a,-0.02,0.02};
+  var_cut x6m_cut{&x6m,-2.,2.};
+  var_cut phi0a_cut{&phi0a,-dphisector,dphisector};
+  var_cut z0a_cut{&z0a,-120.,120.};
+  var_cut phi0_cut{&phi0,-2*dphisector,2*dphisector};
+  var_cut rinv_cut{&rinv,-maxrinv,maxrinv};
+  var_cut t_cut{&t,-7.9,7.9};
+  var_cut z0_cut{&z0,-20.,20.};
+  var_cut x8_0_cut{&x8_0,-x8_max,x8_max};
+  var_cut x8_1_cut{&x8_1,-x8_max,x8_max};
+  var_cut x8_2_cut{&x8_2,-x8_max,x8_max};
+  var_cut x22_0_cut{&x22_0,-x22_max,x22_max};
+  var_cut x22_1_cut{&x22_1,-x22_max,x22_max};
+  var_cut x22_2_cut{&x22_2,-x22_max,x22_max};
+  var_cut x23_0_cut{&x23_0,-200,200};
+  var_cut x23_1_cut{&x23_1,-200,200};
+  var_cut x23_2_cut{&x23_2,-200,200};
+  var_cut x13_0_cut{&x13_0,-x13_max,x13_max};
+  var_cut x13_1_cut{&x13_1,-x13_max,x13_max};
+  var_cut x13_2_cut{&x13_2,-x13_max,x13_max};
+  var_cut x13_3_cut{&x13_3,-x13_max,x13_max};
+  var_cut x25_0_cut{&x25_0,-dphisector,dphisector};
+  var_cut x25_1_cut{&x25_1,-dphisector,dphisector};
+  var_cut x25_2_cut{&x25_2,-dphisector,dphisector};
+  var_cut x25_3_cut{&x25_3,-dphisector,dphisector};
+  var_cut phiD_0_cut{&phiD_0,-2*dphisector,2*dphisector};
+  var_cut phiD_1_cut{&phiD_1,-2*dphisector,2*dphisector};
+  var_cut phiD_2_cut{&phiD_2,-2*dphisector,2*dphisector};
+  var_cut phiD_3_cut{&phiD_3,-2*dphisector,2*dphisector};
+  var_cut der_phiD_cut{&der_phiD,-der_phiD_max,der_phiD_max};
+  var_cut rD_0_cut{&rD_0,-rmaxdisk,rmaxdisk};
+  var_cut rD_1_cut{&rD_1,-rmaxdisk,rmaxdisk};
+  var_cut rD_2_cut{&rD_2,-rmaxdisk,rmaxdisk};
+  var_cut rD_3_cut{&rD_3,-rmaxdisk,rmaxdisk};
+
+  var_cut t_disk_cut_left{&t,-7.9,-1};
+  var_cut t_disk_cut_right{&t,1,7.9};
+  var_cut t_layer_cut{&t,-2.5,2.5};
+
+  // the following flags are used to apply the cuts in FPGATrackletCalculator
+  // and in the output Verilog
+  var_flag valid_trackpar{"valid_trackpar",&rinv_final,&phi0_final,&t_final,&z0_final};
+
+  var_flag valid_phiL_0{"valid_phiL_0",&phiL_0_final};
+  var_flag valid_phiL_1{"valid_phiL_1",&phiL_1_final};
+  var_flag valid_phiL_2{"valid_phiL_2",&phiL_2_final};
+
+  var_flag valid_zL_0{"valid_zL_0",&zL_0_final};
+  var_flag valid_zL_1{"valid_zL_1",&zL_1_final};
+  var_flag valid_zL_2{"valid_zL_2",&zL_2_final};
+
+  var_flag valid_der_phiL{"valid_der_phiL",&der_phiL_final};
+  var_flag valid_der_zL{"valid_der_zL",&der_zL_final};
+
+  var_flag valid_phiD_0{"valid_phiD_0",&phiD_0_final};
+  var_flag valid_phiD_1{"valid_phiD_1",&phiD_1_final};
+  var_flag valid_phiD_2{"valid_phiD_2",&phiD_2_final};
+  var_flag valid_phiD_3{"valid_phiD_3",&phiD_3_final};
+
+  var_flag valid_rD_0{"valid_rD_0",&rD_0_final};
+  var_flag valid_rD_1{"valid_rD_1",&rD_1_final};
+  var_flag valid_rD_2{"valid_rD_2",&rD_2_final};
+  var_flag valid_rD_3{"valid_rD_3",&rD_3_final};
+
+  var_flag valid_der_phiD{"valid_der_phiD",&der_phiD_final};
+  var_flag valid_der_rD{"valid_der_rD",&der_rD_final};
   
 };
 

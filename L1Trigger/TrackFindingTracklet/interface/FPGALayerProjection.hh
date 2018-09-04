@@ -37,10 +37,10 @@ public:
     valid_=true;
 
     rproj_=rproj;
-    
+
     projlayer_=projlayer;
 
-    if (iphiproj<0) iphiproj=0; //FIXME should be assert?
+    assert(iphiproj>=0);
 
     if (rproj<60.0) {
       fpgaphiproj_.set(iphiproj,nbitsphiprojL123,true,__LINE__,__FILE__);
@@ -73,18 +73,25 @@ public:
 
     ////Separate the vm projections into zbins
     ////This determines the central bin:
-    ////int zbin=3-(zproj.value()>>(zproj.nbits()-3));
-    ////But we need some range:
-    unsigned int zbin1=3-(((fpgazproj_.value()>>(fpgazproj_.nbits()-5))+1)>>2);
-    unsigned int zbin2=3-(((fpgazproj_.value()>>(fpgazproj_.nbits()-5))-1)>>2);
-    if (zbin1>7) zbin1=0; //note that zbin1 is unsigned
-    if (zbin2>7) zbin2=7;
+    ////int zbin=4+(zproj.value()>>(zproj.nbits()-3));
+    ////But we need some range (particularly for L5L6 seed projecting to L1-L3):
+    unsigned int zbin1=(1<<(MEBinsBits-1))+(((fpgazproj_.value()>>(fpgazproj_.nbits()-MEBinsBits-2))-2)>>2);
+    unsigned int zbin2=(1<<(MEBinsBits-1))+(((fpgazproj_.value()>>(fpgazproj_.nbits()-MEBinsBits-2))+2)>>2);
+    if (zbin1>=MEBins) zbin1=0; //note that zbin1 is unsigned
+    if (zbin2>=MEBins) zbin2=MEBins-1;
     assert(zbin1<=zbin2);
     assert(zbin2-zbin1<=1); 
-    fpgazbin1projvm_.set(zbin1,3,true,__LINE__,__FILE__); // first z bin
+    fpgazbin1projvm_.set(zbin1,MEBinsBits,true,__LINE__,__FILE__); // first z bin
     if (zbin1==zbin2) fpgazbin2projvm_.set(0,1,true,__LINE__,__FILE__); // don't need to check adjacent z bin
     else              fpgazbin2projvm_.set(1,1,true,__LINE__,__FILE__); // do need to check next z bin
 
+    //fine vm z bits. Use 4 bits for fine position. starting at zbin 1
+    int finez=((1<<(MEBinsBits+2))+(fpgazproj_.value()>>(fpgazproj_.nbits()-(MEBinsBits+3))))-(zbin1<<3);
+
+    fpgafinezvm_.set(finez,4,true,__LINE__,__FILE__); // fine z postions starting at zbin1 
+
+										
+										   
     
     minusNeighbor_=minusNeighbor;
     plusNeighbor_=plusNeighbor;
@@ -163,6 +170,11 @@ public:
     return fpgazbin2projvm_;
   };
 
+  FPGAWord fpgafinezvm() const {
+    assert(valid_);
+    return fpgafinezvm_;
+  };
+
   FPGAWord fpgazprojvm() const {
     assert(valid_);
     return fpgazprojvm_;
@@ -232,6 +244,7 @@ protected:
   
   FPGAWord fpgazbin1projvm_;
   FPGAWord fpgazbin2projvm_;
+  FPGAWord fpgafinezvm_;
  
   double phiproj_;
   double zproj_;
@@ -245,7 +258,7 @@ protected:
   double zprojapprox_;
   double phiprojderapprox_;
   double zprojderapprox_;
-    
+
 };
 
 #endif

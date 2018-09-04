@@ -85,7 +85,7 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
 
   // tracklet variables
   bool ReadTracklet = false;
-  // int L1Tk_seed=0;
+  int L1Tk_seed=0;
 
 
   //some counters for integrated efficiencies
@@ -772,6 +772,13 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
       }
 
       if (fabs(trk_eta->at(it)) > TP_maxEta) continue;
+      if (trk_pt->at(it) < TP_minPt) continue;
+      if (trk_chi2->at(it) > L1Tk_maxChi2) continue;
+      if (trk_nstub->at(it) < L1Tk_minNstub) continue;
+      if (useTightCuts && trk_pt->at(it)>5) {
+	if (trk_chi2->at(it)/(2*trk_nstub->at(it)-4) > 5.) continue;
+	if (trk_pt->at(it)>10 && trk_nstub->at(it)<5) continue;
+      }
 
       if (trk_pt->at(it) > 2.0) {
 	ntrk_pt2++;
@@ -819,9 +826,21 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
 	if (TP_select_injet == 3 && tp_injet_vhighpt->at(it) == 0) continue;       
       }
       
+      // cut on PDG ID at plot stage?
+      if (TP_select_pdgid != 0) {
+	if (abs(tp_pdgid->at(it)) != abs(TP_select_pdgid)) continue;
+      }
+
+      // kinematic cuts
+      if (tp_dxy->at(it) > 1) continue;
+      if (tp_pt->at(it) < 0.2) continue;
+      if (tp_pt->at(it) > TP_maxPt) continue;
+      if (fabs(tp_eta->at(it)) > TP_maxEta) continue;
+
+      
       // total track rates
-      if (fabs(tp_dxy->at(it)) < 1 && fabs(tp_eta->at(it)) < TP_maxEta) { //the stub requirements are applied when making the ntuples
-      	if (tp_pt->at(it) > 2.0) {
+      if (tp_pt->at(it) > TP_minPt) {
+	if (tp_pt->at(it) > 2.0) {
 	  ntp_pt2++;
 	  h_tp_vspt->Fill(tp_pt->at(it));
 	  // duplicate rate
@@ -833,19 +852,9 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
 	if (tp_pt->at(it) > 10.0) ntp_pt10++;
       }
 
-      // cut on PDG ID at plot stage?
-      if (TP_select_pdgid != 0) {
-	if (abs(tp_pdgid->at(it)) != abs(TP_select_pdgid)) continue;
-      }
-      
       // cut on event ID (eventid=0 means the TP is from the primary interaction, so *not* selecting only eventid=0 means including stuff from pileup)
       if (TP_select_eventid == 0 && tp_eventid->at(it) != 0) continue;
 
-
-      if (tp_dxy->at(it) > 1) continue;
-      if (tp_pt->at(it) < 0.2) continue;
-      if (tp_pt->at(it) > TP_maxPt) continue;
-      if (fabs(tp_eta->at(it)) > TP_maxEta) continue;
 
       // look at failure scenarios?
       if (useDeadRegion) {
@@ -893,6 +902,7 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
       // ----------------------------------------------------------------------------------------------------------------
       // use only tracks with min X stubs
       if (matchtrk_nstub->at(it) < L1Tk_minNstub) continue;
+
 
       if (ReadTracklet) {
 	int thisseed=matchtrk_seed->at(it);
@@ -1854,7 +1864,7 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   float max_phi = 0.01;
   float max_eta = 0.03;
 
-  if (type.Contains("Electron")) {
+  if (type.Contains("El")) {
     max_pt_ptRel = 1.0;
     max_eta_ptRel = 1.0;
     max_phi = 0.1;
@@ -2100,6 +2110,7 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
     h2_resVsEta_eta->Write();
     h2_resVsEta_eta_L->Write();
     h2_resVsEta_eta_H->Write();
+  }
 
     h2_resVsEta_z0->Draw();
     c.SaveAs(DIR+type+"_resVsEta_z0_rms.png");
@@ -2128,6 +2139,7 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
     c.SaveAs(DIR+type+"_mean-resVsEta_phi.png");
     
 
+  if (doDetailedPlots) {
     h2_resVsEta_z0->Write();
     h2_resVsEta_z0_L->Write();
     h2_resVsEta_z0_H->Write();
@@ -2815,6 +2827,7 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   // ---------------------------------------------------------------------------------------------------------
   // total track rates vs pt 
 
+
   h_trk_all_vspt->Scale(1.0/nevt);
   h_trk_loose_vspt->Scale(1.0/nevt);
   h_trk_genuine_vspt->Scale(1.0/nevt);
@@ -2822,6 +2835,7 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
   h_trk_notgenuine_vspt->Scale(1.0/nevt);
   h_trk_duplicate_vspt->Scale(1.0/nevt);
   h_tp_vspt->Scale(1.0/nevt);
+
 
   h_tp_vspt->GetYaxis()->SetTitle("Tracks / event");
   h_tp_vspt->GetXaxis()->SetTitle("Track p_{T} [GeV]");
@@ -2836,13 +2850,15 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
 
   float max = h_tp_vspt->GetMaximum();
   if (h_trk_all_vspt->GetMaximum() > max) max = h_trk_all_vspt->GetMaximum();
-  h_tp_vspt->SetAxisRange(0.01,max*1.05,"Y");  
+  //h_tp_vspt->SetAxisRange(0.00001,max*1.5,"Y");  
+  h_tp_vspt->SetAxisRange(0.001,max*1.5,"Y");  
+  //h_tp_vspt->SetAxisRange(0.01,max*1.05,"Y");  
 
   h_tp_vspt->Draw("hist");
   h_trk_all_vspt->Draw("same,hist");
   h_tp_vspt->Draw("same,hist");
   h_trk_notgenuine_vspt->Draw("same,hist");
-  h_trk_duplicate_vspt->Draw("same,hist");
+  //h_trk_duplicate_vspt->Draw("same,hist");
 
   h_trk_all_vspt->Write();
   h_trk_loose_vspt->Write();
@@ -2864,8 +2880,8 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
 
   sprintf(txt,"# !genuine tracks/event = %.1f",h_trk_notgenuine_vspt->GetSum());
   mySmallText(0.5,0.69,2,txt);
-  sprintf(txt,"# duplicates/event = %.1f",h_trk_duplicate_vspt->GetSum());
-  mySmallText(0.5,0.64,8,txt);
+  //sprintf(txt,"# duplicates/event = %.1f",h_trk_duplicate_vspt->GetSum());
+  //mySmallText(0.5,0.64,8,txt);
 
   c.SaveAs(DIR+type+"_trackrate_vspt.png");
   c.SaveAs(DIR+type+"_trackrate_vspt.pdf");

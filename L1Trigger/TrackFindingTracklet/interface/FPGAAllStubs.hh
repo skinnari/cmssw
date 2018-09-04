@@ -51,7 +51,6 @@ public:
     }   
     assert((layer_!=0)||(disk_!=0));
 
-    isforTC_ = isalpha(name[8]);
     assert(name.substr(5,3)=="PHI");
   }
 
@@ -93,10 +92,6 @@ public:
       string stub= (layer_>0)? stubs_[j].first->str()
       : stubs_[j].first->strdisk();
 
-      if (isforTC_) { // add stub index bits
-        stub = stubs_[j].first->stubindex().str()+"|"+stub;
-      }
-      
       if (j<16) out_ <<"0";
       out_ << hex << j << dec ;
       out_ <<" "<<stub << endl;
@@ -121,8 +116,6 @@ private:
 
   int layer_;
   int disk_;
-
-  bool isforTC_;  // true if read by TC, otherwise read by MC
 
 };
 

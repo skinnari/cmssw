@@ -17,6 +17,7 @@ public:
     phimin_=phimin;
     phimax_=phimax;
     string subname=name.substr(12,2);
+    if (hourglass) subname=name.substr(7,2);
     layer_ = 0;
     disk_  = 0;
     if (subname=="L1") layer_=1;
@@ -30,16 +31,6 @@ public:
     if (subname=="D3") disk_=3;
     if (subname=="D4") disk_=4;
     if (subname=="D5") disk_=5;
-    if (subname=="F1") disk_=1;
-    if (subname=="F2") disk_=2;
-    if (subname=="F3") disk_=3;
-    if (subname=="F4") disk_=4;
-    if (subname=="F5") disk_=5;
-    if (subname=="B1") disk_=-1;
-    if (subname=="B2") disk_=-2;
-    if (subname=="B3") disk_=-3;
-    if (subname=="B4") disk_=-4;
-    if (subname=="B5") disk_=-5;
     if (layer_==0&&disk_==0) {
       cout << name<<" subname = "<<subname<<" "<<layer_<<" "<<disk_<<endl;
     }
@@ -51,7 +42,8 @@ public:
     //Check that order of TCID is correct
     if (tracklets_.size()>0) {
       if (tracklets_[tracklets_.size()-1].first->homeSector()==tracklet->homeSector()) {
-	//cout << tracklets_[tracklets_.size()-1].first->TCID()<<" "<<tracklet->TCID()<<endl;
+	//cout << getName()<<" "<<tracklets_[tracklets_.size()-1].first->TCID()<<" "<<tracklet->TCID()<<" "
+	//     <<tracklet->TCIndex()<<" "<<tracklet->trackletIndex()<<endl;
 	assert(tracklets_[tracklets_.size()-1].first->TCID()<=tracklet->TCID());
       }
     }

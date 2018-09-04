@@ -16,7 +16,7 @@ class FPGATETableOuterDisk:public FPGATETableBase{
 public:
 
   FPGATETableOuterDisk() {
-   
+    nbits_ = 5;
   }
 
   ~FPGATETableOuterDisk() {
@@ -34,9 +34,9 @@ public:
     zbits_=zbits;
 
     rbins_=(1<<rbits);
-    rmin_=rmindisk;
+    rmin_=0;
     rmax_=rmaxdisk;
-    dr_=(rmaxdisk-rmindisk)/rbins_;
+    dr_=rmaxdisk/rbins_;
 
     zbins_=(1<<zbits);
     zmin_=zmean[disk-1]-dzmax;

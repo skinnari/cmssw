@@ -16,7 +16,7 @@ class FPGAVMRouterPhiCorrTable: public FPGATETableBase{
 public:
 
   FPGAVMRouterPhiCorrTable() {
-   
+    nbits_ = 14; 
   }
 
   ~FPGAVMRouterPhiCorrTable() {
@@ -29,7 +29,7 @@ public:
 	    int rbits
 	    ) {
 
-    assert(bendbits==5);  //FIXME for now this is hardcoded
+    assert(bendbits==3||bendbits==4); 
     
     layer_=layer;
     bendbits_=bendbits;
@@ -41,22 +41,18 @@ public:
     dr_=2*drmax/rbins_;
 
     bendbins_=(1<<bendbits);
-    bendmin_=-15.0/2.0;
-    bendmax_=16.0/2.0;
-    dbend_=(bendmax_-bendmin_)/bendbins_;
-
+ 
     rmean_=rmean[layer-1];
 
-    for (int ibend=0;ibend<32;ibend++) {
+    for (int ibend=0;ibend<bendbins_;ibend++) {
       for (int irbin=0;irbin<rbins_;irbin++) {
-	//int ibin=irbin+izbin*rbins_;
 	int value=getphiCorrValue(ibend,irbin);
 	table_.push_back(value);
       }
     }
 
     if (writeVMTables) {
-      writeVMTable("VMPhiCorrL"+std::to_string(layer_)+".txt");
+      writeVMTable("VMPhiCorrL"+std::to_string(layer_)+".txt", false);
     }
 
     
@@ -64,8 +60,10 @@ public:
 
   int getphiCorrValue(int ibend, int irbin){
 
+    double bend=FPGAStub::benddecode(ibend,layer_<=3);
+    
     double Delta=(irbin+0.5)*dr_-drmax;
-    double dphi=Delta*0.5*(ibend-15)*0.009/0.18/rmean_;
+    double dphi=Delta*bend*0.009/0.18/rmean_;
 
     int idphi=0;
       
@@ -95,12 +93,8 @@ private:
 
   double rmin_;
   double rmax_;
-
-  double bendmin_;
-  double bendmax_;
-
+ 
   double dr_;
-  double dbend_;
   
   int bendbits_;
   int rbits_;

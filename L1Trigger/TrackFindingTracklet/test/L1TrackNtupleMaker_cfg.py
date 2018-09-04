@@ -43,12 +43,12 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgradePLS3', '')
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(20))
 
 if GEOMETRY == "D17":
     #D17 (tilted barrel -- latest and greatest with T5 tracker, see: https://github.com/cms-sw/cmssw/blob/CMSSW_9_3_0_pre2/Configuration/Geometry/README.md)
     Source_Files = cms.untracked.vstring(
-    "/store/relval/CMSSW_9_3_7/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/93X_upgrade2023_realistic_v5_2023D17noPU-v2/10000/0E1785F0-762C-E811-9192-0CC47A78A4BA.root"
+    "/store/relval/CMSSW_9_3_7/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU25ns_93X_upgrade2023_realistic_v5_2023D17PU200-v1/10000/5A8CFF7F-1E2D-E811-A7B0-0242AC130002.root"
     )
 elif GEOMETRY == "TkOnly":
     Source_Files = cms.untracked.vstring(
@@ -56,7 +56,7 @@ elif GEOMETRY == "TkOnly":
     )
 process.source = cms.Source("PoolSource", fileNames = Source_Files)
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('TTbar_'+GEOMETRY+'_PU0.root'), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string('TTbar_PU200_WithoutTruncation.root'), closeFileFast = cms.untracked.bool(True))
 
 
 
@@ -87,11 +87,7 @@ from L1Trigger.TrackFindingTracklet.Tracklet_cfi import *
 #    TTTracksFromTracklet.trackerGeometry = cms.untracked.string("flat")
 #TTTracksFromTracklet.asciiFileName = cms.untracked.string("evlist.txt")
 #TTTracksFromTracklet.failscenario = cms.untracked.int32(0)
-#
-## run only the tracking (no MC truth associators)
 #process.TTTracks = cms.Path(process.L1TrackletTracks)
-
-# run the tracking AND MC truth associators)
 #process.TTTracksWithTruth = cms.Path(process.L1TrackletTracksWithAssociators)
 
 

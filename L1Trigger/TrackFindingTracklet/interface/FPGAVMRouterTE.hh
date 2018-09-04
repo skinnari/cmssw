@@ -204,7 +204,7 @@ public:
             assert(layer_==2);
             int binlookup=lookupInnerOverlapLayer(stub.first);
             if (binlookup==-1) continue;
-            stub.first->setVMBits(binlookup);
+            stub.first->setVMBitsOverlap(binlookup);
 
 	    iphiRaw-=4;
 	    assert(iphiRaw>=0);
@@ -241,7 +241,11 @@ public:
           }
         }
         if (binlookup==-1) continue;
-            stub.first->setVMBits(binlookup);
+	    if (overlap_) {
+	      stub.first->setVMBitsOverlap(binlookup);
+	    } else {
+	      stub.first->setVMBits(binlookup);
+	    }
 	    if (stub.first->layer().value()%2==0) { //odd layers
 	      iphiRaw-=4;
 	      assert(iphiRaw>=0);
@@ -327,10 +331,10 @@ public:
         //special case where odd disk is treated as outer disk
         
         if (overlap_){
-          if (stub.first->layer().value()>=0) continue; //FIXME skip layer hit for now
+	  assert(stub.first->layer().value()<0); //can not handle stubs in layers here
           int binlookup=lookupOuterOverlapD1(stub.first);
           assert(binlookup>=0);
-          stub.first->setVMBits(binlookup);
+          stub.first->setVMBitsOverlap(binlookup);
         } else {
           assert(0);
           
@@ -424,8 +428,11 @@ public:
           }
           
           if (binlookup==-1) continue;
-          stub.first->setVMBits(binlookup);
-          
+	  if (overlap_) {
+	    stub.first->setVMBitsOverlap(binlookup);
+	  } else {
+	    stub.first->setVMBits(binlookup);
+          }
           
 	      if (abs(stub.first->disk().value())%2==1) {
 		//odd disks here

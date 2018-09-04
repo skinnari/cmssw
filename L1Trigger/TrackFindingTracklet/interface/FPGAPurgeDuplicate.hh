@@ -114,8 +114,21 @@ public:
 
     // Removal by comparing pairs of tracks
     if(RemovalType=="ichi" || RemovalType=="nstub") {
+      //print tracks for debugging
+      for(unsigned int itrk=0; itrk<numTrk; itrk++) {
+        std::map<int, int> stubsTrk1 = inputtracks_[itrk]->stubID();
+	//Useful debug printout to see stubids
+	//cout << "Track [sec="<<iSector_<<" seed="<<inputtracks_[itrk]->seed()<<"]: ";
+	//for(std::map<int, int>::iterator  st=stubsTrk1.begin(); st!=stubsTrk1.end(); st++) {
+	//  cout << st->first << " ["<<st->second<<"] "; 
+	//}
+	//cout << endl;
+      }
+      
       for(unsigned int itrk=0; itrk<numTrk-1; itrk++) { // numTrk-1 since last track has no other to compare to
 
+	int npstrki=inputtracks_[itrk]->nPSstubs();
+	
         // If primary track is a duplicate, it cannot veto any...move on
         if(inputtracks_[itrk]->duplicate()==1) continue;
 
@@ -147,18 +160,27 @@ public:
           // Skip duplicate tracks
           if(inputtracks_[jtrk]->duplicate()==1) continue;
 
+	  int npstrkj=inputtracks_[jtrk]->nPSstubs();
+	  
           // Chi2 duplicate removal
           if(RemovalType=="ichi") {
             if((nStubP-nShare[jtrk] < minIndStubs) || (nStubS[jtrk]-nShare[jtrk] < minIndStubs)) {
 
-              if((int)inputtracks_[itrk]->ichisq() > (int)inputtracks_[jtrk]->ichisq()) {
+	      if (npstrki<npstrkj) {
                 inputtracks_[itrk]->setDuplicate(true);
-              }
-              else if((int)inputtracks_[itrk]->ichisq() <= (int)inputtracks_[jtrk]->ichisq()) {
+	      } else if (npstrkj<npstrki) {
                 inputtracks_[jtrk]->setDuplicate(true);
-              }
-              else cout << "Error: Didn't tag either track in duplicate pair." << endl;
-
+	      } else {
+		if((int)inputtracks_[itrk]->ichisq() > (int)inputtracks_[jtrk]->ichisq()) {
+		  if (npstrki<npstrkj) cout << "WARNING removing track with more PS "<<npstrki<<" "<<npstrkj<<endl; 
+		  inputtracks_[itrk]->setDuplicate(true);
+		}
+		else if((int)inputtracks_[itrk]->ichisq() <= (int)inputtracks_[jtrk]->ichisq()) {
+		  if (npstrkj<npstrki) cout << "WARNING removing track with more PS "<<npstrkj<<" "<<npstrki<<endl; 
+		  inputtracks_[jtrk]->setDuplicate(true);
+		}
+		else cout << "Error: Didn't tag either track in duplicate pair." << endl;
+	      }
             }
           } // end ichi removal
 

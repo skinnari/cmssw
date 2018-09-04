@@ -32,5 +32,10 @@ TTTracksFromTrackletEmulation = cms.EDProducer("L1FPGATrackProducer",
                                                fitPatternFile  = cms.FileInPath('L1Trigger/TrackFindingTracklet/test/fitpattern.txt'),
                                                memoryModulesFile  = cms.FileInPath('L1Trigger/TrackFindingTracklet/test/memorymodules_new.dat'),
                                                processingModulesFile  = cms.FileInPath('L1Trigger/TrackFindingTracklet/test/processingmodules_new.dat'),
-                                               wiresFile  = cms.FileInPath('L1Trigger/TrackFindingTracklet/test/wires_new.dat')
+                                               wiresFile  = cms.FileInPath('L1Trigger/TrackFindingTracklet/test/wires_new.dat'),
+#                                               memoryModulesFile  = cms.FileInPath('L1Trigger/TrackFindingTracklet/test/memorymodules_hourglass.dat'),
+#                                               processingModulesFile  = cms.FileInPath('L1Trigger/TrackFindingTracklet/test/processingmodules_hourglass.dat'),
+#                                               wiresFile  = cms.FileInPath('L1Trigger/TrackFindingTracklet/test/wires_hourglass.dat'),
+                                               DTCLinkFile  = cms.FileInPath('L1Trigger/TrackFindingTracklet/test/calcNumDTCLinks.txt'),
+                                               moduleCablingFile  = cms.FileInPath('L1Trigger/TrackFindingTracklet/test/modules_T5v3_27SP_nonant_tracklet.dat')
     )

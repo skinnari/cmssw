@@ -16,7 +16,7 @@ class FPGATETableOuter: public FPGATETableBase{
 public:
 
   FPGATETableOuter() {
-   
+    nbits_ = 6;
   }
 
   ~FPGATETableOuter() {

@@ -36,10 +36,47 @@ public:
   bool foundTrack(ofstream& outres, L1SimTrack simtrk){
     bool match=false;
     double phioffset=phimin_-(phimax_-phimin_)/6.0;
+    if (hourglass) phioffset=phimin_;
     for(unsigned int i=0;i<tracks_.size();i++){
-      match=match||tracks_[i]->foundTrack(simtrk);
+      if (tracks_[i]->getTrack()->duplicate()) continue;
+      if (tracks_[i]->foundTrack(simtrk)) match=true;
       if (tracks_[i]->foundTrack(simtrk)) {
 	FPGATracklet* tracklet=tracks_[i];
+	
+	/*
+	
+	int psmatches=0;
+	
+	if (tracklet->match(1)) psmatches++;
+	if (tracklet->match(2)) psmatches++;
+	if (tracklet->match(3)) psmatches++;
+
+	cout << "psmatches : "<<psmatches<<endl;
+
+	if (!tracklet->match(3)) continue;
+
+	
+	
+	if (psmatches<3) continue;
+	
+	cout << "Tracklet: "
+	     <<sinh(simtrk.eta())<<" "
+	     <<simtrk.vz()<<" "
+	     <<tracklet->stubptrs(1).second->r()<<" "
+	     <<tracklet->stubptrs(1).second->z()<<" "
+	     <<tracklet->zresid(1)<<" "
+	     <<tracklet->stubptrs(2).second->r()<<" "
+	     <<tracklet->stubptrs(2).second->z()<<" "
+	     <<tracklet->zresid(2)<<" "
+	     <<tracklet->innerStub()->r()<<" "
+	     <<tracklet->innerStub()->z()<<" "
+	     <<tracklet->t()<<" "
+	     <<tracklet->z0()<<" "
+      	     <<tracklet->tfitexact()<<" "
+	     <<tracklet->z0fitexact()<<" "
+	     <<endl;
+	*/   
+	  
 	int charge = simtrk.trackid()/abs(simtrk.trackid());
 	if(abs(simtrk.trackid())<100) charge = -charge; 
 	double simphi=simtrk.phi();

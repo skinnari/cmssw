@@ -40,7 +40,7 @@ public:
     
     projdisk_=projdisk;
 
-    if (iphiproj<0) iphiproj=0; //FIXME should be assert?
+    assert(iphiproj>=0);
     
     fpgaphiproj_.set(iphiproj,nbitsphiprojL123,true,__LINE__,__FILE__);
     int iphivm=(iphiproj>>(nbitsphiprojL123-5))&0x7;
@@ -54,6 +54,31 @@ public:
     fpgaphiprojder_.set(iphider,nbitsphiprojderL123,false,__LINE__,__FILE__);
     fpgarprojder_.set(irder,nrbitsprojderdisk,false,__LINE__,__FILE__);
 
+    int rbin1=8.0*(irproj*krprojshiftdisk-1-rmindiskvm)/(rmaxdisk-rmindiskvm);
+    int rbin2=8.0*(irproj*krprojshiftdisk+1-rmindiskvm)/(rmaxdisk-rmindiskvm);
+
+    if (irproj*krprojshiftdisk<20.0) {
+      cout <<" WARNING : irproj = "<<irproj<<" "<<irproj*krprojshiftdisk<<" "<<projdisk_<<endl;
+    }
+
+    if (rbin1<0) rbin1=0; 
+    if (rbin2<0) rbin2=0; 
+    if (rbin2>7) rbin2=7;
+    assert(rbin1<=rbin2);
+    assert(rbin2-rbin1<=1);
+
+    int finer=64*((irproj*krprojshiftdisk-rmindiskvm)-rbin1*(rmaxdisk-rmindiskvm)/8.0)/(rmaxdisk-rmindiskvm);
+
+    if (finer<0) finer=0;
+    if (finer>15) finer=15;
+    
+    int diff=rbin1!=rbin2;
+    if (irder<0) rbin1+=8;
+    
+    fpgarbin1projvm_.set(rbin1,4,true,__LINE__,__FILE__); // first r bin
+    fpgarbin2projvm_.set(diff,1,true,__LINE__,__FILE__); // need to check adjacent r bin
+ 
+    fpgafinervm_.set(finer,4,true,__LINE__,__FILE__); // fine r postions starting at rbin1
     
     minusNeighbor_=minusNeighbor;
     plusNeighbor_=plusNeighbor;
@@ -133,6 +158,23 @@ public:
     return phiproj_;
   };
 
+  FPGAWord fpgarbin1projvm() const {
+    assert(valid_);
+    return fpgarbin1projvm_;
+  };
+  
+  FPGAWord fpgarbin2projvm() const {
+    assert(valid_);
+    return fpgarbin2projvm_;
+  };
+
+  FPGAWord fpgafinervm() const {
+    assert(valid_);
+    return fpgafinervm_;
+  };
+
+
+
   double rproj() const {
     assert(valid_);
     return rproj_;
@@ -168,7 +210,13 @@ public:
     return rprojderapprox_;
   };
 
-  
+  void setBendIndex(int bendindex) {
+    fpgabendindex_.set(bendindex,5,true,__LINE__,__FILE__);
+  }
+
+  FPGAWord getBendIndex() const {
+    return fpgabendindex_;
+  }
 
 protected:
 
@@ -190,6 +238,11 @@ protected:
   FPGAWord fpgaphiprojvm_;
   FPGAWord fpgarprojvm_;
 
+  FPGAWord fpgarbin1projvm_;
+  FPGAWord fpgarbin2projvm_;
+  FPGAWord fpgafinervm_;
+
+  FPGAWord fpgabendindex_;
 
   double phiproj_;
   double rproj_;

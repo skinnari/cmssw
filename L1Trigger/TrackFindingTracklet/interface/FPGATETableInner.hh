@@ -16,7 +16,7 @@ class FPGATETableInner:public FPGATETableBase{
 public:
 
   FPGATETableInner() {
-   
+    nbits_ = 10;
   }
 
   ~FPGATETableInner() {

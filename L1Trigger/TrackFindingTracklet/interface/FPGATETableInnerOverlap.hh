@@ -16,7 +16,7 @@ class FPGATETableInnerOverlap:public FPGATETableBase{
 public:
 
   FPGATETableInnerOverlap() {
-   
+    nbits_ = 10;
   }
 
   ~FPGATETableInnerOverlap() {
@@ -79,7 +79,7 @@ public:
   int getLookupValue(int izbin, int irbin){
 
     bool print=false;
-    //bool print=(izbin==108)&&(irbin==5);
+    //print=(izbin==127)&&(irbin==2);
     
     double r1=rminl1_+irbin*dr_;
     double r2=rminl1_+(irbin+1)*dr_;
@@ -118,6 +118,9 @@ public:
     
     if (rbinmin<0) rbinmin=0;
     if (rbinmax>=NBINS) rbinmax=NBINS-1;
+
+    if (print) cout << "PRINT layer1 rmind2 rmaxd2 dr z2 r1 "<<layer1_<<" "
+		    <<rmind2<<" "<<rmaxd2<<" "<<" "<<(rmaxdiskvm-rmindiskvm)/NBINS<<z2<<" "<<r1<<endl;
 
     if (print) cout <<"PRINT rbminmin rbinmax "<<rbinmin<<" "<<rbinmax<<endl;
     

@@ -6,11 +6,11 @@
     for (unsigned int k=0;k<NSector;k++) {
       sectors[k]->clean();
     }
-    /*
-    for (std::map<string,FPGADTC>::iterator it=dtcs.begin();it!=dtcs.end();it++){
-    	it->second.clean();
-    }
-    */
+    
+//for (std::map<string,FPGADTC>::iterator it=dtcs.begin();it!=dtcs.end();it++){
+//  	it->second.clean();
+//  }
+    
     cleanTimer.stop();
 
     bool hitlayer[6];
@@ -44,6 +44,7 @@
     }    
 
     addStubTimer.start();
+    
     for (int j=0;j<ev.nstubs();j++){
 
       L1TStub stub=ev.stub(j);
@@ -61,6 +62,10 @@
 
 
       double phi=stub.phi();
+      if (hourglass) {
+        //phi-=0.5*two_pi/NSector;
+        phi+=0.5*dphisectorHG;
+      }     	 
       if (phi<0.0) phi+=two_pi;
       unsigned int isector=NSector*phi/two_pi;
       assert(isector<NSector);
@@ -93,7 +98,31 @@
       }
 
 
+
+      //cout << "stub layer : "<<stub.layer()<<endl;
+
+      int layer=stub.layer()+1;
+      int ladder=stub.ladder(); 
+      int module=stub.module();
+	
+      //HACK for mistake in ASCII files
+      if (layer==3&&module==40) module=39;
+      if (layer==1&&module>31) module=31;
+	
+	//cout << "Done add stub"<<endl;	
+
+      string dtc=cabling.dtc(layer,ladder,module);
+      string dtcbase=dtc.substr(2,dtc.size()-2);
+      if (dtc[0]=='n') {
+         dtcbase=dtc.substr(0,4)+dtc.substr(6,dtc.size()-6);
+      }     
+
+      //cout << "Found dtc for : "<<layer<<" "<<ladder<<" "<<module<<" "<<dtc<<endl;
+
       
+      cabling.addphi(dtc,stub.phi(),layer, module);
+
+
 
       for (unsigned int k=0;k<NSector;k++) {
         int diff=k-isector;
@@ -101,72 +130,22 @@
         if (diff>nSector/2) diff-=NSector;
         if (diff<-nSector/2) diff+=NSector;
 	if (abs(diff)>1) continue;
-        sectors[k]->addStub(stub);	  
+	if (hourglass){
+	  double phiminsect=k*two_pi/NSector-0.5*(dphisectorHG-two_pi/NSector)-0.5*two_pi/NSector;
+	  double dphi=stub.phi()-phiminsect;
+	  if (dphi>0.5*two_pi) dphi-=two_pi;
+	  while (dphi<0.0) dphi+=two_pi;
+	  if (dphi>dphisectorHG) continue;
+	  //cout << "stub.phi phiminsect : "<<stub.phi()<<" "<<phiminsect<<" "<<dphi<<endl;
+	}
+	//cout << "Will try to add stub to sector : "<<k<<endl;
+        sectors[k]->addStub(stub,dtcbase);	  
       }
 
-      /*
-      //cout << "stub layer : "<<stub.layer()<<endl;
-      if (writeDTCLinks) {
 
-	int layer=stub.layer()+1;
-	int ladder=stub.ladder(); 
-	int module=stub.module();
-	
-	//HACK for mistake in ASCII files
-	if (layer==3&&module==40) module=39;
-	if (layer==1&&module>31) module=31;
-	
-	double dphi=two_pi/NSector;
-	double phitmp=stub.phi();
-	while (fabs(phitmp)>0.75*dphi) {
-	  if (phitmp>0.0) {
-	    phitmp-=dphi;
-	  }
-	  else {
-	    phitmp+=dphi;
-	  }
-	}
-	bool overlapregion=(fabs(phitmp)<dphi/6.0);
-	bool overlaplayer=(layer%2==0);
-	
-	//cout << "Will add stub layer="<<layer<<" ladder="<<ladder
-	//     <<" module="<<module<<" "<<stub.phi()
-	//     <<" "<<stub.x()<<" "<<stub.y()<<" "<<stub.z()<<endl;
-	
-	std::map<int, std::map<int, std::map<int, string> > >::const_iterator it1=modules.find(layer);
-	assert(it1!=modules.end());
-	std::map<int, std::map<int, string> >::const_iterator it2=it1->second.find(ladder);
-	assert(it2!=it1->second.end());
-	std::map<int, string>::const_iterator it3=it2->second.find(module);
-	if (it3==it2->second.end()) {
-	  cout << "Could not add stub "<<layer<<" "<<ladder<<" "
-	       <<module<<" "<<stub.phi()<<endl;
-	} else {
-	  //cout << "Found DTC named "<<it3->second<<endl;
-	  string dtc=it3->second;
-	  //cout << "layer ladder module dtc :"<<layer<<" "<<ladder<<" "
-	  //   <<module<<" "<<dtc<<endl;
-	  std::pair<FPGAStub*,L1TStub*> stubpair(0,&stub);
-	  //cout << "In dtcs look for:'"<<dtc<<"'"<<endl; 
-	  assert(dtcs.find(dtc)!=dtcs.end());
-	  int added=dtcs[dtc].addStub(stubpair);
-	  if (overlapregion&&overlaplayer) {
-	    if (added!=2) {
-	      cout << "Warning: In overlap region add stub "<<layer<<" "
-		   <<ladder<<" "
-		   <<module<<" "<<stub.phi()<<"  to "<<added<<" links for dtc = "<<dtc<<endl;
-	    }
-	  } else {
-	    if (added!=1) {
-	      cout << "Warning: In non-overlap region add stub "<<layer<<" "
-		   <<ladder<<" "
-		   <<module<<" "<<stub.phi()<<"  to "<<added<<" links for dtc = "<<dtc<<endl;
-	    }
-	  }
-	}
-	//cout << "Done add stub"<<endl;	
-      }
-      */
+
+
+      
 
     }
 
@@ -176,18 +155,18 @@
        if (hitdisk[ii]) nlayershit++;
      }
     }   
-/*
-if (writeDTCLinks) {
-  //cout << "Will write DTC links"<<endl;
-  static ofstream out("dtclinks.txt");
-  for (std::map<string,FPGADTC>::iterator iter=dtcs.begin();iter!=dtcs.end();iter++) {
-    for (unsigned int j=0;j<iter->second.nLinks();j++) {
-      out << iter->first << " " << j << " " << iter->second.link(j).nStubs() << endl;    
-    }	 
-  }
-  //cout << "Done write DTC links"<<endl;
- }
-*/
+
+//if (writeDTCLinks) {
+//  //cout << "Will write DTC links"<<endl;
+//  static ofstream out("dtclinks.txt");
+//  for (std::map<string,FPGADTC>::iterator iter=dtcs.begin();iter!=dtcs.end();iter++) {
+//    for (unsigned int j=0;j<iter->second.nLinks();j++) {
+//      out << iter->first << " " << j << " " << iter->second.link(j).nStubs() << endl;    
+//    }	 
+//  }
+//  //cout << "Done write DTC links"<<endl;
+// }
+
 if (writestubs) {
   for (unsigned int k=0;k<NSector;k++) {
     if(k==writememsect)

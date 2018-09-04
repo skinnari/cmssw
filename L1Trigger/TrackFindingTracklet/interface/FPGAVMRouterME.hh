@@ -12,6 +12,73 @@ public:
 
   FPGAVMRouterME(string name, unsigned int iSector):
     FPGAProcessBase(name,iSector){
+    
+    layer_=0;
+    disk_=0;
+    
+    if (name_[6]=='L') layer_=name_[7]-'0';    
+    if (name_[6]=='D') disk_=name_[7]-'0';    
+
+    assert((layer_!=0)||(disk_!=0));
+
+    if (layer_!=0) {
+      nbitsfinebintable_=8;
+      unsigned int nbins=1<<nbitsfinebintable_;
+      
+      for(unsigned int i=0;i<nbins;i++) {
+	finebintable_.push_back(-1);
+      }
+      
+      for(unsigned int i=0;i<nbins;i++) {
+
+	
+	int ibin=(i>>(nbitsfinebintable_-3));
+	
+	int zfine=(i>>(nbitsfinebintable_-6))-(ibin<<3);
+	
+	//awkward bit manipulations since the index is from a signed number...
+	int index=i+(1<<(nbitsfinebintable_-1));
+	
+	if (index>=(1<<nbitsfinebintable_)){
+	  index-=(1<<nbitsfinebintable_);
+	}
+	
+	finebintable_[index]=zfine;
+	
+      }
+    }
+
+    if (disk_!=0) {
+
+      nbitsfinebintable_=8;
+      unsigned int nbins=1<<nbitsfinebintable_;
+      
+      for(unsigned int i=0;i<nbins;i++) {
+
+	double rstub=0.0;
+	
+	if (i<10) {
+	  if (disk_<=2) {
+	    rstub=rDSSinner[i];
+	  } else {
+	    rstub=rDSSouter[i];
+	  }
+	} else {
+	  rstub=kr*(i<<(nrbitsdisk-nbitsfinebintable_));
+	}
+
+	if (rstub<rmindiskvm) {
+	  finebintable_.push_back(-1);
+	} else {	
+	  int bin=8.0*(rstub-rmindiskvm)/(rmaxdisk-rmindiskvm);
+	  assert(bin>=0);
+	  assert(bin<MEBinsDisks);	  
+	  int rfine=64*((rstub-rmindiskvm)-bin*(rmaxdisk-rmindiskvm)/8.0)/(rmaxdisk-rmindiskvm);
+	  finebintable_.push_back(rfine);
+	}
+      }
+    }
+    
   }
 
   void addOutput(FPGAMemoryBase* memory,string output){
@@ -38,7 +105,7 @@ public:
     
     if (print) cout << "FPGAVMRouterME in "<<getName()<<endl;
     
-    for (int i=0;i<12;i++) {
+    for (int i=0;i<32;i++) {
       std::ostringstream oss;
       oss<<(i+1);
       string s=oss.str();
@@ -49,6 +116,14 @@ public:
 	
       if (output=="vmstuboutPHI"+s+"n1"||
 	  output=="vmstuboutPHI"+s+"n2"||
+	  output=="vmstuboutPHIA"+s+"n1"||
+	  output=="vmstuboutPHIB"+s+"n1"||
+	  output=="vmstuboutPHIC"+s+"n1"||
+	  output=="vmstuboutPHID"+s+"n1"||
+	  output=="vmstuboutPHIE"+s+"n1"||
+	  output=="vmstuboutPHIF"+s+"n1"||
+	  output=="vmstuboutPHIG"+s+"n1"||
+	  output=="vmstuboutPHIH"+s+"n1"||
 	  output=="vmstuboutPHI"+s+"n3"
 	  ){
 	FPGAVMStubsME* tmp=dynamic_cast<FPGAVMStubsME*>(memory);
@@ -84,6 +159,9 @@ public:
 
   void execute(){
 
+    //cout << "In FPGAVMRouterME "<<getName()<<" "<<stubinputs_.size()<<endl;
+
+    
     unsigned int count=0;
 
     if (stubinputs_.size()!=0){
@@ -94,44 +172,86 @@ public:
 	  std::pair<FPGAStub*,L1TStub*> stub=stubinputs_[j]->getStub(i);
 
 	  int iphiRaw=stub.first->iphivmRaw();
-
-	  //int layer=stub.first->layer().value()+1;
-
-	  //bool evenlayer=(layer==2)||(layer==4)||(layer==6);
-
-	  //if (evenlayer&&(iphiRaw<4)) continue;
-	  //if (evenlayer&&(iphiRaw>27)) continue;
-	  assert(iphiRaw>=4 and iphiRaw<=27);
-	  
 	  int iphiRawPlus=stub.first->iphivmRawPlus();
 	  int iphiRawMinus=stub.first->iphivmRawMinus();
 
-	  //cout << "FPGAVMRouterME : layer iphivmRaw "<<getName()<<" "<<stub.first->layer().value()
-	  //     <<" "<<iphiRaw<<endl;
+	  int iphistub=iphiRaw;
+
+	  if (hourglass) {
+
+	    assert(0);
+	    
+	    int layer=stub.first->layer().value();
+	    int disk=abs(stub.first->disk().value());
+
+	    //cout << getName()<<" layer,disk : "<<layer<<" "<<disk<<endl;
+	    
+	    int nvm=-1;
+	    if (layer!=-1) {
+	      nvm=nallstubslayers[layer]*nvmtelayers[layer];
+	    }
+	    if (disk!=0){
+	      nvm=nallstubsdisks[disk-1]*nvmtedisks[disk-1];
+	    }
+	    assert(nvm>0&&nvm<=32);
+	    iphiRaw=iphiRaw/(32/nvm);
+	    iphiRawPlus=iphiRawPlus/(32/nvm);
+	    iphiRawMinus=iphiRawMinus/(32/nvm);
+	    if (iphiRawPlus<0) iphiRawPlus=0;
+	    if (iphiRawPlus>=nvm) iphiRawPlus=nvm-1;
+	    if (iphiRawMinus<0) iphiRawMinus=0;
+	    if (iphiRawMinus>=nvm) iphiRawMinus=nvm-1;
+	    
+	  } else {
+
+	    assert(iphiRaw>=4 and iphiRaw<=27);
+	  
+	  
+	    iphiRaw-=4;
+	    iphiRaw=iphiRaw>>1;
+	    assert(iphiRaw>=0);
+	    assert(iphiRaw<=11);
+	    
+	    iphiRawPlus-=4;
+	    iphiRawPlus=iphiRawPlus>>1;
+	    if (iphiRawPlus<0) iphiRawPlus=0;
+	    if (iphiRawPlus>11) iphiRawPlus=11;
+	    
+	    iphiRawMinus-=4;
+	    iphiRawMinus=iphiRawMinus>>1;
+	    if (iphiRawMinus<0) iphiRawMinus=0;
+	    if (iphiRawMinus>11) iphiRawMinus=11;
+
+	  }
+
+	  if (disk_!=0) {
+
+	    int index=stub.first->r().value();
+	    if (stub.first->isPSmodule()){
+	      index=stub.first->r().value()>>(stub.first->r().nbits()-nbitsfinebintable_);
+	    }
+
+	    int rfine=finebintable_[index];
+
+	    stub.first->setfiner(rfine);
+
+	  }
+
+	  if (layer_!=0) {
+
+	    int index=(stub.first->z().value()>>(stub.first->z().nbits()-nbitsfinebintable_))&((1<<nbitsfinebintable_)-1);
+	    
+	    int zfine=finebintable_[index];
+
+	    stub.first->setfinez(zfine);
+
+	  }
 	  
 	  bool insert=false;
 	  
-	  iphiRaw-=4;
-	  iphiRaw=iphiRaw>>1;
-	  assert(iphiRaw>=0);
-	  assert(iphiRaw<=11);
-	  
-	  iphiRawPlus-=4;
-	  iphiRawPlus=iphiRawPlus>>1;
-	  if (iphiRawPlus<0) iphiRawPlus=0;
-	  if (iphiRawPlus>11) iphiRawPlus=11;
-	  
-	  iphiRawMinus-=4;
-	  iphiRawMinus=iphiRawMinus>>1;
-	  if (iphiRawMinus<0) iphiRawMinus=0;
-	  if (iphiRawMinus>11) iphiRawMinus=11;
-
-	  //iphiRaw=(iphiRaw&3); because use 0-11 entries
-
-	  //cout << "FPGAVMRouterME "<<getName()<<" iphiRaw size : "<<iphiRaw<<" "<<vmstubsPHI_[iphiRaw].size()<<endl;
 	  for (unsigned int l=0;l<vmstubsPHI_[iphiRaw].size();l++){
 	    if (debug1) {
-	      cout << "FPGAVMRouterME "<<getName()<<" add stub ( r = "<<stub.second->r()<<" ) in : "<<vmstubsPHI_[iphiRaw][l]->getName()<<endl;
+	      cout << "FPGAVMRouterME "<<getName()<<" add stub ( r = "<<stub.second->r()<<" phi = "<<stub.second->phi()<<" ) in : "<<vmstubsPHI_[iphiRaw][l]->getName()<<" iphistub = " << iphistub << endl;
 	    }
 	    vmstubsPHI_[iphiRaw][l]->addStub(stub);
 	    insert=true;
@@ -157,7 +277,9 @@ public:
 	    allstubs_[l]->addStub(stub);
 	  }
 
-
+	  if (!insert){
+	    cout << "In "<<getName()<<" did not insert stub from input "<<stubinputs_[j]->getName()<<endl;
+	  }
 	  assert(insert);
 
 	}
@@ -188,21 +310,17 @@ public:
 
 private:
 
+  int layer_;
+  int disk_;
+
+  int nbitsfinebintable_;
+  vector<int> finebintable_;
+
+  
   vector<FPGAInputLink*> stubinputs_;
   vector<FPGAAllStubs*> allstubs_;
 
-  vector<FPGAVMStubsME*> vmstubsPHI_[24];
-
-  /*
-  vector<FPGAVMStubsME*> vmstubsPHI1R1_;
-  vector<FPGAVMStubsME*> vmstubsPHI1R2_;
-  vector<FPGAVMStubsME*> vmstubsPHI2R1_;
-  vector<FPGAVMStubsME*> vmstubsPHI2R2_;
-  vector<FPGAVMStubsME*> vmstubsPHI3R1_;
-  vector<FPGAVMStubsME*> vmstubsPHI3R2_;
-  vector<FPGAVMStubsME*> vmstubsPHI4R1_;
-  vector<FPGAVMStubsME*> vmstubsPHI4R2_;
-  */
+  vector<FPGAVMStubsME*> vmstubsPHI_[32];
 
 };
 

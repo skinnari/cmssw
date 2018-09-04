@@ -93,6 +93,7 @@
 #include "L1Trigger/TrackFindingTracklet/interface/FPGATimer.hh"
 #include "L1Trigger/TrackFindingTracklet/interface/FPGATrackletCalculator.hh"
 #include "L1Trigger/TrackFindingTracklet/interface/IMATH_TrackletCalculator.hh"
+#include "L1Trigger/TrackFindingTracklet/interface/FPGACabling.hh"
 
 ////////////////
 // PHYSICS TOOLS
@@ -175,6 +176,9 @@ private:
   edm::FileInPath processingModulesFile; 
   edm::FileInPath wiresFile; 
 
+  edm::FileInPath DTCLinkFile; 
+  edm::FileInPath moduleCablingFile; 
+
   int failscenario_;
   StubKiller* my_stubkiller;
 
@@ -186,6 +190,7 @@ private:
   string geometryType_;
 
   FPGASector** sectors;
+  FPGACabling cabling;
 
   edm::ESHandle<TrackerTopology> tTopoHandle;
   edm::ESHandle<TrackerGeometry> tGeomHandle;
@@ -255,6 +260,10 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig) :
   memoryModulesFile = iConfig.getParameter<edm::FileInPath> ("memoryModulesFile");
   wiresFile = iConfig.getParameter<edm::FileInPath> ("wiresFile");
 
+  DTCLinkFile = iConfig.getParameter<edm::FileInPath> ("DTCLinkFile");
+  moduleCablingFile = iConfig.getParameter<edm::FileInPath> ("moduleCablingFile");
+
+
   // --------------------------------------------------------------------------------
   // get all constants 
   // --------------------------------------------------------------------------------
@@ -285,6 +294,11 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig) :
   }
 
   sectors=new FPGASector*[NSector];
+
+  cout << "cabling DTC links :     "<<DTCLinkFile.fullPath()<<endl;
+  cout << "module cabling :     "<<moduleCablingFile.fullPath()<<endl;
+
+  cabling.init(DTCLinkFile.fullPath().c_str(),moduleCablingFile.fullPath().c_str());
 
   for (unsigned int i=0;i<NSector;i++) {
     sectors[i]=new FPGASector(i);
@@ -744,7 +758,6 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 	//stub_pt=-stub_pt;
 	stub_bend=-stub_bend;
       }
-
       if (irphi.size()!=0) {
       	strip=irphi[0];
       }

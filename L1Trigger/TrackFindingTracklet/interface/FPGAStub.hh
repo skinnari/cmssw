@@ -31,70 +31,24 @@ public:
     double ptinv=1.0/stub.pt();
     double sbend = stub.bend();
 
-    int ibend=sbend*2+15;
-    if (ibend<0) ibend=0;
-    if (ibend>31) ibend=31;
-
-    bend_.set(ibend,5,true,__LINE__,__FILE__);
-    
     isPSmodule_ = false;
     if (stub.isPSmodule()) isPSmodule_=true;
+
+    
+    int ibend=bendencode(sbend,isPSmodule_);
+
+    int bendbits=3;
+    if (!isPSmodule_) bendbits=4;
+    
+    bend_.set(ibend,bendbits,true,__LINE__,__FILE__);
+    
     
     //HACK!!! seems like stubs in negative disk has wrong sign!
     if (z<-120.0) ptinv=-ptinv;
     //cout << "z stub.pt() : "<<z<<" "<<stub.pt()<<endl;
-    int ipt=0;
+
     int layer = stub.layer()+1; 
 
-    if(!enstubbend){
-      if (fabs(ptinv)<0.4) ipt=0;
-      if (fabs(ptinv)<0.3) ipt=1;
-      if (fabs(ptinv)<0.2) ipt=2;
-      if (fabs(ptinv)<0.1) ipt=3;
-      if (ptinv<0.0) ipt=7-ipt;
-    }
-    //Stub pt encoding based on bend
-    if(enstubbend){
-      if(layer == 1 || layer == 2){                      
-	if(fabs(sbend)  >=  2   ) ipt = 7;               
-	if(fabs(sbend)  ==  1.5 ) ipt = 6;               
-	if(fabs(sbend)  ==  1   ) ipt = 5;               
-	if(fabs(sbend)  <=  0.5 ) ipt = 4;               
-	if( sbend < -0.5 ) ipt = 8 - ipt;                                                       
-      }                                                  
-      if(layer == 3){                                    
-	if(fabs(sbend)  >=  2.5 || fabs(sbend)  ==  3  )	ipt = 7;                                              
-	if(fabs(sbend)  ==  2 || fabs(sbend)  ==  1.5) ipt = 6;                                            
-	if(fabs(sbend)  ==  1 ) ipt = 5;                 
-	if(fabs(sbend)  <=  0.5 ) ipt = 4;               
-	if( sbend < -0.5 ) ipt = 8 - ipt;                
-      }                                                  
-      
-      if(layer == 4){                                    
-	if(fabs(sbend)  >=  4   || fabs(sbend) == 3.5 || fabs(sbend) == 3 ) ipt = 7;                           
-	if(fabs(sbend)  ==  2.5 || fabs(sbend) == 2 ) ipt = 6;                                              
-	if(fabs(sbend)  ==  1.5 ) ipt = 5;               
-	if(fabs(sbend)  <=  1   ) ipt = 4;               
-	if( sbend < -1 ) ipt = 8 - ipt;                  
-      }                                                  
-      
-      
-      if(layer == 5){                                    
-	if(fabs(sbend)  >=  5.5 || fabs(sbend)  ==  5  || fabs(sbend)  ==  4.5 ) ipt = 7;                     
-	if(fabs(sbend)  ==  4   || fabs(sbend)  ==  3.5|| fabs(sbend)  ==  3   ) ipt = 6;                     
-	if(fabs(sbend)  ==  2.5 || fabs(sbend)  ==  2  || fabs(sbend)  ==  1.5 ) ipt = 5;                     
-	if(fabs(sbend)  <=  1 ) ipt = 4;                 
-	if( sbend < -1 ) ipt = 8 - ipt;                  
-      }                                  
-      
-      if(layer == 6){                                                                          
-	if(fabs(sbend)  >=  6.5 || fabs(sbend)  == 6   || fabs(sbend)  == 5.5 ) ipt= 7;        
-	if(fabs(sbend)  ==  5   || fabs(sbend)  == 4.5 || fabs(sbend)  == 4   ) ipt= 6;        
-	if(fabs(sbend)  ==  3.5 || fabs(sbend)  == 3   || fabs(sbend)  == 2.5 || fabs(sbend) == 2 ) ipt = 5;           
-	if(fabs(sbend)  <=  1.5 ) ipt = 4;                                                     
-	if( sbend < -1.5 ) ipt = 8 - ipt;                                                      
-      }        
-    }
 
     // hold the real values from L1Stub	
     stubphi_=stub.phi();
@@ -127,15 +81,14 @@ public:
 
       assert(rmin>0.0);
       assert(rmax>0.0);
-      if (r<rmin||r>rmax) cout << "Error r, rmin, rmax :"<<r
-			       <<" "<<rmin<<" "<<rmax<<endl;
+      if (r<rmin||r>rmax) cout << "Error r, rmin, rmeas,  rmax :"<<r
+			       <<" "<<rmin<<" "<<0.5*(rmin+rmax)<<" "<<rmax<<endl;
 
       int irbits=nbitsrL123;
       if (layer>=4) irbits=nbitsrL456;
       
       int ir=round_int((1<<irbits)*((r-rmean[layer-1])/(rmax-rmin)));
 
-      //cout << "r rmean ir "<<r<<" "<<rmean[layer-1]<<" "<<ir<<endl;
 
       double zmin=-zlength;
       double zmax=zlength;
@@ -147,76 +100,38 @@ public:
       if (layer>=4) izbits=nbitszL456;
       
       int iz=round_int((1<<izbits)*z/(zmax-zmin));
-      
+
       if (z<zmin||z>zmax) cout << "Error phi, phimin, phimax :"<<stubphi_
 			       <<" "<<phiminsec<<" "<<phimaxsec<<endl;
       
       assert(phimaxsec-phiminsec>0.0);
-      //cout << "stubphi_ phiminsec phiminsec-(phimaxsec-phiminsec)/6.0 : "
-      //	   << stubphi_<<" "<<phiminsec<<" "
-      //	   <<phiminsec-(phimaxsec-phiminsec)/6.0<<endl;
+
       if (stubphi_<phiminsec-(phimaxsec-phiminsec)/6.0) {
 	stubphi_+=two_pi;
       }
       assert((phimaxsec-phiminsec)>0.0);
 
-      //assert(stubphi_-phimin>0.0);  //These two are not correct when
-      //assert(stubphi_<phimax);      //we allow for duplications!
-
       int iphibits=nbitsphistubL123;
       if (layer>=4) iphibits=nbitsphistubL456;
-
-
-      //cout << "phimax-phimin : "<<phimax-phimin<<" "<<two_pi/NSector<<endl;
-
-      //cout << "phi phimin phimax : "<<stubphi_<<" "<<phiminsec
-      //	   <<" "<<phimaxsec<<endl;
 
       double deltaphi=stubphi_-phiminsec;
       if (deltaphi>0.5*two_pi) deltaphi-=two_pi;
       
       int iphi=(1<<iphibits)*(0.125+0.75*(deltaphi)/(phimaxsec-phiminsec));
-      
-      //double dphi=stubphi_-phiminsec+(phimaxsec-phiminsec)/6.0-iphi*kphi;
 
-      //cout << "FPGAStub: "<<deltaphi<<" "<<phiminsec<<" "<<phimaxsec<<" "<<kphi<<endl;
+      if (hourglass) {
+	iphi=(1<<iphibits)*deltaphi/(phimaxsec-phiminsec);
+      }
 
       phitmp_=stubphi_-phiminsec+(phimaxsec-phiminsec)/6.0;
 
-
       phimin_=phiminsec;
 
-
-      //cout << "iphi second :"<<iphi<<" "<<(iphi&0xffffc)<<endl;
-
       layer_.set(layer-1,3,true,__LINE__,__FILE__);
-      stubpt_.set(ipt,3,true,__LINE__,__FILE__);
       r_.set(ir,irbits,false,__LINE__,__FILE__);
       z_.set(iz,izbits,false,__LINE__,__FILE__);
       phi_.set(iphi,iphibits,true,__LINE__,__FILE__);
 
-      /*
-      double Delta=stub.r()-rmean[layer-1];
-      double dphi=Delta*stub.bend()*0.009/0.18/rmean[layer-1];
-
-      int idphi=0;
-  
-      if (layer<=3) {
-        idphi=dphi/kphi;
-      } else {
-        idphi=dphi/kphi1;
-      }
-
-     
-      //cout << "iphi idphi "<<phi_.value()<<" "<<idphi<<endl;
-    
-      int iphicorr=iphi+idphi;
-
-      if (iphicorr<0) iphicorr=0;
-      if (iphicorr>=(1<<phi_.nbits())) iphicorr=(1<<phi_.nbits())-1;
-
-        
-      */
 
       phicorr_.set(iphi,iphibits,true,__LINE__,__FILE__);
 
@@ -243,45 +158,6 @@ public:
 
       double zmin=0.0;
       double zmax=0.0;
-      if(enstubbend){
-      //pt encoding based on position                                                        
-                                                                                             
-      if(r  > 245.559 && r  < 407.415 ){//rings 1-4                                          
-        if(fabs(sbend)  ==  2  ) ipt = 7;                                                    
-        if(fabs(sbend)  ==  1.5) ipt = 6;                                                    
-        if(fabs(sbend)  ==  1  ) ipt = 5;                                                    
-        if(fabs(sbend)  <=  0.5) ipt = 4;                                                    
-        if( sbend < -0.5 ) ipt = 8 - ipt;                                                    
-      }                                                                                      
-      if(r  > 407.415 && r  < 516.901 ){//rings 5-7                                          
-        if(fabs(sbend)  ==  2.5) ipt = 7;                                                    
-        if(fabs(sbend)  ==  2  ) ipt = 6;                                                    
-        if(fabs(sbend)  ==  1.5) ipt = 5;                                                    
-        if(fabs(sbend)  <=  1  ) ipt = 4;                                                    
-        if( sbend < -1  ) ipt = 8 -  ipt;                                                     
-      }                                                                                      
-      if(r  > 519.273 && r  < 558.049 ){//ring 8                                             
-        if(fabs(sbend)  ==  3  ) ipt = 7;                                                    
-        if(fabs(sbend)  ==  2.5) ipt = 6;                                                    
-        if(fabs(sbend)  ==  2 || fabs(sbend)  == 1.5 ) ipt = 5;                              
-        if(fabs(sbend)  <=  1  ) ipt = 4;                                                    
-        if( sbend < -1  ) ipt = 8 - ipt;                                                     
-      }                                                                                      
-      if(r  > 558.049 && r  < 596.825 ){//ring 9                                             
-        if(fabs(sbend)  ==  3.5) ipt = 7;                                                    
-        if(fabs(sbend)  ==  3 || fabs(sbend) == 2.5 ) ipt = 6;                               
-        if(fabs(sbend)  ==  2 || fabs(sbend) == 1.5 ) ipt = 5;                               
-        if(fabs(sbend)  <=  1) ipt = 4;                                                      
-        if( sbend < -1 ) ipt = 8 - ipt;                                                      
-      }                                                                                      
-      if(r  > 600.567 && r  < 1100.000 ){//ring 10 to 15                                     
-        if(fabs(sbend)  ==  5.5 || fabs(sbend)  ==  5) ipt = 7;                              
-        if(fabs(sbend)  ==  4.5 || fabs(sbend)  ==  4 || fabs(sbend)  ==  3.5 || fabs(sbend) ==  3) ipt = 6;
-        if(fabs(sbend)  ==  2.5 || fabs(sbend)  ==  2 || fabs(sbend)  ==  1.5  ) ipt = 5;    
-        if(fabs(sbend)  <=  1) ipt = 4;                                                      
-        if( sbend < -1 ) ipt = 8 - ipt ;                                                      
-      } 
-      }
 
       if (disk==1) {zmin=zminD1; zmax=zmaxD1;}
       if (disk==2) {zmin=zminD2; zmax=zmaxD2;}
@@ -306,13 +182,6 @@ public:
 	stubphi_+=two_pi;
       }
 
-      //Generates errors for overlap stubs
-      //if (stubphi_<phiminsec||stubphi_>phimaxsec) {
-      //	cout << "Error disk phi, phimin, phimax :"
-      //	     <<stubphi_
-      //	     <<" "<<phiminsec<<" "<<phimaxsec<<endl;
-      //}
-      
       assert(phimaxsec-phiminsec>0.0);
       if (stubphi_<phiminsec-(phimaxsec-phiminsec)/6.0) {
 	stubphi_+=two_pi;
@@ -326,8 +195,12 @@ public:
       if (deltaphi>0.5*two_pi) deltaphi-=two_pi;
       
       int iphi=(1<<iphibits)*(0.125+0.75*(deltaphi)/(phimaxsec-phiminsec));
-
-      double rmin=rmindisk;
+      if (hourglass) {
+	//cout << "stubphi_ phiminsec "<<stubphi_<<" "<<phiminsec<<endl;
+	iphi=(1<<iphibits)*deltaphi/(phimaxsec-phiminsec);
+      }
+      
+      double rmin=0;
       double rmax=rmaxdisk;
     
       if (r<rmin||r>rmax) cout << "Error disk r, rmin, rmax :"<<r
@@ -337,10 +210,17 @@ public:
 
       int irSS = -1;
       if (!isPSmodule_) {
-	for (int i=0; i<20; ++i){
-	  if (fabs(r-rDSS[i])<.2){
-	    irSS = i;
-	    break;
+	for (int i=0; i<10; ++i){
+	  if (abs(disk)<=2) {
+	    if (fabs(r-rDSSinner[i])<.2){
+	      irSS = i;
+	      break;
+	    }
+	  } else {
+	    if (fabs(r-rDSSouter[i])<.2){
+	      irSS = i;
+	      break;
+	    }
 	  }
 	}
 	if (irSS<0) {
@@ -355,15 +235,14 @@ public:
       }
       else {
 	//SS modules
-	r_.set(irSS,5,true,__LINE__,__FILE__);  // in case of SS modules, store index, not r itself
+	r_.set(irSS,4,true,__LINE__,__FILE__);  // in case of SS modules, store index, not r itself
       }
 
       //cout << "iz izbits : "<<iz<<" "<<izbits<<" "<<disk<<endl;
       z_.set(iz,nzbitsdisk,false,__LINE__,__FILE__);
       phi_.set(iphi,iphibits,true,__LINE__,__FILE__);
-      stubpt_.set(ipt,3,true,__LINE__,__FILE__);
 
-      phicorr_.set(iphi,iphibits,true,__LINE__,__FILE__);    //FIXME For now not corrected  
+      phicorr_.set(iphi,iphibits,true,__LINE__,__FILE__);    //Should disks also have phi correction? 
       
       int iphivm=0;
 
@@ -373,23 +252,10 @@ public:
         iphivm^=(1<<(VMphibits-1));
       }
 
-      //iphivm=(iphi>>(iphibits-5))&0x7;
-      //if ((abs(disk)%2)==1) {
-      //  iphivm^=4;
-      //}
-
-      //cout << "iphivm :"<<iphivm<<endl;
 
       disk_.set(disk,4,false,__LINE__,__FILE__);    
       phivm_.set(iphivm,3,true,__LINE__,__FILE__);
 
-      double alpha=stub.alpha();
-      assert(fabs(alpha)<alphamax);
-      int ialpha=round_int(alpha/kalpha);
-
-      //if (stub.r()>100) cout << "r alpha ialpha : "<<stub.r()<<" "<<alpha<<" "<<ialpha<<endl;
-      
-      alpha_.set(ialpha,nbitsalpha,false,__LINE__,__FILE__);
 
       double alphanew=stub.alphanew();
       assert(fabs(alphanew)<1.0);
@@ -397,9 +263,6 @@ public:
       assert(ialphanew<(1<<(nbitsalpha-1)));
       assert(ialphanew>=-(1<<(nbitsalpha-1)));
       alphanew_.set(ialphanew,nbitsalpha,false,__LINE__,__FILE__);
-
-      //cout << "alphanew ialphanew "<<alphanew<<" "<<ialphanew<<" "<<alphanew_.value()<<endl;
-	    
 
       
     }
@@ -460,10 +323,8 @@ public:
   std::string str() const {
     
     std::ostringstream oss;
-    //oss << stubpt_.str()<<"|"<<r_.str()<<"|"
-    //    << z_.str()<<"|"<< phi_.str();
-    oss << bend_.str()<<"|"<<r_.str()<<"|"
-        << z_.str()<<"|"<< phi_.str();
+    oss << r_.str()<<"|"
+        << z_.str()<<"|"<< phi_.str()<<"|"<<bend_.str();
 
     return oss.str();
 
@@ -471,18 +332,12 @@ public:
   std::string strdisk() const {
    
     std::ostringstream oss;
-    //if (isPSmodule())
-    //  oss << stubpt_.str()<<"||"<<r_.str()<<"|"
-    //      << z_.str()<<"|"<< phi_.str();
-    //else
-    //  oss << stubpt_.str()<<"|"<<alpha_.str()<<"|0"<<r_.str()<<"|"
-    //      << z_.str()<<"|"<< phi_.str();
     if (isPSmodule())
-      oss << bend_.str()<<"|"<<r_.str()<<"|"
-          << z_.str()<<"|"<< phi_.str();
+      oss <<r_.str()<<"|"
+          << z_.str()<<"|"<< phi_.str()<<"|"<<bend_.str();
     else
-      oss << bend_.str()<<"|"<<alpha_.str()<<"|0"<<r_.str()<<"|"
-          << z_.str()<<"|"<< phi_.str();
+      oss << "000"<<r_.str()<<"|"
+          << z_.str()<<"|"<< phi_.str()<<"|"<<alphanew_.str()<<"|"<<bend_.str();
 
     return oss.str();
 
@@ -513,34 +368,14 @@ public:
       nphibs = 131072;
     }
 
-    double pt_r = -99;
-    if(stubpt_.value() == 0 ) pt_r = 1/0.4;
-    if(stubpt_.value() == 1 ) pt_r = 1/0.3;
-    if(stubpt_.value() == 2 ) pt_r = 1/0.2;
-    if(stubpt_.value() == 3 ) pt_r = 1/0.1;
-    if(stubpt_.value() == 4 ) pt_r = -1/0.1;
-    if(stubpt_.value() == 5 ) pt_r = -1/0.2;
-    if(stubpt_.value() == 6 ) pt_r = -1/0.3;
-    if(stubpt_.value() == 7 ) pt_r = -1/0.4;
-
     double rreal = r_.value()/nbsr*(rmax - rmin) + rmean_;
     double phireal = ((phi_.value()*1.0)/nphibs  - 0.125 )*(1.0/0.75)*(stubphimaxsec_ - stubphiminsec_) + stubphiminsec_;
 
-
-
-
-    oss << pt_r<<" "
-	<<rreal<<" "
+    oss <<rreal<<" "
         << z_.value()*kz*ilz_<<" "
         <<phireal;
 
 
-    /*  //For comparison with the real quantities                                                                 
-	oss << pt_r<<"| fl :"<<stubrpt_ <<"|"                                                                         
-        <<rreal<<"| fl :"<<stubr_ <<"|"                                                                           
-        << z_.value()*kz*ilz_<<"|fl :"<<stubz_ <<"|"                                                              
-        <<phireal<<"| fl :"<<stubphi_ ;                                                                           
-    */
 
     return oss.str();
 
@@ -553,8 +388,6 @@ public:
   std::string strbare() const {
     
     std::ostringstream oss;
-    //oss << stubpt_.str()<<r_.str()
-	//<< z_.str()<< phi_.str();
     oss << bend_.str()<<r_.str()
 	<< z_.str()<< phi_.str();
 
@@ -566,7 +399,7 @@ public:
     
     std::ostringstream oss;
     oss << r_.str()
-	<< z_.str()<< phi_.str()<<stubpt_.str();
+	<< z_.str()<< phi_.str()<<bend_.str();
 
     return oss.str();
 
@@ -576,7 +409,7 @@ public:
     
     std::ostringstream oss;
     oss << r_.str()<< z_.str()
-	<< phi_.str()<<stubpt_.str();
+	<< phi_.str()<<bend_.str();
 
     return oss.str();
 
@@ -586,7 +419,7 @@ public:
   std::string rawstr() const {
     
     std::ostringstream oss;
-    oss << layer_.str()<<"|"<<stubpt_.str()<<"|"<< r_.str()<<"|" 
+    oss << layer_.str()<<"|"<<bend_.str()<<"|"<< r_.str()<<"|" 
   	<< z_.str() <<"|"<< phi_.str();
     
     return oss.str();
@@ -596,7 +429,7 @@ public:
   std::string vmstr() const {
     
     std::ostringstream oss;
-    oss << stubpt_.str() <<"|"<<stubindex_.str()<<"|"<< phivm_.str();
+    oss << bend_.str() <<"|"<<stubindex_.str()<<"|"<< phivm_.str();
 
     return oss.str();
 
@@ -624,50 +457,70 @@ public:
 	
   FPGAWord phiregion() const {
 	// 3 bits
-	int iphiregion = 7;
+
+    if (hourglass) {
+      if (layer_.value()>=0) {
+	unsigned int nallstubs=nallstubslayers[layer_.value()];
+	int iphiregion=iphivmRaw()/(32/nallstubs);
+	FPGAWord phi;
+	phi.set(iphiregion,3);
+	return phi;
+      }
+      if (abs(disk_.value())>=1) {
+	unsigned int nallstubs=nallstubsdisks[abs(disk_.value())-1];
+	int iphiregion=iphivmRaw()/(32/nallstubs);
+	FPGAWord phi;
+	phi.set(iphiregion,3);
+	return phi;
+      }
+
+      assert(0);
+      
+    }
+    
+    int iphiregion = 7;
 	
-	if (layer_.value()==0 or layer_.value()==2 or layer_.value()==4) { // L1, L3, L5
+    if (layer_.value()==0 or layer_.value()==2 or layer_.value()==4) { // L1, L3, L5
       if (iphivmRaw()>=4 and iphivmRaw()<=11) iphiregion = 0;
-	  else if (iphivmRaw()>=12 and iphivmRaw()<=19) iphiregion = 1;
-	  else if (iphivmRaw()>=20 and iphivmRaw()<=27) iphiregion = 2;
+      else if (iphivmRaw()>=12 and iphivmRaw()<=19) iphiregion = 1;
+      else if (iphivmRaw()>=20 and iphivmRaw()<=27) iphiregion = 2;
     }
     else if (layer_.value()==1 or layer_.value()==3 or layer_.value()==5) { // L2, L4, L6
       if (iphivmRaw()>=4 and iphivmRaw()<=7) iphiregion = 0;
-	  else if (iphivmRaw()>=8 and iphivmRaw()<=15) iphiregion = 1;
-	  else if (iphivmRaw()>=16 and iphivmRaw()<=23) iphiregion = 2;
-	  else if (iphivmRaw()>=24 and iphivmRaw()<=27) iphiregion = 3;
+      else if (iphivmRaw()>=8 and iphivmRaw()<=15) iphiregion = 1;
+      else if (iphivmRaw()>=16 and iphivmRaw()<=23) iphiregion = 2;
+      else if (iphivmRaw()>=24 and iphivmRaw()<=27) iphiregion = 3;
     }
     else if (abs(disk_.value())>=1 and abs(disk_.value())<=5) { // Disk
       if (iphivmRaw()>=4 and iphivmRaw()<=11) iphiregion = 0;
-	  else if (iphivmRaw()>=12 and iphivmRaw()<=19) iphiregion = 1;
-	  else if (iphivmRaw()>=20 and iphivmRaw()<=27) iphiregion = 2;
+      else if (iphivmRaw()>=12 and iphivmRaw()<=19) iphiregion = 1;
+      else if (iphivmRaw()>=20 and iphivmRaw()<=27) iphiregion = 2;
     }
-    //else
-    //  return -1;
 
-	FPGAWord phi;
-	phi.set(iphiregion,3);
-
-	return phi;
+    FPGAWord phi;
+    phi.set(iphiregion,3);
+    
+    return phi;
   }
 
  
   void setAllStubIndex(int nstub){
-    if (nstub>=(1<<6)){
+    if (nstub>=(1<<7)){
       if (debug1) cout << "Warning too large stubindex!"<<endl;
-      nstub=(1<<6)-1;
+      nstub=(1<<7)-1;
     }
 
-    stubindex_.set(nstub,6);
+    stubindex_.set(nstub,7);
   }
 
   void setAllStubAddressTE(int nstub){
-    if (nstub>=(1<<6)){
+    if (nstub>=(1<<7)){
       if (debug1) cout << "Warning too large stubindex!"<<endl;
-      nstub=(1<<6)-1;
+      nstub=(1<<7)-1;
     }
 
-    stubaddressaste_.set(nstub,6);
+    assert(stubaddressaste_.nbits()==-1);//Check that we are not overwriting
+    stubaddressaste_.set(nstub,7);
   }
 
 
@@ -704,12 +557,13 @@ public:
   
   void setVMBits(int bits){
     int nbits=-1;
+    if (vmbits_.value()!=-1) cout << "VMbits already set : "<<vmbits_.value()<<" "<<bits<<endl;
     assert(vmbits_.value()==-1); //Should never change the value; -1 means uninitialized
     if (layer_.value()==0 or layer_.value()==2 or layer_.value()==4) { // L1, L3, L5
       nbits=2*NLONGVMBITS+1+3;
     }
     if (layer_.value()==1 or layer_.value()==3 or layer_.value()==5) { // L2, L4, L6
-      nbits=2*NLONGVMBITS+1+3;
+      nbits=2*NLONGVMBITS; //vmstub really only use half of these bits.
     }
     int disk=abs(disk_.value());
     if (disk==1 or disk==3) { // D1, D3
@@ -724,9 +578,25 @@ public:
   }
 
   FPGAWord getVMBits() const { return vmbits_; }
-  
-  FPGAWord stubpt() const { return stubpt_; }
 
+  void setVMBitsOverlap(int bits){
+    int nbits=-1;
+    if (vmbitsoverlap_.value()!=-1) cout << "VMbits already set : "<<vmbits_.value()<<" "<<bits<<endl;
+    assert(vmbitsoverlap_.value()==-1); //Should never change the value; -1 means uninitialized
+    if (layer_.value()==0 or layer_.value()==1 or layer_.value()==4) { // L1, L2
+      nbits=2*NLONGVMBITS+1+3;
+    }
+    int disk=abs(disk_.value());
+    if (disk==1 ) { // D1
+      nbits=2*NLONGVMBITS;
+    }
+    //cout << "layer, disk : "<<layer_.value()<<" "<<disk_.value()<<endl;
+    assert(nbits>=0);
+    vmbitsoverlap_.set(bits,nbits,true,__LINE__,__FILE__);
+  }
+
+  FPGAWord getVMBitsOverlap() const { return vmbitsoverlap_; }
+  
   FPGAWord phivm() const {return phivm_; }
 
   FPGAWord bend() const {return bend_; }
@@ -734,7 +604,6 @@ public:
   FPGAWord r() const { return r_; }
   FPGAWord z() const { return z_; }
   FPGAWord phi() const { return phi_; }
-  FPGAWord alpha() const { return alpha_; }
   FPGAWord alphanew() const { return alphanew_; }
 
 
@@ -768,13 +637,13 @@ public:
 
   double rapprox(){
     if (disk_.value()==0){
-      int lr=2;
+      int lr=1<<(8-nbitsrL123);
       if (layer_.value()>=3) {
-	lr=1;
+	lr=1<<(8-nbitsrL456);
       }
       return r_.value()*kr*lr+rmean[layer_.value()];
     }
-    return r_.value()*kr+rmindisk;
+    return r_.value()*kr;
   }
 
   double zapprox() {
@@ -796,11 +665,119 @@ public:
       lphi=8;
     }
     double phi=phimin-(phimax-phimin)/6.0+phi_.value()*kphi/lphi;
+    if (hourglass) {
+      phi=phimin+phi_.value()*kphi/lphi;
+    }
     if (phi>0.5*two_pi) phi-=two_pi;
     if (phi<-0.5*two_pi) phi+=two_pi;
     return phi;
   }
 
+  void setfiner(int finer) {
+   finer_.set(finer,4,true,__LINE__,__FILE__);
+  }
+
+  FPGAWord finer() const {
+    return finer_;
+  }
+
+  void setfinez(int finez) {
+   finez_.set(finez,4,true,__LINE__,__FILE__);
+  }
+
+  FPGAWord finez() const {
+    return finez_;
+  }
+
+
+  //Should be optimized by layer - now first implementation to make sure
+  //it works OK
+  static int bendencode(double bend, bool isPS) {
+    
+    int ibend=2.0*bend;
+
+    assert(fabs(ibend-2.0*bend)<0.1);
+    
+    if (isPS) {
+
+      if (ibend==0||ibend==1) return 0;
+      if (ibend==2||ibend==3) return 1;
+      if (ibend==4||ibend==5) return 2;
+      if (ibend>=6) return 3;
+      if (ibend==-1||ibend==-2) return 4;
+      if (ibend==-3||ibend==-4) return 5;
+      if (ibend==-5||ibend==-6) return 6;
+      if (ibend<=-7) return 7;
+
+      assert(0);
+
+    }
+
+
+    if (ibend==0||ibend==1) return 0;
+    if (ibend==2||ibend==3) return 1;
+    if (ibend==4||ibend==5) return 2;
+    if (ibend==6||ibend==7) return 3;
+    if (ibend==8||ibend==9) return 4;
+    if (ibend==10||ibend==11) return 5;
+    if (ibend==12||ibend==13) return 6;
+    if (ibend>=14) return 7;
+    if (ibend==-1||ibend==-2) return 8;
+    if (ibend==-3||ibend==-4) return 9;
+    if (ibend==-5||ibend==-6) return 10;
+    if (ibend==-7||ibend==-8) return 11;
+    if (ibend==-9||ibend==-9) return 12;
+    if (ibend==-11||ibend==-10) return 13;
+    if (ibend==-13||ibend==-12) return 14;
+    if (ibend<=-14) return 15;
+
+    cout << "bend ibend : "<<bend<<" "<<ibend<<endl;
+    
+    assert(0);
+    
+    
+  }
+  
+  //Should be optimized by layer - now first implementation to make sure
+  //it works OK
+  static double benddecode(int ibend, bool isPS) {
+
+    if (isPS) {
+
+      if (ibend==0) return 0.25;
+      if (ibend==1) return 1.25;
+      if (ibend==2) return 2.25;
+      if (ibend==3) return 3.25;
+      if (ibend==4) return -0.75;
+      if (ibend==5) return -1.75;
+      if (ibend==6) return -2.75;
+      if (ibend==7) return -3.75;
+
+      assert(0);
+
+    }
+
+    if (ibend==0) return 0.25;
+    if (ibend==1) return 1.25;
+    if (ibend==2) return 2.25;
+    if (ibend==3) return 3.25;
+    if (ibend==4) return 4.25;
+    if (ibend==5) return 5.25;
+    if (ibend==6) return 6.25;
+    if (ibend==7) return 7.25;
+    if (ibend==8) return -0.75;
+    if (ibend==9) return -1.75;
+    if (ibend==10) return -2.75;
+    if (ibend==11) return -3.75;
+    if (ibend==12) return -4.75;
+    if (ibend==13) return -5.75;
+    if (ibend==14) return -6.75;
+    if (ibend==15) return -7.75;
+
+    assert(0);
+    
+    
+  }
   
 private:
 
@@ -808,11 +785,9 @@ private:
   bool isPSmodule_;
   FPGAWord layer_;  
   FPGAWord disk_;  
-  FPGAWord stubpt_;
   FPGAWord r_;
   FPGAWord z_;
   FPGAWord phi_;
-  FPGAWord alpha_;
   FPGAWord alphanew_;
 
   FPGAWord bend_;
@@ -824,6 +799,10 @@ private:
   FPGAWord stubaddressaste_;
 
   FPGAWord vmbits_;
+  FPGAWord vmbitsoverlap_;
+
+  FPGAWord finer_;
+  FPGAWord finez_;
   
   double stubphi_;
   double stubr_;

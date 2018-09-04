@@ -16,7 +16,7 @@ class FPGATETableInnerDisk:public FPGATETableBase{
 public:
 
   FPGATETableInnerDisk() {
-   
+    nbits_ = 9;
   }
 
   ~FPGATETableInnerDisk() {
@@ -36,9 +36,9 @@ public:
     zbits_=zbits;
 
     rbins_=(1<<rbits);
-    rmind1_=rmindisk;
+    rmind1_=0.0;
     rmaxd1_=rmaxdisk;
-    dr_=(rmaxdisk-rmindisk)/rbins_;
+    dr_=rmaxdisk/rbins_;
 
     zbins_=(1<<zbits);
     zmind1_=zmean[disk1-1]-dzmax;

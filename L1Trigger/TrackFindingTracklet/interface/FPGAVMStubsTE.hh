@@ -43,15 +43,23 @@ public:
     if (subname=="Y") overlap_=true;
     if (subname=="W") overlap_=true;
     if (subname=="Q") overlap_=true;
-
+    if (subname=="R") overlap_=true;
+    if (subname=="S") overlap_=true;
+    if (subname=="T") overlap_=true;
+    if (hourglass) {
+      if (subname=="Z") overlap_=true;
+    }
+    
     subname=name.substr(12,2);
     phibin_=subname[0]-'0';
     if (subname[1]!='n') {
       phibin_=10*phibin_+(subname[1]-'0');
     }
 
-    for (unsigned int i=0;i<32;i++){
-      vmbendtable_[i]=true;
+    unsigned int nbins=8;
+    if (layer_>=4) nbins=16;
+    for (unsigned int i=0;i<nbins;i++){
+      vmbendtable_.push_back(true);
     }
 
     isinner_ = (layer_%2==1 or disk_%2==1);
@@ -65,12 +73,19 @@ public:
   bool addStub(std::pair<FPGAStub*,L1TStub*> stub) {
 
     int binlookup=stub.first->getVMBits().value();
+    if (overlap_) {
+      binlookup=stub.first->getVMBitsOverlap().value();
+    }
+    if (binlookup<0) {
+      cout << getName() << " binlookup = "<<binlookup<<endl;
+    }
     assert(binlookup>=0);
     int bin=(binlookup/8);
 
     bool pass=passbend(stub.first->bend().value());
 
     if (!pass) {
+      if (debug1) cout << getName() << " Stub failed bend cut. bend = "<<FPGAStub::benddecode(stub.first->bend().value(),stub.first->isPSmodule())<<endl;
       return false;
     }
     
@@ -131,7 +146,10 @@ public:
     fname+=getName();
     //get rid of duplicates
     int len = fname.size();
-    if(fname[len-2]=='n'&& fname[len-1]>'1'&&fname[len-1]<='9') return;
+    if(fname[len-2]=='n'&& fname[len-1]>'1'&&fname[len-1]<='9') {
+      return;
+    }
+      
     //
     fname+="_";
     ostringstream oss;
@@ -143,12 +161,12 @@ public:
       bx_ = 0;
       event_ = 1;
       out_.open(fname.c_str());
-    }
-    else
+    } else {
       out_.open(fname.c_str(),std::ofstream::app);
-
+    }
+      
     out_ << "BX = "<<(bitset<3>)bx_ << " Event : " << event_ << endl;
-    
+
     //if (layer_!=0) { // barrel
     if (layer_!=0 or disk_!=0) { // same format for barrel and disk?
       if (isinner_) { // inner VM for TE purpose
@@ -156,15 +174,30 @@ public:
           string stub=stubs_[j].first->stubaddressaste().str();
           stub+="|";
           stub+=stubs_[j].first->bend().str();
-          stub+="|";
+          stub+="|";	  
           FPGAWord iphifinebins;
-          iphifinebins.set(stubs_[j].first->iphivmFineBins(5,1),1,true,
-                           __LINE__,__FILE__);
+	  if (overlap_) {
+	    iphifinebins.set(stubs_[j].first->iphivmFineBins(5,nfinephioverlapinner),
+			     nfinephioverlapinner,true,__LINE__,__FILE__);
+	  } else if (layer_>0) {
+	    iphifinebins.set(stubs_[j].first->iphivmFineBins(5,nfinephibarrelinner),
+			     nfinephibarrelinner,true,__LINE__,__FILE__);
+	  } else if (disk_>0) {
+	    iphifinebins.set(stubs_[j].first->iphivmFineBins(5,nfinephidiskinner),
+			     nfinephidiskinner,true,__LINE__,__FILE__);
+	  } else {
+	    assert(0);
+	  }
           stub+=iphifinebins.str();
           stub+="|";
           FPGAWord tmp;
-          tmp.set(stubs_[j].first->getVMBits().value(),10,true,__LINE__,__FILE__);
-          stub+=tmp.str();       
+	  if (overlap_) {
+	    assert(stubs_[j].first->getVMBitsOverlap().nbits()!=-1);
+	    stub+=stubs_[j].first->getVMBitsOverlap().str();
+	  } else {
+	    assert(stubs_[j].first->getVMBits().nbits()!=-1);
+	    stub+=stubs_[j].first->getVMBits().str();
+	  }
           if (j<16) out_ <<"0";
           out_ << hex << j << dec ;
           out_ <<" "<<stub<< endl;
@@ -178,14 +211,31 @@ public:
         stub+=stubsbinned_[i][j].first->bend().str();
         stub+="|";
         FPGAWord iphifinebins;
-        iphifinebins.set(stubsbinned_[i][j].first->iphivmFineBins(4,2),2,true,
-                         __LINE__,__FILE__);
+
+	if (overlap_) { 
+	  iphifinebins.set(stubsbinned_[i][j].first->iphivmFineBins(4,nfinephioverlapouter),
+			   nfinephioverlapouter,true,__LINE__,__FILE__);
+	} else if (layer_>0) {
+	  iphifinebins.set(stubsbinned_[i][j].first->iphivmFineBins(4,nfinephibarrelouter),
+			   nfinephibarrelouter,true,__LINE__,__FILE__);
+	} else if (disk_>0) {
+	  iphifinebins.set(stubsbinned_[i][j].first->iphivmFineBins(4,nfinephidiskouter),
+			   nfinephidiskouter,true,__LINE__,__FILE__);
+	} else {
+	  assert(0);
+	}
         stub+=iphifinebins.str();
         stub+="|";
+	int ifinezbin=-1;
+	if (overlap_) {
+	  ifinezbin=stubsbinned_[i][j].first->getVMBitsOverlap().value();
+	} else {
+	  ifinezbin=stubsbinned_[i][j].first->getVMBits().value();
+	}
+	assert(ifinezbin!=-1);
         FPGAWord finezbin;
-        finezbin.set(stubsbinned_[i][j].first->getVMBits().value()&7,3,true,
-                     __LINE__,__FILE__);
-        stub+=finezbin.str();      
+	finezbin.set(ifinezbin&7,3,true,__LINE__,__FILE__);
+	stub+=finezbin.str();
         out_ << hex << i << " " << j << dec << " "<<stub<<endl;
       }
         }
@@ -231,6 +281,35 @@ public:
 
   void getPhiRange(double &phimin, double &phimax) {
 
+
+    if (hourglass) {
+
+      int nvm=-1;
+      if (overlap_) {
+	if (layer_>0) {
+	  nvm=nallstubsoverlaplayers[layer_-1]*nvmteoverlaplayers[layer_-1];
+	}
+	if (disk_>0) {
+	  nvm=nallstubsoverlapdisks[disk_-1]*nvmteoverlapdisks[disk_-1];
+	}
+      } else {
+	if (layer_>0) {
+	  nvm=nallstubslayers[layer_-1]*nvmtelayers[layer_-1];
+	}
+	if (disk_>0) {
+	  nvm=nallstubsdisks[disk_-1]*nvmtedisks[disk_-1];
+	}
+      }
+      assert(nvm>0);
+      assert(nvm<=32);
+      double dphi=dphisectorHG/nvm;
+      phimax=phibin()*dphi;
+      phimin=phimax-dphi;
+      //if (iSector_==1) cout << "phiRange: "<<getName()<<" "<<phibin()<<" overlap "<<overlap_<<" phimin, max "<<phimin<<" "<<phimax<<endl;
+      return;
+    }
+    
+    
     if (layer_==1 || layer_==3 || layer_==5) {
       int nphibin=24;
       double dphi=dphisector/nphibin;
@@ -292,16 +371,17 @@ public:
     return other_;
   }
 
-  void setbendtable(bool vmbendtable[32]){
-    for (unsigned int i=0;i<32;i++){
+  void setbendtable(std::vector<bool> vmbendtable){
+    assert(vmbendtable_.size()==vmbendtable.size());
+    for (unsigned int i=0;i<vmbendtable.size();i++){
       vmbendtable_[i]=vmbendtable[i];
     }
 
-	if (iSector_==0&&writeTETables) writeVMBendTable();
+    if (iSector_==0&&writeTETables) writeVMBendTable();
   }
 
   bool passbend(unsigned int ibend) const {
-    assert(ibend<32);
+    assert(ibend<vmbendtable_.size());
     return vmbendtable_[ibend];
   }
 
@@ -309,10 +389,11 @@ public:
     
     ofstream outvmbendcut;
     outvmbendcut.open(getName()+"_vmbendcut.txt");
-    unsigned int vmbendtableSize = sizeof(vmbendtable_)/sizeof(vmbendtable_[0]);
-    assert(vmbendtableSize==32);
+    unsigned int vmbendtableSize = vmbendtable_.size();
+    assert(vmbendtableSize==16||vmbendtableSize==8);
     for (unsigned int i=0;i<vmbendtableSize;i++){
-      outvmbendcut << i << " " << vmbendtable_[i] << endl;
+      //outvmbendcut << i << " " << vmbendtable_[i] << endl;
+      outvmbendcut << vmbendtable_[i] << endl;
     }
     outvmbendcut.close();
   }
@@ -328,7 +409,7 @@ private:
   bool isinner_;  // is inner layer/disk for TE purpose
   double phimin_;
   double phimax_;
-  bool vmbendtable_[32];
+  std::vector<bool> vmbendtable_;
   std::vector<std::pair<FPGAStub*,L1TStub*> > stubs_;
   std::vector<std::pair<FPGAStub*,L1TStub*> > stubsbinned_[NLONGVMBINS];
 

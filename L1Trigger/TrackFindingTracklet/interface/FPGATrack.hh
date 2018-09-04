@@ -61,7 +61,28 @@ public:
     return (0.3*bfield/100.0)/(irinv_*krinvpars);
   }
   double phi0() const {
-    return iphi0_*kphi0pars+( (two_pi/NSector)*sector_ - (two_pi/NSector)/6. );
+
+    double dphi=two_pi/NSector;
+    double dphiHG=0.0;
+    if (hourglass) {
+      dphiHG=0.5*(dphisectorHG-two_pi/NSector);
+    }
+    double phimin=sector_*dphi-dphiHG;
+    double phimax=phimin+dphi+2*dphiHG;
+    if (hourglass) {
+      phimin-=0.5*two_pi/NSector;
+      phimax-=0.5*two_pi/NSector;
+    }
+    if (phimin>0.5*two_pi) phimin-=two_pi;
+    if (phimax>0.5*two_pi) phimax-=two_pi;
+    if (phimin>phimax)  phimin-=two_pi;
+    double phioffset=phimin-dphi/6.0;
+    if (hourglass) {
+      phioffset=phimin;
+    } 
+
+
+    return iphi0_*kphi0pars+phioffset;
   }
   double eta() const {
     return -log(tan(0.5*(0.25*two_pi-atan(it_*ktpars))));
@@ -75,8 +96,14 @@ public:
   double d0() const {return 0.0;} //Fix when fit for 5 pars
   double chisq() const {return chisq_;}
 
-
-
+  int nPSstubs() const {
+    int npsstubs=0;
+    for (unsigned int i=0;i<l1stub_.size();i++){
+      if (l1stub_[i]->layer()<3) npsstubs++;
+    }
+    return npsstubs;
+  }
+  
 private:
   
   int irinv_;

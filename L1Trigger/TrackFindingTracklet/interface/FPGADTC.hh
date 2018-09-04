@@ -14,10 +14,27 @@ public:
 
   FPGADTC(string name=""){
     name_=name;
+    for (unsigned int i=0;i<11;i++) {
+      phimin_[i]=10.0;
+      phimax_[i]=-10.0;
+    }
   }
 
   void init(string name){
     name_=name;
+  }
+
+  void addSec(int sector){
+    sectors_.push_back(sector);
+  }
+
+  void addphi(double phi,int layerdisk){
+
+    assert(layerdisk>=0);
+    assert(layerdisk<11);
+    if (phi<phimin_[layerdisk]) phimin_[layerdisk]=phi;
+    if (phi>phimax_[layerdisk]) phimax_[layerdisk]=phi;
+    
   }
   
   void addLink(double phimin,double phimax){
@@ -54,12 +71,22 @@ public:
     }
   }
 
+  double min(unsigned int i) const {
+    return phimin_[i];
+  }
+
+  double max(unsigned int i) const {
+    return phimax_[i];
+  }
 
 private:
 
   string name_;
   std::vector<FPGADTCLink > links_;
+  std::vector<int> sectors_;
 
+  double phimin_[11];
+  double phimax_[11];
 
 
 };

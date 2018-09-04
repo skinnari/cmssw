@@ -43,7 +43,14 @@ public:
 	input=="tpar5in"||
 	input=="tpar6in"||
 	input=="tpar7in"||
-	input=="tpar8in"){
+	input=="tpar8in"||
+	input=="tpar9in"||
+	input=="tpar10in"||
+	input=="tpar11in"||
+	input=="tpar12in"||
+	input=="tpar13in"||
+	input=="tpar14in"||
+	input=="tpar15in"){
       FPGATrackletParameters* tmp=dynamic_cast<FPGATrackletParameters*>(memory);
       assert(tmp!=0);
       seedtracklet_.push_back(tmp);
@@ -351,7 +358,7 @@ public:
 	  zresidexact[nlayers+ndisks]=tracklet->rresiddisk(d);
 	  iphiresid[nlayers+ndisks]=tracklet->fpgaphiresiddisk(d).value();
 	  izresid[nlayers+ndisks]=tracklet->fpgarresiddisk(d).value();
-
+	  
 	  disks[ndisks++]=d;
 	}
       }
@@ -444,6 +451,11 @@ public:
     if (rinvindex<0) rinvindex=0;
     if (rinvindex>=(1<<nrinvBitsTable)) rinvindex=(1<<nrinvBitsTable)-1;
 
+    int ptbin=0;
+    if (fabs(rinv)<0.0057/2) ptbin=1;
+    if (fabs(rinv)<0.0057/4) ptbin=2;
+    if (fabs(rinv)<0.0057/8) ptbin=3;
+    
     FPGATrackDer* derivatives=derTable.getDerivatives(layermask, diskmask,alphaindex,rinvindex);
 
     if (derivatives==0) {
@@ -468,8 +480,24 @@ public:
 
     double rstub[6];
 
+    double realrstub[3];
+    realrstub[0]=-1.0;
+    realrstub[1]=-1.0;
+    realrstub[2]=-1.0;
+    
     for (unsigned i=0;i<nlayers;i++){
       r[i]=rmean[layers[i]-1];
+      if (layers[i]==tracklet->layer()) {
+	realrstub[i]=tracklet->innerStub()->r();
+      }
+      if (layers[i]==tracklet->layer()+1) {
+	realrstub[i]=tracklet->outerStub()->r();
+      }
+      if (tracklet->validResid(layers[i])&&layers[i]<4) {
+	std::pair<FPGAStub*,L1TStub*> stubptrs=tracklet->stubptrs(layers[i]);
+	realrstub[i]=stubptrs.second->r();
+	assert(fabs(realrstub[i]-r[i])<5.0);
+      }
       rstub[i]=r[i];
     }
     for (unsigned i=0;i<ndisks;i++){
@@ -493,11 +521,20 @@ public:
       ttab=t;
     } else {
       if (exactderivativesforfloating) {
-	FPGATrackDerTable::calculateDerivatives(nlayers,r,ndisks,z,alpha,t,rinv,
-						D,iD,MinvDt,iMinvDt,sigma,kfactor);
+	if (useMSFit) {
+	  FPGATrackDerTable::calculateDerivativesMS(nlayers,r,ndisks,z,alpha,
+						    t,rinv,D,iD,MinvDt,iMinvDt,
+						    sigma,kfactor,ptbin);
+	} else {
 
-	int iMinvDtDummy[4][12];
-	derivatives->fill(tracklet->fpgat().value(),MinvDt,iMinvDtDummy);
+	  FPGATrackDerTable::calculateDerivatives(nlayers,r,ndisks,z,alpha,t,
+						  rinv,D,iD,MinvDt,iMinvDt,
+						  sigma,kfactor);
+	  	    
+	}
+
+	double MinvDtDummy[4][12];
+	derivatives->fill(tracklet->fpgat().value(),MinvDtDummy,iMinvDt);
 	ttab=t;
       } else {
 	derivatives->fill(tracklet->fpgat().value(),MinvDt,iMinvDt);
@@ -505,6 +542,33 @@ public:
     }
     
 
+    for (unsigned int i=0;i<nlayers;i++){
+      if (r[i]>60.0) continue;	    
+      for (unsigned int ii=0;ii<nlayers;ii++){
+	if (r[ii]>60.0) continue;
+	
+	double tder=derivatives->gettdzcorr(i,ii);
+	double zder=derivatives->getz0dzcorr(i,ii);
+	
+	double dr=realrstub[i]-r[i];
+
+	MinvDt[2][2*ii+1]+=dr*tder;
+	MinvDt[3][2*ii+1]+=dr*zder;
+	
+	int itder=derivatives->getitdzcorr(i,ii);
+	int izder=derivatives->getiz0dzcorr(i,ii);
+
+	int idr=dr/kr;
+	
+	iMinvDt[2][2*ii+1]+=((idr*itder)>>rcorrbits);
+	iMinvDt[3][2*ii+1]+=((idr*izder)>>rcorrbits);
+	
+      }    
+    }
+
+
+
+    
     double rinvseed=tracklet->rinvapprox();
     double phi0seed=tracklet->phi0approx();
     double tseed=tracklet->tapprox();
@@ -539,12 +603,15 @@ public:
 	phiresid[i]*=(t/ttab);
 	phiresidexact[i]*=(t/ttab);
       }
-      
-      
+
       idelta[j]=iphiresid[i];
       delta[j]=phiresid[i];
-      assert(fabs(phiresid[i])<0.2);
-      assert(fabs(phiresidexact[i])<0.2);
+      if (fabs(phiresid[i])>0.2) {
+	cout << getName()<<" WARNING too large phiresid: "
+	     <<phiresid[i]<<" "<<phiresidexact[i]<<endl;
+      }
+      assert(fabs(phiresid[i])<1.0);
+      assert(fabs(phiresidexact[i])<1.0);
       deltaexact[j++]=phiresidexact[i];
 
       idelta[j]=izresid[i];
@@ -592,6 +659,7 @@ public:
       dt-=MinvDt[2][j]*delta[j];
       dz0-=MinvDt[3][j]*delta[j];
 
+
       drinv_cov+=D[0][j]*delta[j];
       dphi0_cov+=D[1][j]*delta[j];
       dt_cov+=D[2][j]*delta[j];
@@ -613,6 +681,29 @@ public:
       idt+=((iMinvDt[2][j]*idelta[j]));
       idz0+=((iMinvDt[3][j]*idelta[j]));
 
+      /*
+      
+      double drinvtmp=MinvDt[0][j]*delta[j];
+      double idrinvtmp=krinvpars*((iMinvDt[0][j]*idelta[j]+(1<<(fitrinvbitshift-1)))>>fitrinvbitshift);
+
+      if (fabs(drinvtmp-idrinvtmp)>0.000001) {
+	cout << "WARNING large fp vs. int difference for drinv "<<tracklet->layer()<<" "<<tracklet->disk()<<" "
+	     <<j<<" "<<drinvtmp<<" "
+	     <<idrinvtmp<<" "<<drinvtmp-idrinvtmp<<"  "<<delta[j]<<" "<<idelta[j]*kphiproj123<<" "<<iMinvDt[0][j]<<" "<<idelta[j]<<endl;
+      }
+
+     
+      double dz0tmp=MinvDt[3][j]*delta[j];
+      double idz0tmp=kz*((iMinvDt[3][j]*idelta[j])>>fitz0bitshift);
+
+      if (fabs(dz0tmp-idz0tmp)>1.0) {
+	cout << "WARNING large fp vs. int difference for dz0 "<<tracklet->layer()<<" "<<tracklet->disk()<<" "
+	     <<j<<" "<<dz0tmp<<" "
+	     <<idz0tmp<<" "<<dz0tmp-idz0tmp<<"  "<<delta[j]<<" "<<idelta[j]*kz<<endl;
+      }
+	
+      */
+      
       /*
       if (j%2==0) {
 	cout << "j dt idt : "<<j<<" "<<MinvDt[2][j]*delta[j]<<" "<<((iMinvDt[2][j]*idelta[j])>>fittbitshift)*ktpars<<endl;
@@ -668,10 +759,11 @@ public:
     int itseed=tracklet->fpgat().value();
     int iz0seed=tracklet->fpgaz0().value();
 
-    int irinvfit=irinvseed+(idrinv>>fitrinvbitshift);
+    int irinvfit=irinvseed+((idrinv+(1<<fitrinvbitshift))>>fitrinvbitshift);
     int iphi0fit=iphi0seed+(idphi0>>fitphi0bitshift);
 
     int itfit=itseed+(idt>>fittbitshift);
+
     int iz0fit=iz0seed+(idz0>>fitz0bitshift);
 
     double rinvfit=rinvseed-drinv;
@@ -679,7 +771,7 @@ public:
 
     double tfit=tseed-dt;
     double z0fit=z0seed-dz0;
-
+    
     double rinvfitexact=rinvseedexact-drinvexact;
     double phi0fitexact=phi0seedexact-dphi0exact;
 
@@ -715,19 +807,14 @@ public:
 
 
     for(unsigned int i=0;i<n;i++) { // loop over stubs
-      phifactor=rstub[k/2]*delta[k]/sigma[k]+
-	D[0][k]*drinv+
-	D[1][k]*dphi0+
-	D[2][k]*dt+
-	D[3][k]*dz0;
-		 
-	
-      iphifactor=kfactor[k]*rstub[k/2]*idelta[k]*(1<<chisqphifactbits)/sigma[k]-
-	iD[0][k]*idrinv-
-	iD[1][k]*idphi0-
-	iD[2][k]*idt-
-	iD[3][k]*idz0;
 
+      phifactor=rstub[k/2]*delta[k]/sigma[k]
+      +D[0][k]*drinv+D[1][k]*dphi0+D[2][k]*dt+D[3][k]*dz0;
+      
+	
+      iphifactor=kfactor[k]*rstub[k/2]*idelta[k]*(1<<chisqphifactbits)/sigma[k]
+        -iD[0][k]*idrinv-iD[1][k]*idphi0-iD[2][k]*idt-iD[3][k]*idz0;
+      
       //double kchisqphi=1.0/(1<<chisqphifactbits);
       //cout << "=================================================="<<endl;
       //cout << "*** old phi resid iresid : "<<rstub[k/2]*delta[k]/sigma[k]<<" "<<kfactor[k]*rstub[k/2]*idelta[k]*(1<<chisqphifactbits)/sigma[k]/(1<<chisqphifactbits)<<" rstub "<<rstub[k/2]<<endl;
@@ -752,11 +839,7 @@ public:
       rzfactor=delta[k]/sigma[k]+D[0][k]*drinv+D[1][k]*dphi0+D[2][k]*dt+D[3][k]*dz0;
 
 
-      irzfactor=kfactor[k]*idelta[k]*(1<<chisqzfactbits)/sigma[k]-
-						       iD[0][k]*idrinv-
-						       iD[1][k]*idphi0-
-						       iD[2][k]*idt-
-						       iD[3][k]*idz0;
+      irzfactor=kfactor[k]*idelta[k]*(1<<chisqzfactbits)/sigma[k]-iD[0][k]*idrinv-iD[1][k]*idphi0-iD[2][k]*idt-iD[3][k]*idz0;
 
       //double kchisqz=1.0/(1<<chisqzfactbits);
       //cout << "idrinv: "<<iD[0][k]<<" "<<idrinv<<endl;
@@ -806,26 +889,34 @@ public:
 
 
     // Experimental strategy:
-    if(ichisqfit < (1<<8));
-    else if(ichisqfit < (1<<12)) ichisqfit = (1<<8)+(ichisqfit>>4);
-    else if(ichisqfit < (1<<16)) ichisqfit = (1<<9)+(ichisqfit>>8);
-    else if(ichisqfit < (1<<20)) ichisqfit = (1<<9)+(1<<8)+(ichisqfit>>12);
-    else ichisqfit = (1<<10)-1;
+//    if(ichisqfit < (1<<8));
+//    else if(ichisqfit < (1<<12)) ichisqfit = (1<<8)+(ichisqfit>>4);
+//    else if(ichisqfit < (1<<16)) ichisqfit = (1<<9)+(ichisqfit>>8);
+//    else if(ichisqfit < (1<<20)) ichisqfit = (1<<9)+(1<<8)+(ichisqfit>>12);
+//    else ichisqfit = (1<<10)-1;
 
-//    ofstream ichifile;
-//    ichifile.open("ichi.csv",ios_base::app);
-//    ichifile << ichisqfit << endl;
-//    ichifile.close();
-    
+    if(ichisqfit >= (1<<11)) {
+      //cout << "CHISQUARE (" << ichisqfit << ") LARGER THAN 11 BITS!!" << endl;
+      ichisqfit = (1<<11)-1;
+    }
 
-    //FIXME Number too large (?) in emulation
-//    ichisqfit=0;
-    
+    ichisqfit = ichisqfit>>3;
+    if(ichisqfit >= (1<<8)) ichisqfit = (1<<8)-1;
+
+    if (hourglass) {
+      
+      double phicrit=phi0fit-asin(0.5*rcrit*rinvfit);
+      bool keep=(phicrit>phicritmin)&&(phicrit<phicritmax);
+
+      if (!keep) return;
+
+    }
+
     tracklet->setFitPars(rinvfit,phi0fit,tfit,z0fit,chisqfit,
 			 rinvfitexact,phi0fitexact,tfitexact,
 			 z0fitexact,chisqfitexact,
 			 irinvfit,iphi0fit,itfit,iz0fit,ichisqfit);
-
+      
 
   }
 
@@ -891,7 +982,14 @@ public:
     std::vector<FPGATracklet*> matches3=orderedMatches(fullmatch3_);
     std::vector<FPGATracklet*> matches4=orderedMatches(fullmatch4_);
 
-    
+    if (debug1&&(matches1.size()+matches2.size()+matches3.size()+matches4.size())>0) {
+      for (unsigned int i=0;i<fullmatch1_.size();i++) {
+	cout << fullmatch1_[i]->getName()<<" "<<fullmatch1_[i]->nMatches()<<endl;
+      }
+      cout << getName()<<"["<<iSector_<<"] matches : "<<matches1.size()<<" "<<matches2.size()<<" "
+	   <<matches3.size()<<" "<<matches4.size()<<" "<<endl;
+    }
+      
     //New trackfit
     unsigned int indexArray[4];
     for (unsigned int i=0;i<4;i++) {
@@ -899,6 +997,7 @@ public:
     }
 
     int countAll=0;
+    int countFit=0;
 
     FPGATracklet* bestTracklet=0;
     do {
@@ -973,9 +1072,11 @@ public:
 	}
       }
 
+
       if(debug1) cout<<getName()<<" : nMatches = "<<nMatches<<"\n";
-	
+
       if (nMatches>=2) {
+	countFit++;
 	trackFitNew(bestTracklet);
 	if (bestTracklet->fit()){
 	  assert(trackfit_!=0);
@@ -985,7 +1086,12 @@ public:
       }
 	  
     } while (bestTracklet!=0);
-	
+
+    if (writeFitTrack) {
+      static ofstream out("fittrack.txt");
+      out<<getName()<<" "<<countAll<<" "<<countFit<<endl;
+    }
+    
   }
 
 

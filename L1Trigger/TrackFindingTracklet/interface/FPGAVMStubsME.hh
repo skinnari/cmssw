@@ -22,7 +22,7 @@ public:
   void addStub(std::pair<FPGAStub*,L1TStub*> stub) {
     stubs_.push_back(stub);
     if (stub.first->isBarrel()) { // barrel
-      int bin=3-(stub.first->z().value()>>(stub.first->z().nbits()-MEBinsBits));
+      int bin=(1<<(MEBinsBits-1))+(stub.first->z().value()>>(stub.first->z().nbits()-MEBinsBits));
       //cout << "FPGAVMStubsME::addStub "<<bin<<" "<<stub.first->z().value()<<" "<<stub.first->z().nbits()<<endl;
       assert(bin>=0);
       assert(bin<MEBins);
@@ -35,14 +35,21 @@ public:
       int ir = stub.first->r().value();
       //presumably the VMRouter can use a lookup table for the bin.
       //For now implement a simple cut
-      unsigned int bin=3;
-      if (stub.first->isPSmodule()){
-	if (ir<50.0/kr) bin=2;
-	if (ir<35.0/kr) bin=1;
-	if (ir<26.0/kr) bin=0;
+      double rstub=ir*kr;
+      if (!stub.first->isPSmodule()){
+	assert(ir<10);
+	if (abs(stub.first->disk().value())<=2) {
+	  rstub=rDSSinner[ir];
+	} else {
+	  rstub=rDSSouter[ir];
+	}
       }
-      if (stub.first->disk().value()<0) bin+=4;
+      int bin=8.0*(rstub-rmindiskvm)/(rmaxdisk-rmindiskvm);
+      assert(bin>=0);
+      assert(bin<MEBinsDisks);
+      if (stub.first->disk().value()<0) bin+=MEBinsDisks;
       binnedstubs_[bin].push_back(stub);
+      
     }
   }
 
@@ -53,19 +60,27 @@ public:
   std::pair<FPGAStub*,L1TStub*> getStub(unsigned int i) const {return stubs_[i];}
 
   unsigned int nStubsBin(unsigned int bin) const {
-    assert(bin<MEBins);
+    //if (layer_>0){
+    //  assert(bin<MEBins);
+    // }else {
+      assert(bin<MEBinsDisks*2);
+      //}
     return binnedstubs_[bin].size();
   }
 
   std::pair<FPGAStub*,L1TStub*> getStubBin(unsigned int bin, unsigned int i) const {
-    assert(bin<MEBins);
+    //if (layer_>0){
+    //  assert(bin<MEBins);
+    //}else {
+      assert(bin<MEBinsDisks*2);
+      //}
     assert(i<binnedstubs_[bin].size());
     return binnedstubs_[bin][i];
   }
   
   void clean() {
     stubs_.clear();
-    for (unsigned int i=0; i<NLONGVMBINS; i++){
+    for (unsigned int i=0; i<MEBinsDisks*2; i++){
       binnedstubs_[i].clear();
     }
   }
@@ -94,9 +109,18 @@ public:
 
     out_ << "BX = "<<(bitset<3>)bx_ << " Event : " << event_ << endl;
 
+    
+
+    
     for (unsigned int i=0;i<NLONGVMBINS;i++) {
       for (unsigned int j=0; j<binnedstubs_[i].size();j++) {
         string stub = binnedstubs_[i][j].first->stubindex().str();
+	stub +=  "|" + binnedstubs_[i][j].first->bend().str();
+
+	int finpos=binnedstubs_[i][j].first->getVMBits().value();
+	FPGAWord tmp;
+	tmp.set(finpos&7,3,true,__LINE__,__FILE__);
+	stub +=  "|" + tmp.str();
         out_ << hex << i << " " << j << dec << " " << stub << endl;
       }
     }
@@ -114,7 +138,7 @@ private:
   double phimax_;
   std::vector<std::pair<FPGAStub*,L1TStub*> > stubs_;
 
-  std::vector<std::pair<FPGAStub*,L1TStub*> > binnedstubs_[MEBins];
+  std::vector<std::pair<FPGAStub*,L1TStub*> > binnedstubs_[MEBinsDisks*2];
 
   
   

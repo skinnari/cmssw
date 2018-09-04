@@ -38,8 +38,12 @@ public:
 
     fpgaphiresid_.set(iphiresid,phiresidbits,false,__LINE__,__FILE__);
     fpgarresid_.set(irresid,rresidbits,false,__LINE__,__FILE__);
-    if (istubid<0) istubid=(1<<9)-1;
-    fpgastubid_.set(istubid,9,true,__LINE__,__FILE__);
+    assert(istubid>=0);
+    unsigned int nbitsstubid=9;
+    if (hourglass) {
+      nbitsstubid=10;
+    }
+    fpgastubid_.set(istubid,nbitsstubid,true,__LINE__,__FILE__);
     assert(!fpgaphiresid_.atExtreme());
 
     

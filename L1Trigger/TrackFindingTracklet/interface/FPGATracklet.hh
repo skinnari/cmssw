@@ -220,21 +220,21 @@ public:
 	if (!validproj[i]) continue;
 	
 	layerproj_[projlayer_[i]-1].init(projlayer_[i],
-			   rproj_[i],
-			   iphiproj[i],
-			   izproj[i],
-			   iphider[i],
-			   izder[i],
-			   minusNeighbor[i],
-			   plusNeighbor[i],
-			   phiproj[i],
-			   zproj[i],
-			   phider[i],
-			   zder[i],
-			   phiprojapprox[i],
-			   zprojapprox[i],
-			   phiderapprox[i],
-			   zderapprox[i]);	  
+					 rproj_[i],
+					 iphiproj[i],
+					 izproj[i],
+					 iphider[i],
+					 izder[i],
+					 minusNeighbor[i],
+					 plusNeighbor[i],
+					 phiproj[i],
+					 zproj[i],
+					 phider[i],
+					 zder[i],
+					 phiprojapprox[i],
+					 zprojapprox[i],
+					 phiderapprox[i],
+					 zderapprox[i]);	  
 	
       }
       //Now handle projections to the disks
@@ -360,7 +360,7 @@ public:
     } 
 
 
-    ichisqfit_.set(-1,10,false);
+    ichisqfit_.set(-1,8,false);
 
   }
 
@@ -412,11 +412,11 @@ public:
   std::string vmstrlayer(int layer, unsigned int allstubindex) {
     std::ostringstream oss;
     FPGAWord index;
-    if (allstubindex>=(1<<6)) {
+    if (allstubindex>=(1<<7)) {
       cout << "Warning projection number too large!"<<endl;	
-      index.set((1<<6)-1,6);
+      index.set((1<<7)-1,7,true,__LINE__,__FILE__);
     } else {
-      index.set(allstubindex,6);
+      index.set(allstubindex,7,true,__LINE__,__FILE__);
     }
     oss << index.str()<<"|"<<layerproj_[layer-1].fpgaphiprojvm().str()
 	<<"|"<< layerproj_[layer-1].fpgazbin1projvm().str() 
@@ -429,11 +429,11 @@ public:
   std::string vmstrdisk(int disk, unsigned int allstubindex) {
     std::ostringstream oss;
     FPGAWord index;
-    if (allstubindex>=(1<<6)) {
+    if (allstubindex>=(1<<7)) {
       cout << "Warning projection number too large!"<<endl;	
-      index.set((1<<6)-1,6);
+      index.set((1<<7)-1,7,true,__LINE__,__FILE__);
     } else {
-      index.set(allstubindex,6);
+      index.set(allstubindex,7,true,__LINE__,__FILE__);
     } 
     oss << index.str()<<"|"<<diskproj_[disk-1].fpgaphiprojvm().str()
 	<<"|"<< diskproj_[disk-1].fpgarprojvm().str();
@@ -450,9 +450,9 @@ public:
       cout << "trackletIndex_ = "<<trackletIndex_<<endl;
       assert(0);
     }
-    tmp.set(trackletIndex_,6);
+    tmp.set(trackletIndex_,6,true,__LINE__,__FILE__);
     FPGAWord tcid;
-    tcid.set(TCIndex_,6);
+    tcid.set(TCIndex_,7,true,__LINE__,__FILE__);
     oss << layerproj_[layer-1].plusNeighbor()<<"|"
         << layerproj_[layer-1].minusNeighbor()<<"|"
         << tcid.str()<<"|"
@@ -473,9 +473,9 @@ public:
       cout << "trackletIndex_ = "<<trackletIndex_<<endl;
       assert(0);
     }
-    tmp.set(trackletIndex_,6);
+    tmp.set(trackletIndex_,6,true,__LINE__,__FILE__);
     FPGAWord tcid;
-    tcid.set(TCIndex_,6);
+    tcid.set(TCIndex_,7,true,__LINE__,__FILE__);
 
     oss << diskproj_[abs(disk)-1].plusNeighbor()<<"|"
         << diskproj_[abs(disk)-1].minusNeighbor()<<"|" 
@@ -491,27 +491,7 @@ public:
   }
 
   std::string trackletprojstrlayer(int layer) const {
-    //std::ostringstream oss;
     return trackletprojstr(layer);
-
-    //int count=0;
-    //for (int i=0;i<4;i++) {
-    //  if (projlayer_[i]==layer) {
-    //	count++;
-    //	cout << "Calling with index i = "<<i<<endl;
-    //	return trackletprojstr(i+1); 
-    // }
-    //}
-
-    //cout << "In trackletprojstrlayer "<<layer<<endl;
-    //for (int i=0;i<4;i++) {
-    //  cout << "projlayer = "<<projlayer_[i]<<endl;
-    //}
-    
-    
-    //assert(count==1);
-    //return oss.str();
-
   }
   std::string trackletprojstrdisk(int disk) const {
     std::ostringstream oss;
@@ -552,6 +532,26 @@ public:
   int zbin2projvm(int layer) const {
     assert(layer>=1&&layer<=6);
     return layerproj_[layer-1].fpgazbin2projvm().value();
+  }
+
+  int finezvm(int layer) const {
+    assert(layer>=1&&layer<=6);
+    return layerproj_[layer-1].fpgafinezvm().value();
+  }
+
+  int rbin1projvm(int disk) const {
+    assert(disk>=1&&disk<=5);
+    return diskproj_[disk-1].fpgarbin1projvm().value();
+  }
+
+  int rbin2projvm(int disk) const {
+    assert(disk>=1&&disk<=5);
+    return diskproj_[disk-1].fpgarbin2projvm().value();
+  }
+
+  int finervm(int disk) const {
+    assert(disk>=1&&disk<=5);
+    return diskproj_[disk-1].fpgafinervm().value();
   }
 
   int phiprojvm(int layer) const {
@@ -694,7 +694,16 @@ public:
 
   }
 
+  void setBendIndex(int bendIndex,int disk) {
+    assert(abs(disk)>=1&&abs(disk)<=5);
+    diskproj_[abs(disk)-1].setBendIndex(bendIndex);
+  }
 
+  FPGAWord getBendIndex(int disk) const {
+    assert(abs(disk)>=1&&abs(disk)<=5);
+    return diskproj_[abs(disk)-1].getBendIndex();
+  }
+  
 
   double alphadisk(int disk) const {
     assert(abs(disk)>=1&&abs(disk)<=5);
@@ -921,9 +930,9 @@ public:
       cout << "trackletIndex_ = "<<trackletIndex_<<endl;
       assert(0);
     }
-    tmp.set(trackletIndex_,6);
+    tmp.set(trackletIndex_,6,true,__LINE__,__FILE__);
     FPGAWord tcid;
-    tcid.set(TCIndex_,6);
+    tcid.set(TCIndex_,7,true,__LINE__,__FILE__);
     oss << tcid.str()<<"|"
         << tmp.str()<<"|"
 	<< layerresid_[layer-1].fpgastubid().str()<<"|"
@@ -943,9 +952,9 @@ public:
       cout << "trackletIndex_ = "<<trackletIndex_<<endl;
       assert(0);
     }
-    tmp.set(trackletIndex_,6);
+    tmp.set(trackletIndex_,6,true,__LINE__,__FILE__);
     FPGAWord tcid;
-    tcid.set(TCIndex_,6);
+    tcid.set(TCIndex_,7,true,__LINE__,__FILE__);
     oss << tcid.str()<<"|"
         << tmp.str()<<"|"
 	<< diskresid_[disk-1].fpgastubid().str()<<"|"
@@ -954,6 +963,18 @@ public:
 
     return oss.str();
 
+  }
+
+
+  bool validResid(int layer) const {
+    assert(layer>=1&&layer<=6);
+    return layerresid_[layer-1].valid();
+  }
+
+  
+  std::pair<FPGAStub*,L1TStub*> stubptrs(int layer) const {
+    assert(layer>=1&&layer<=6);
+    return layerresid_[layer-1].stubptrs();
   }
 
   
@@ -1027,9 +1048,9 @@ public:
     // On the other hand, proj*_[i] uses i almost like *resid_[i], except the *seeding* layer indices are removed entirely.
     // E.g. An L3L4 track has 0=L1, 1=L2, 2=L4, 3=L5 for the barrels (for proj*_[i])
 
-    assert(innerFPGAStub_->stubindex().nbits()==6);
+    assert(innerFPGAStub_->stubindex().nbits()==7);
     assert(innerFPGAStub_->phiregion().nbits()==3);
-    assert(outerFPGAStub_->stubindex().nbits()==6);
+    assert(outerFPGAStub_->stubindex().nbits()==7);
     assert(outerFPGAStub_->phiregion().nbits()==3);
 	
     if(barrel_) {
@@ -1065,9 +1086,13 @@ public:
 		  
       //get stubs making up tracklet
       //printf(" inner %i  outer %i layers \n",innerFPGAStub_.layer().value(),outerFPGAStub_.layer().value());
-      stubIDs[innerFPGAStub_->layer().value()+1] = ((innerFPGAStub_->phiregion().value())<<6)+innerFPGAStub_->stubindex().value()+(1<<9);
-      stubIDs[outerFPGAStub_->layer().value()+1] = ((outerFPGAStub_->phiregion().value())<<6)+outerFPGAStub_->stubindex().value()+(1<<9);
-		  
+      if (hourglass) {
+	stubIDs[innerFPGAStub_->layer().value()+1] = ((innerFPGAStub_->phiregion().value())<<7)+innerFPGAStub_->stubindex().value()+(1<<10);
+	stubIDs[outerFPGAStub_->layer().value()+1] = ((outerFPGAStub_->phiregion().value())<<7)+outerFPGAStub_->stubindex().value()+(1<<10);
+      } else {
+	stubIDs[innerFPGAStub_->layer().value()+1] = ((innerFPGAStub_->phiregion().value())<<7)+innerFPGAStub_->stubindex().value()+(1<<9);
+	stubIDs[outerFPGAStub_->layer().value()+1] = ((outerFPGAStub_->phiregion().value())<<7)+outerFPGAStub_->stubindex().value()+(1<<9);
+      }
 		  		  
     } else if (disk_) {
       for(int i=0; i<5; i++) {
@@ -1103,11 +1128,21 @@ public:
       //get stubs making up tracklet
       //printf(" inner %i  outer %i disks \n",innerFPGAStub_.disk().value(),outerFPGAStub_.disk().value());
       if(innerFPGAStub_->disk().value() < 0) { //negative side runs 6-10
-    stubIDs[innerFPGAStub_->disk().value()-10] = ((innerFPGAStub_->phiregion().value())<<6)+innerFPGAStub_->stubindex().value()+(1<<9);
-	stubIDs[outerFPGAStub_->disk().value()-10] = ((outerFPGAStub_->phiregion().value())<<6)+outerFPGAStub_->stubindex().value()+(1<<9);
+	if (hourglass) {
+	  stubIDs[innerFPGAStub_->disk().value()-10] = ((innerFPGAStub_->phiregion().value())<<7)+innerFPGAStub_->stubindex().value()+(1<<10);
+	  stubIDs[outerFPGAStub_->disk().value()-10] = ((outerFPGAStub_->phiregion().value())<<7)+outerFPGAStub_->stubindex().value()+(1<<10);
+	} else {
+	  stubIDs[innerFPGAStub_->disk().value()-10] = ((innerFPGAStub_->phiregion().value())<<7)+innerFPGAStub_->stubindex().value()+(1<<9);
+	  stubIDs[outerFPGAStub_->disk().value()-10] = ((outerFPGAStub_->phiregion().value())<<7)+outerFPGAStub_->stubindex().value()+(1<<9);
+	}
       } else { // positive side runs 11-15]
-    stubIDs[innerFPGAStub_->disk().value()+10] = ((innerFPGAStub_->phiregion().value())<<6)+innerFPGAStub_->stubindex().value()+(1<<9);
-    stubIDs[outerFPGAStub_->disk().value()+10] = ((outerFPGAStub_->phiregion().value())<<6)+outerFPGAStub_->stubindex().value()+(1<<9);
+	if (hourglass) {
+	  stubIDs[innerFPGAStub_->disk().value()+10] = ((innerFPGAStub_->phiregion().value())<<7)+innerFPGAStub_->stubindex().value()+(1<<10);
+	  stubIDs[outerFPGAStub_->disk().value()+10] = ((outerFPGAStub_->phiregion().value())<<7)+outerFPGAStub_->stubindex().value()+(1<<10);
+	} else {
+	  stubIDs[innerFPGAStub_->disk().value()+10] = ((innerFPGAStub_->phiregion().value())<<7)+innerFPGAStub_->stubindex().value()+(1<<9);
+	  stubIDs[outerFPGAStub_->disk().value()+10] = ((outerFPGAStub_->phiregion().value())<<7)+outerFPGAStub_->stubindex().value()+(1<<9);
+	}
       }		  
 
     } else if (overlap_) {
@@ -1149,14 +1184,29 @@ public:
       //printf(" inner %i  outer %i layers \n",innerFPGAStub_.layer().value(),outerFPGAStub_.layer().value());
       //printf(" inner %i  outer %i disks \n",innerFPGAStub_.disk().value(),outerFPGAStub_.disk().value());
       if(innerFPGAStub_->layer().value()==2) { // L3L2 track
-    stubIDs[innerFPGAStub_->layer().value()+1] = ((innerFPGAStub_->phiregion().value())<<6)+innerFPGAStub_->stubindex().value()+(1<<9);
-	stubIDs[outerFPGAStub_->layer().value()+1] = ((outerFPGAStub_->phiregion().value())<<6)+outerFPGAStub_->stubindex().value()+(1<<9);
+	if (hourglass) {
+	  stubIDs[innerFPGAStub_->layer().value()+1] = ((innerFPGAStub_->phiregion().value())<<7)+innerFPGAStub_->stubindex().value()+(1<<10);
+	  stubIDs[outerFPGAStub_->layer().value()+1] = ((outerFPGAStub_->phiregion().value())<<7)+outerFPGAStub_->stubindex().value()+(1<<10);
+	} else {
+	  stubIDs[innerFPGAStub_->layer().value()+1] = ((innerFPGAStub_->phiregion().value())<<7)+innerFPGAStub_->stubindex().value()+(1<<9);
+	  stubIDs[outerFPGAStub_->layer().value()+1] = ((outerFPGAStub_->phiregion().value())<<7)+outerFPGAStub_->stubindex().value()+(1<<9);
+	}
       } else if(innerFPGAStub_->disk().value() < 0) { //negative side runs -11 - -15
-    stubIDs[innerFPGAStub_->disk().value()-10] = ((innerFPGAStub_->phiregion().value())<<6)+innerFPGAStub_->stubindex().value()+(1<<9);
-    stubIDs[outerFPGAStub_->layer().value()+1] = ((outerFPGAStub_->phiregion().value())<<6)+outerFPGAStub_->stubindex().value()+(1<<9);
+	if (hourglass) {
+	  stubIDs[innerFPGAStub_->disk().value()-10] = ((innerFPGAStub_->phiregion().value())<<7)+innerFPGAStub_->stubindex().value()+(1<<10);
+	  stubIDs[outerFPGAStub_->layer().value()+1] = ((outerFPGAStub_->phiregion().value())<<7)+outerFPGAStub_->stubindex().value()+(1<<10);
+	} else {
+	  stubIDs[innerFPGAStub_->disk().value()-10] = ((innerFPGAStub_->phiregion().value())<<7)+innerFPGAStub_->stubindex().value()+(1<<9);
+	  stubIDs[outerFPGAStub_->layer().value()+1] = ((outerFPGAStub_->phiregion().value())<<7)+outerFPGAStub_->stubindex().value()+(1<<9);
+	}
       } else { // positive side runs 11-15]
-    stubIDs[innerFPGAStub_->disk().value()+10] = ((innerFPGAStub_->phiregion().value())<<6)+innerFPGAStub_->stubindex().value()+(1<<9);
-    stubIDs[outerFPGAStub_->layer().value()+1] = ((outerFPGAStub_->phiregion().value())<<6)+outerFPGAStub_->stubindex().value()+(1<<9);
+	if (hourglass) {
+	  stubIDs[innerFPGAStub_->disk().value()+10] = ((innerFPGAStub_->phiregion().value())<<7)+innerFPGAStub_->stubindex().value()+(1<<10);
+	  stubIDs[outerFPGAStub_->layer().value()+1] = ((outerFPGAStub_->phiregion().value())<<7)+outerFPGAStub_->stubindex().value()+(1<<10);
+	} else {
+	  stubIDs[innerFPGAStub_->disk().value()+10] = ((innerFPGAStub_->phiregion().value())<<7)+innerFPGAStub_->stubindex().value()+(1<<9);
+	  stubIDs[outerFPGAStub_->layer().value()+1] = ((outerFPGAStub_->phiregion().value())<<7)+outerFPGAStub_->stubindex().value()+(1<<9);
+	}
       }		  
 		  
     }
@@ -1235,18 +1285,16 @@ public:
     iphi0fit_.set(iphi0fit,19,false,__LINE__,__FILE__);
     itfit_.set(itfit,14,false,__LINE__,__FILE__);
 
-    if (iz0fit>=(1<<10)) {
-      iz0fit=(1<<10)-1;  //FIXME should use some number of bits
-      //cout << "WARNING: truncating iz0fit"<<endl;
+    if (iz0fit>=(1<<(nbitsz0-1))) {
+      iz0fit=(1<<(nbitsz0-1))-1; 
     }
 
-    if (iz0fit<=-(1<<10)) {
-      iz0fit=1-(1<<10); //FIXME should use some number of bits
-      //cout << "WARNING: truncating iz0fit"<<endl;
+    if (iz0fit<=-(1<<(nbitsz0-1))) {
+      iz0fit=1-(1<<(nbitsz0-1)); 
     }
 
-    iz0fit_.set(iz0fit,11,false,__LINE__,__FILE__);
-    ichisqfit_.set(ichisqfit,10,true,__LINE__,__FILE__);
+    iz0fit_.set(iz0fit,nbitsz0,false,__LINE__,__FILE__);
+    ichisqfit_.set(ichisqfit,8,true,__LINE__,__FILE__);
 
     fpgatrack_=new FPGATrack(makeTrack());
 
@@ -1278,7 +1326,7 @@ public:
 	if (diskresid_[0].valid()) {
 	  stubid3=diskresid_[0].fpgastubid().str();
 	}
-	if (diskresid_[1].valid()) {
+if (diskresid_[1].valid()) {
 	  stubid2=diskresid_[1].fpgastubid().str();
 	}
 	if (diskresid_[2].valid()) {
@@ -1520,8 +1568,14 @@ public:
 
   double phioffset() const {return phioffset_;}
 
-  void setTrackletIndex(int index) {trackletIndex_=index;
-    assert(index<64);}
+  void setTrackletIndex(int index) {
+    trackletIndex_=index;
+    if (hourglass) {
+      assert(index<128);
+    } else {
+      assert(index<64);
+    }
+  }
 
   int trackletIndex() const {return trackletIndex_;}
 
@@ -1529,7 +1583,13 @@ public:
 
   int TCIndex() const {return TCIndex_;}
 	
-  int TCID() const {return TCIndex_*(1<<6)+trackletIndex_;}
+  int TCID() const {
+    if (hourglass) {
+      return TCIndex_*(1<<7)+trackletIndex_;
+    } else {
+      return TCIndex_*(1<<6)+trackletIndex_;
+    }
+  }
 	
   unsigned int homeSector() const {return homeSector_;}
   

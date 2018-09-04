@@ -16,12 +16,24 @@ public:
     fullmatchesToPlus_=0;
     fullmatchesToMinus_=0;
     double dphi=two_pi/NSector;
-    phimin_=iSector*dphi;
-    phimax_=phimin_+dphi;
+    double dphiHG=0.0;
+    if (hourglass) {
+      dphiHG=0.5*(dphisectorHG-two_pi/NSector);
+    }
+    phimin_=iSector_*dphi-dphiHG;
+    phimax_=phimin_+dphi+2*dphiHG;
     if (phimin_>0.5*two_pi) phimin_-=two_pi;
     if (phimax_>0.5*two_pi) phimax_-=two_pi;
-    phioffset_=phimin_-(dphi)/6.0;
-    string subname=name.substr(8,2);
+    if (hourglass) {
+      phioffset_=phimin_;
+    } else {
+      phioffset_=phimin_-dphi/6.0;
+    }
+    
+    string subname=name.substr(3,2);
+    if (!hourglass) {
+      subname=name.substr(8,2);
+    }
     fullmatchesToPlus_=0;
     fullmatchesToMinus_=0;
     layer_=0;
@@ -41,64 +53,74 @@ public:
       cout << "name subname "<<name<<" "<<subname<<endl;
       assert(0);
     }
-    icorrshift_=2+idrinvbits+phi0bitshift-rinvbitshift-phiderbitshift;
-    icorzshift_=idrinvbits-zderbitshift-tbitshift;
+    icorrshift_=5+idrinvbits+phi0bitshift-rinvbitshift-phiderbitshift;
+    //icorzshift_=idrinvbits-zderbitshift-tbitshift;
+    if (layer_<=3) {
+      icorzshift_=-1-PS_zderL_shift;
+    } else {
+      icorzshift_=-1-SS_zderL_shift;      
+    }
     phi0shift_=3;
     fact_=1;
     if (layer_>=4) {
       fact_=(1<<(nbitszprojL123-nbitszprojL456));
-      icorrshift_-=2;
-      icorzshift_+=(nbitszprojL123-nbitszprojL456+1);
+      icorrshift_-=(10-nbitsrL456);
+      icorzshift_+=(nbitszprojL123-nbitszprojL456+nbitsrL456-nbitsrL123);
       phi0shift_=0;
+    }
+
+    //to adjust globaly the phi and rz matching cuts
+    phifact_=1.0;
+    rzfact_=1.0;
+
+    for(unsigned int seedindex=0;seedindex<7;seedindex++){
+      phimatchcut_[seedindex]=-1;
+      zmatchcut_[seedindex]=-1;
     }
     
     if (layer_==1){
-      phimatchcut_[0]=-1;
-      zmatchcut_[0]=-1;
-      phimatchcut_[1]=0.08/(kphi1*rmean[layer_-1]);
-      zmatchcut_[1]=7.0/kz;
+      phimatchcut_[1]=0.07/(kphi1*rmean[layer_-1]);
+      zmatchcut_[1]=5.5/kz;
       phimatchcut_[2]=0.08/(kphi1*rmean[layer_-1]);
-      zmatchcut_[2]=14.0/kz;
+      zmatchcut_[2]=15.0/kz;
+      phimatchcut_[3]=0.07/(kphi1*rmean[layer_-1]);
+      zmatchcut_[3]=1.5/kz;
+      phimatchcut_[4]=0.05/(kphi1*rmean[layer_-1]);
+      zmatchcut_[4]=2.0/kz;
+      phimatchcut_[6]=0.05/(kphi1*rmean[layer_-1]);
+      zmatchcut_[6]=1.5/kz;
     }
     if (layer_==2){
-      phimatchcut_[0]=-1;
-      zmatchcut_[0]=-1;
-      phimatchcut_[1]=0.08/(kphi1*rmean[layer_-1]);
-      zmatchcut_[1]=4.0/kz;
+      phimatchcut_[1]=0.06/(kphi1*rmean[layer_-1]);
+      zmatchcut_[1]=3.5/kz;
       phimatchcut_[2]=0.08/(kphi1*rmean[layer_-1]);
-      zmatchcut_[2]=13.0/kz;
+      zmatchcut_[2]=15.0/kz;
+      phimatchcut_[3]=0.05/(kphi1*rmean[layer_-1]);
+      zmatchcut_[3]=1.25/kz;
     }
     if (layer_==3){
       phimatchcut_[0]=0.1/(kphi1*rmean[layer_-1]);
       zmatchcut_[0]=0.7/kz;
-      phimatchcut_[1]=-1;
-      zmatchcut_[1]=-1;
       phimatchcut_[2]=0.08/(kphi1*rmean[layer_-1]);
-      zmatchcut_[2]=10.0/kz;
+      zmatchcut_[2]=9.0/kz;
     }
     if (layer_==4){
       phimatchcut_[0]=0.19/(kphi1*rmean[layer_-1]);
-      zmatchcut_[0]=4.0/kz;
-      phimatchcut_[1]=-1;
-      zmatchcut_[1]=-1;
+      zmatchcut_[0]=3.0/kz;
       phimatchcut_[2]=0.05/(kphi1*rmean[layer_-1]);
-      zmatchcut_[2]=8.0/kz;
+      zmatchcut_[2]=7.0/kz;
     }
     if (layer_==5){
       phimatchcut_[0]=0.4/(kphi1*rmean[layer_-1]);
-      zmatchcut_[0]=4.0/kz;
+      zmatchcut_[0]=3.0/kz;
       phimatchcut_[1]=0.08/(kphi1*rmean[layer_-1]);
-      zmatchcut_[1]=9.0/kz;
-      phimatchcut_[2]=-1;
-      zmatchcut_[2]=-1;
+      zmatchcut_[1]=8.0/kz;
     }
     if (layer_==6){
       phimatchcut_[0]=0.5/(kphi1*rmean[layer_-1]);
       zmatchcut_[0]=4.0/kz;
       phimatchcut_[1]=0.19/(kphi1*rmean[layer_-1]);
-      zmatchcut_[1]=14.0/kz;
-      phimatchcut_[2]=-1;
-      zmatchcut_[2]=-1;
+      zmatchcut_[1]=9.5/kz;
     }
 
     for(int iseedindex=0;iseedindex<7;iseedindex++){
@@ -109,7 +131,7 @@ public:
     }
 
     if (abs(disk_)==1){
-      rphicutPS_[0]=0.3;
+      rphicutPS_[0]=0.2;
       rcutPS_[0]=0.5;
       rphicut2S_[0]=0.5;
       rcut2S_[0]=3.8;      
@@ -117,7 +139,7 @@ public:
       rphicut2S_[1]=0.8;
       rcut2S_[1]=3.8;      
 
-      rphicutPS_[4]=0.15;
+      rphicutPS_[4]=0.10;
       rcutPS_[4]=0.5;
 
     }
@@ -131,15 +153,17 @@ public:
       rphicut2S_[1]=0.8;
       rcut2S_[1]=3.8;      
 
-      rphicutPS_[4]=0.15;
+      rphicutPS_[4]=0.10;
       rcutPS_[4]=0.5;
 
-      rphicutPS_[5]=0.15;
+      rphicutPS_[5]=0.10;
       rcutPS_[5]=0.5;
+
+      
       rphicut2S_[5]=0.5;
       rcut2S_[5]=3.8;      
 
-      rphicutPS_[6]=0.15;
+      rphicutPS_[6]=0.10;
       rcutPS_[6]=0.5;
       rphicut2S_[6]=0.15;
       rcut2S_[6]=3.4;      
@@ -162,9 +186,9 @@ public:
       rphicut2S_[5]=0.2;
       rcut2S_[5]=3.6;
 
-      rphicutPS_[6]=0.2;
+      rphicutPS_[6]=0.15;
       rcutPS_[6]=0.8;
-      rphicut2S_[6]=0.5;
+      rphicut2S_[6]=0.25;
       rcut2S_[6]=3.8;      
     }
 
@@ -177,28 +201,31 @@ public:
 
 
       rphicutPS_[3]=0.2;
-      rcutPS_[3]=0.5;
+      rcutPS_[3]=0.8;
       rphicut2S_[3]=0.2;
       rcut2S_[3]=3.6;      
 
-      rphicutPS_[5]=0.4;
+      rphicutPS_[5]=0.3;
       rcutPS_[5]=1.0;
-      rphicut2S_[5]=0.4;
+      rphicut2S_[5]=0.25;
       rcut2S_[5]=3.5;      
 
+      rphicutPS_[6]=0.5;
+      rcutPS_[6]=1.0;      
       rphicut2S_[6]=0.5;
       rcut2S_[6]=3.8;      
+
     }
 
 
 
     if (abs(disk_)==5){
       rphicutPS_[3]=0.25;
-      rcutPS_[3]=0.75;
+      rcutPS_[3]=1.0;
       rphicut2S_[3]=0.4;
       rcut2S_[3]=3.6;      
 
-      rphicutPS_[4]=0.15;
+      rphicutPS_[4]=0.10;
       rcutPS_[4]=0.5;
       rphicut2S_[4]=0.2;
       rcut2S_[4]=3.4;      
@@ -323,12 +350,24 @@ public:
       if (layer_!=0) {
 	  
 	int seedlayer=tracklet->layer();
+	int seeddisk=tracklet->disk();
 	
 	double phi=stub->phi();
+	double r=stub->r();
+	double z=stub->z();
+
+	
+	if (useapprox) {
+	  //phi=fpgastub->phiapprox(phimin_,phimax_); assumes global?
+	  z=fpgastub->zapprox();
+	  r=fpgastub->rapprox();
+	}
+	
 	if (phi<0) phi+=two_pi;
 	phi-=phioffset_;
 	
-	double dr=stub->r()-tracklet->rproj(layer_);
+	double dr=r-tracklet->rproj(layer_);
+
       	assert(fabs(dr)<drmax);
 
 	int ir=fpgastub->r().value();
@@ -336,84 +375,74 @@ public:
 
 	int icorr=(ir*tracklet->fpgaphiprojder(layer_).value())>>icorrshift_;
 
+	//cout << "ir phider : "<<ir<<" "<<tracklet->fpgaphiprojder(layer_).value()<<" "<<tracklet->fpgarinv().value()
+	//    <<" "<<((1.0*tracklet->fpgaphiprojder(layer_).value())/tracklet->fpgarinv().value())<<endl;
+	
 	iphi+=icorr;
 	
 	int iz=tracklet->fpgazproj(layer_).value();
 
 	
-	int izcor=(ir*tracklet->fpgazprojder(layer_).value())>>icorzshift_;
-	
-	//if (seedlayer==1&&layer_==6) {
-	//  cout << "layer iphi iphicor : "<<layer_<<" "<<tracklet->fpgaphiproj(layer_).value()*kphi1<<" "<<icorr*kphi1
-	//       <<"   FP : "<<tracklet->phiproj(layer_)<<" "<<dr*tracklet->phiprojder(layer_)<<endl;
-	//}
+	int izcor=(ir*tracklet->fpgazprojder(layer_).value()+(1<<(icorzshift_-1)))>>icorzshift_;
 
-	iz+=izcor;	
+	//cout << "layer iphi iphicor : "<<layer_<<" "<<(tracklet->fpgaphiproj(layer_).value()<<phi0shift_)*kphi1<<" "<<(icorr<<phi0shift_)*kphi1
+	//<<"   FP : "<<tracklet->phiproj(layer_)<<" "<<dr*tracklet->phiprojder(layer_)<<endl;
+
+	//cout << "layer iz izcor : "<<layer_<<" "<<fact_*tracklet->fpgazproj(layer_).value()*kz<<" "<<fact_*izcor*kz<<"  FP : "<<tracklet->zproj(layer_)<<" "<<dr*tracklet->zprojder(layer_)<<endl;
 	
+	iz+=izcor;	
+
 	int ideltaz=fpgastub->z().value()-iz;
 
 	int ideltaphi=(fpgastub->phi().value()<<phi0shift_)-(iphi<<(phi0bitshift-1+phi0shift_)); 
-	
-	if (dumpmatch) {
-	  int l=1;
-	  if (layer_>3) {
-	    l=8; 
-	  }
-	  
-	  cout << "DUMPMATCH : layer = "<<layer_<<endl;
-	  cout << "DUMPMATCH : phiproj  = "<<tracklet->phiproj(layer_)<<" "
-	       << tracklet->fpgaphiproj(layer_).value()*kphiproj123/l<<endl;
-	  cout << "DUMPMATCH : phi corr = "<< dr*tracklet->phiprojder(layer_)
-	       << " "<<icorr*kphiproj123/l<<endl;
-	  cout << "DUMPMATCH : dr       = "<<dr<<" "<<ir*kr<<endl;
-	  cout << "DUMPMATCH : zproj    = "<<tracklet->zproj(layer_)<<" "
-	       <<  tracklet->fpgazproj(layer_).value()*kz*fact_<<" "
-	       <<  tracklet->zproj(layer_)-tracklet->fpgazproj(layer_).value()*kz*fact_
-	       << endl;
-	  cout << "DUMPMATCH : z der   = "<<layer_<<" "<<tracklet->zprojder(layer_)
-	       << " "<<tracklet->fpgazprojder(layer_).value()*kz/(kr*(1<<(idrinvbits-zderbitshift-tbitshift)))
-	       <<" ("<<tracklet->fpgazprojder(layer_).value()<<")"<<endl;  
-	  cout << "DUMPMATCH : z icorr corr  = "<<layer_<< " "<<izcor*kz*fact_<<" "<<dr*tracklet->zprojder(layer_)<<endl;
-	  double phistub=stub->phi();
-	  double dphi=two_pi/NSector;
-	  phistub+=dphi/6.0;
-	  for(;phistub>dphi;phistub-=dphi);
-	  for(;phistub<0;phistub+=dphi);
-	  cout << "DUMPMATCH : phi stub project   = "<<phistub<<" "<<tracklet->phiproj(layer_)<<endl;
-	  cout << "DUMPMATCH : deltaphi   = "<<ideltaphi*kphi1*rmean[layer_-1]*10000.0<<" "
-	       << " "<<(phistub-(tracklet->phiproj(layer_)+dr*tracklet->phiprojder(layer_)))*rmean[layer_-1]*10000.0<<endl;
-	  cout << "DUMPMATCH : ideltaz deltaz   = "<<layer_<<" "<<ideltaz*kz<<" "<<stub->z()-(tracklet->zproj(layer_)+
-											      dr*tracklet->zprojder(layer_))<<endl;
-	  
-	}
 	
 	assert(fabs(dr)<drmax);
 
 	double dphi=phi-(tracklet->phiproj(layer_)+
 			 dr*tracklet->phiprojder(layer_));
-	  
+
+
+	if (hourglass) {
+	  dphi+=0.5*dphisectorHG;
+	}
+	
+	
 	if (dphi>0.5*two_pi) dphi-=two_pi;
 	if (dphi<-0.5*two_pi) dphi+=two_pi;
 	
 	
-	double dz=stub->z()-(tracklet->zproj(layer_)+
+	double dz=z-(tracklet->zproj(layer_)+
 			     dr*tracklet->zprojder(layer_));
 	
 	double dphiapprox=phi-(tracklet->phiprojapprox(layer_)+
 			       dr*tracklet->phiprojderapprox(layer_));
+
+	
+	if (hourglass) {
+	  dphiapprox+=0.5*two_pi/NSector;
+	}
 	
 	if (dphiapprox>0.5*two_pi) dphiapprox-=two_pi;
 	if (dphiapprox<-0.5*two_pi) dphiapprox+=two_pi;
 	
-	
-	double dzapprox=stub->z()-(tracklet->zprojapprox(layer_)+
+	double dzapprox=z-(tracklet->zprojapprox(layer_)+
 				   dr*tracklet->zprojderapprox(layer_));
 	
-	int seedindex=(seedlayer-1)/2;
-	if (seedlayer==0) seedindex=1;  //FIXME not applying the correct cuts
-	if (seedlayer==2) seedindex=1;  //FIXME not applying the correct cuts
-	assert(seedindex>=0);
-	assert(seedindex<=2);
+	int seedindex=-1;
+
+	if (seedlayer==1&&seeddisk==0) seedindex=0;  //L1L2
+	if (seedlayer==3&&seeddisk==0) seedindex=1;  //L3L4
+	if (seedlayer==5&&seeddisk==0) seedindex=2;  //L5L6
+	if (seedlayer==0&&abs(seeddisk)==1) seedindex=3;  //D1D2
+	if (seedlayer==0&&abs(seeddisk)==3) seedindex=4;  //D3D4
+	if (seedlayer==1&&abs(seeddisk)==1) seedindex=5;  //L1D1
+	if (seedlayer==2&&abs(seeddisk)==1) seedindex=6;  //L2D1
+
+	if (seedindex<0) {
+	  cout << "seedlayer abs(seeddisk) : "<<seedlayer<<" "<<abs(seeddisk)<<endl;
+	  assert(0);
+	}
+
 	assert(phimatchcut_[seedindex]>0);
 	assert(zmatchcut_[seedindex]>0);
 
@@ -423,26 +452,27 @@ public:
 	  
 	  double pt=0.003*3.8/fabs(tracklet->rinv());
 	  
-	  out << layer_<<" "<<seedlayer<<" "<<pt<<" "
-	      <<ideltaphi*kphi1*rmean[layer_-1]<<" "<<dphi*rmean[layer_-1]<<" "<<phimatchcut_[seedindex]*kphi1*rmean[layer_-1]
-	      <<" "<<ideltaz*fact_*kz<<" "<<dz<<" "<<zmatchcut_[seedindex]*kz<<endl;	  
+	  out << layer_<<" "<<seedindex<<" "<<pt<<" "
+	      <<ideltaphi*kphi1*rmean[layer_-1]<<" "<<dphiapprox*rmean[layer_-1]<<" "<<phimatchcut_[seedindex]*kphi1*rmean[layer_-1]
+	      <<"   "<<ideltaz*fact_*kz<<" "<<dz<<" "<<zmatchcut_[seedindex]*kz<<endl;	  
 	}
 
-	
-	bool imatch=(fabs(ideltaphi)<=phimatchcut_[seedindex])&&(fabs(ideltaz*fact_)<=zmatchcut_[seedindex]);
+	bool imatch=(fabs(ideltaphi)<=phifact_*phimatchcut_[seedindex])&&(fabs(ideltaz*fact_)<=rzfact_*zmatchcut_[seedindex]);
 
-	//cout << getName() << "barrel ideltaphi deltaphi "<<ideltaphi*kphi1*rmean[layer_-1]<<" "<<dphi*rmean[layer_-1]<<endl;
-
+	if (debug1) {
+	  cout << getName()<<" imatch = "<<imatch<<" ideltaphi cut "<<ideltaphi<<" "<<phimatchcut_[seedindex]
+	       <<" ideltaz*fact cut "<<ideltaz*fact_<<" "<<zmatchcut_[seedindex]<<endl;
+	}
 	
 	if (imatch) {
 	  
 	  std::pair<FPGAStub*,L1TStub*> tmp(fpgastub,stub);
 	  
 	  countsel++;
-
+	  
 	  tracklet->addMatch(layer_,ideltaphi,ideltaz,
 			     dphi,dz,dphiapprox,dzapprox,
-				 fpgastub->stubindex().value()+(1<<6)*(fpgastub->phiregion().value()),
+			     (fpgastub->phiregion().value()<<7)+fpgastub->stubindex().value(),
 			     stub->r(),tmp);
 	  
 
@@ -468,19 +498,41 @@ public:
 	    fullmatchesToPlus_->addMatch(tracklet,tmp);
 	  } else {
 	    for (unsigned int l=0;l<fullmatches_.size();l++){
-	      //cout << "Adding match to: "<<fullmatches_[l]->getName()<<endl;
-	      if ((tracklet->layer()==1&&fullmatches_[l]->getName().substr(3,2)=="L1")||
-		  (tracklet->layer()==3&&fullmatches_[l]->getName().substr(3,2)=="L3")||
-		  (tracklet->layer()==5&&fullmatches_[l]->getName().substr(3,2)=="L5")){
-		assert(tracklet->homeSector()==iSector_);
-		fullmatches_[l]->addMatch(tracklet,tmp);
+	      if (debug1) {
+		cout << getName()<< " Trying to add match to: "<<fullmatches_[l]->getName()<<" "
+		     <<tracklet->layer()<<" "<<tracklet->disk()<<" "<<fullmatches_[l]->getName().substr(3,4)
+		     <<endl;
+	      }
+	      if (hourglass) {
+		int layer=tracklet->layer();
+		int disk=abs(tracklet->disk());
+		if ((layer==1&&disk==0&&fullmatches_[l]->getName().substr(3,4)=="L1L2")||
+		    (layer==3&&disk==0&&fullmatches_[l]->getName().substr(3,4)=="L3L4")||
+		    (layer==5&&disk==0&&fullmatches_[l]->getName().substr(3,4)=="L5L6")||
+		    (layer==0&&disk==1&&fullmatches_[l]->getName().substr(3,4)=="D1D2")||
+		    (layer==0&&disk==3&&fullmatches_[l]->getName().substr(3,4)=="D3D4")||
+		    (layer==1&&disk==1&&fullmatches_[l]->getName().substr(3,4)=="L1D1")||
+		    (layer==2&&disk==1&&fullmatches_[l]->getName().substr(3,4)=="L2D1")){
+		  assert(tracklet->homeSector()==iSector_);
+		  if (debug1) {
+		    cout << getName()<<" adding match to "<<fullmatches_[l]->getName()<<endl;
+		  }
+		  fullmatches_[l]->addMatch(tracklet,tmp);
+		} 
+	      } else {
+		if ((tracklet->layer()==1&&fullmatches_[l]->getName().substr(3,2)=="L1")||
+		    (tracklet->layer()==3&&fullmatches_[l]->getName().substr(3,2)=="L3")||
+		    (tracklet->layer()==5&&fullmatches_[l]->getName().substr(3,2)=="L5")){
+		  assert(tracklet->homeSector()==iSector_);
+		  fullmatches_[l]->addMatch(tracklet,tmp);
+		}
 	      }
 	    }
 	  }
 	  
 	}
 	
-	} else {
+      } else {  //disk matches
 	
 	
 	//check that stubs and projections in same half of detector
@@ -493,8 +545,12 @@ public:
 	  
 	double phi=stub->phi();
 	if (phi<0) phi+=two_pi;
-	phi-=phioffset_;
-	
+	if (hourglass) {
+	  phi-=phioffset_;
+	} else {
+	  phi-=phioffset_;
+	}
+	  
 	double dz=stub->z()-tracklet->zprojdisk(disk);
 	
 	assert(fabs(dz)<dzmax);
@@ -503,35 +559,33 @@ public:
 	  
 	int iphi=tracklet->fpgaphiprojdisk(disk).value();
 
-	int shifttmp=t2bits+tbitshift+phi0bitshift+2-rinvbitshiftdisk-phiderdiskbitshift;
+	int shifttmp=t2bits+tbitshift+phi0bitshift+2-rinvbitshiftdisk-phiderdiskbitshift-PS_phiderD_shift;
 
 	assert(shifttmp>=0);
 	int iphicorr=(iz*tracklet->fpgaphiprojderdisk(disk).value())>>shifttmp;
-
+	
 	iphi+=iphicorr;
 	  
 	double phicorr=dz*tracklet->phiprojderdisk(disk);
-	
+
 	assert(fabs(tracklet->phiprojderdisk(disk))<0.1);
 	assert(fabs(phicorr)<0.1);
 	
 	double phiproj=tracklet->phiprojdisk(disk)+phicorr;
 	
-	int ir=tracklet->fpgarprojdisk(disk).value()+rmindisk/krprojshiftdisk;
+	int ir=tracklet->fpgarprojdisk(disk).value();
 	
 	  
 	int shifttmp2=rprojdiskbitshift+t3shift-rderdiskbitshift;
 	
 	assert(shifttmp2>=0);
 	int ircorr=(iz*tracklet->fpgarprojderdisk(disk).value())>>shifttmp2;
-	  
-	int dorcorr=1;
-	
-	ir+=ircorr*dorcorr;
+										
+	ir+=ircorr;
 
 	double rcorr=dz*tracklet->rprojderdisk(disk);
-	
-	double rproj=tracklet->rprojdisk(disk)+rcorr*dorcorr;
+
+	double rproj=tracklet->rprojdisk(disk)+rcorr;
 	
 	int ideltaphi=fpgastub->phi().value()*kphi/kphiproj123-iphi; 
 	
@@ -539,44 +593,64 @@ public:
 	  
 	int irstub = fpgastub->r().value();
 	if(!stub->isPSmodule()){
-	  double rstub = rDSS[irstub];
-	  assert (rstub < rmaxdisk);
-	  irstub = (1<<nrbitsdisk)*(rstub)/(rmaxdisk-rmindisk);
+	  if (disk_<=2) {
+	    irstub = rDSSinner[irstub]/kr;
 	  } else {
-	  irstub+=rmindisk/kr;
+	    irstub = rDSSouter[irstub]/kr;
+	  }
 	}
 	
 	int ideltar=(irstub*krdisk)/krprojshiftdisk-ir;
 	
 	double dr=stub->r()-(tracklet->rprojdisk(disk)+
-			     dz*tracklet->rprojderdisk(disk)*dorcorr);
+			     dz*tracklet->rprojderdisk(disk));
 	
 	double dphi=phi-(tracklet->phiprojdisk(disk)+
 			 dz*tracklet->phiprojderdisk(disk));
 	
+	if (hourglass) {
+	  dphi+=0.5*dphisectorHG;
+	}
+
+	
 	if (dphi>0.5*two_pi) dphi-=two_pi;
 	if (dphi<-0.5*two_pi) dphi+=two_pi;
 
-	if (dphi>0.5*two_pi/NSector) dphi-=two_pi/NSector;
-	if (dphi<-0.5*two_pi/NSector) dphi+=two_pi/NSector;
+	if (!hourglass) {
+	  while (dphi>0.5*two_pi/NSector) dphi-=two_pi/NSector;
+	  while (dphi<-0.5*two_pi/NSector) dphi+=two_pi/NSector;
+	}
+	  
+	//cout << getName()<<" "<<phi<<" "<<tracklet->phiprojapproxdisk(disk)<<endl;
 	
 	double dphiapprox=phi-(tracklet->phiprojapproxdisk(disk)+
 			       dz*tracklet->phiprojderapproxdisk(disk));
-	  
+
+	
+	if (hourglass) {
+	  dphiapprox+=0.5*two_pi/NSector;
+	}
+	
 	if (dphiapprox>0.5*two_pi) dphiapprox-=two_pi;
 	if (dphiapprox<-0.5*two_pi) dphiapprox+=two_pi;
 
-	if (dphiapprox>0.5*two_pi/NSector) dphiapprox-=two_pi/NSector;
-	if (dphiapprox<-0.5*two_pi/NSector) dphiapprox+=two_pi/NSector;
-	
+	if (!hourglass) {
+	  while (dphiapprox>0.5*two_pi/NSector) dphiapprox-=two_pi/NSector;
+	  while (dphiapprox<-0.5*two_pi/NSector) dphiapprox+=two_pi/NSector;
+	}
+	  
+	//cout << getName() << "dphiapprox "<<dphiapprox<<endl;
+
 	  
 	double drapprox=stub->r()-(tracklet->rprojapproxdisk(disk)+
-				   dz*tracklet->rprojderapproxdisk(disk)*dorcorr);
+				   dz*tracklet->rprojderapproxdisk(disk));
 	
 	double alpha=0.0;
 
 	double drphi=dphi*stub->r();
 	double drphiapprox=dphiapprox*stub->r();
+
+
 	
 	if (!stub->isPSmodule()) {
 	  alpha=stub->alpha(); 	
@@ -587,26 +661,18 @@ public:
 	  drphi+=dr*alphanew*4.57/stub->r();
 	  drphiapprox+=dr*alphanew*4.57/stub->r();
 
+	  
 	  int ialphanew=fpgastub->alphanew().value();
 
 	  int alphashift=12;
 	  double fact=(1<<alphashift)*krprojshiftdisk*4.57/(1<<(nbitsalpha-1))/stub->r2()/kphiproj123;
 	  int ifact=fact;
 	  
-	  //cout << "fact ifact "<<fact<<" "<<ifact<<endl;
-	  //cout << "alphanew  "<<alpha<<" "<<alphanew<<" "<<alphanew*4.57/stub->r2()<<" "<<ialphanew*4.57/(1<<(nbitsalpha-1))/stub->r2()<<endl;
-	  //cout << "rdphi corr  "<<dr*alpha*stub->r()<<" "<<dr*alphanew*4.57/stub->r()<<" "<<ideltar*krprojshiftdisk*ialphanew*4.57/(1<<(nbitsalpha-1))/stub->r()<<endl;
-	  //cout << "dphi drphi "<<dphi*stub->r()<<" "<<drphi<<endl;
-	  //cout << "dr ideltar : "<<dr<<" "<<ideltar*krprojshiftdisk<<endl;
-
 	  int iphialphacor=((ideltar*ialphanew*ifact)>>alphashift);
-	  
-	  //cout << "ialphacor "<<iphialphacor<<" "<<ideltar*fpgastub->alpha().value()*krprojshiftdisk*kalpha/kphiproj123<<endl;
-	  
-	  //ideltaphi+=ideltar*fpgastub->alpha().value()*krprojshiftdisk*kalpha/kphiproj123;
+
 	  ideltaphi+=iphialphacor;
 	}
-
+	
 
 
 	int seedlayer=tracklet->layer();
@@ -647,7 +713,7 @@ public:
 	  double pt=0.003*3.8/fabs(tracklet->rinv());
 	  
 	  out << disk_<<" "<<stub->isPSmodule()<<" "<<seedlayer<<" "<<abs(seeddisk)<<" "<<pt<<" "
-	      <<ideltaphi*kphiproj123*stub->r()<<" "<<drphi<<" "
+	      <<ideltaphi*kphiproj123*stub->r()<<" "<<drphiapprox<<" "
 	    //<<phimatchcut_[seedindex]*kphi1*rmean[layer_-1]<<" "
 	      <<drphicut<<" "
 	      <<ideltar*krprojshiftdisk<<" "<<deltar<<" "
@@ -657,15 +723,13 @@ public:
 	}
 
 	
-	
 	bool match=(fabs(drphi)<drphicut)&&(fabs(deltar)<drcut);
 	
-	bool imatch=(fabs(ideltaphi)<drphicut/(kphiproj123*stub->r()))&&(fabs(ideltar)<drcut/krprojshiftdisk);
-	
-	//cout << getName() << " ideltaphi deltaphi "<<ideltaphi*kphiproj123*stub->r()<<" "<<dphi*stub->r()<<endl;
-	
+	bool imatch=(fabs(ideltaphi*irstub)<phifact_*drphicut/(kphiproj123*kr))&&(fabs(ideltar)<rzfact_*drcut/krprojshiftdisk);
+
 	if (debug1) {
-	  cout << "imatch disk: "<<imatch<<" "<<fabs(ideltaphi)<<" "<<drphicut/(kphiproj123*stub->r())<<" "
+	  cout << "imatch match disk: "<<imatch<<" "<<match<<" "
+	       <<fabs(ideltaphi)<<" "<<drphicut/(kphiproj123*stub->r())<<" "
 	       <<fabs(ideltar)<<" "<<drcut/krprojshiftdisk<<" r = "<<stub->r()<<endl;
 	}
 	
@@ -686,48 +750,6 @@ public:
 	  
 	}
 	
-	if (dumpmatch) {
-	  
-	  cout << "DUMPMATCHDISK "<<tracklet->layer()<<" "<<tracklet->disk()<<" "<<stub->r()
-	       <<" dr (float) = "<<deltar<<" "
-	       <<" dr (int) = "<<ideltar*krprojshiftdisk
-	       <<" dr res = "<<krprojshiftdisk
-	       <<" rcorr = "<<rcorr
-	       <<" ircorr = "<<ircorr*krprojshiftdisk
-	       <<endl;
-	  
-	  cout << "DUMPMATCHDISK rproj(float) = "<<tracklet->rprojdisk(disk)
-	       <<" rproj(int) = "<<(tracklet->fpgarprojdisk(disk).value()+rmindisk/krprojshiftdisk)*krprojshiftdisk
-	       <<endl;
-	  
-	  cout << "DUMPMATCHDISK1 : "<<disk<<" "
-	       <<tracklet->phiprojdisk(disk)<<" "
-	       <<dz<<" "
-	       <<phicorr<<" "
-	       <<phiproj<<" | "
-	       <<tracklet->rprojdisk(disk)<<" "
-	       <<tracklet->rprojderdisk(disk)<<" "
-	       <<rcorr<<" "
-	       <<rproj<<" dphi= "
-	       <<dphi<<" dr= "
-	       <<deltar<<" "
-	       <<match
-	       <<endl;
-	  cout << "DUMPMATCHDISK2 : "<<disk<<" "
-	       <<tracklet->fpgaphiprojdisk(disk).value()*kphiproj123<<" "
-	       <<iz*kz<<" "
-	       <<iphicorr*kphiproj123<<" ("<<iphicorr<<") "
-	       <<iphi*kphiproj123<<" | "
-	       <<tracklet->fpgarprojdisk(disk).value()*krprojshiftdisk<<" "
-	       <<tracklet->fpgarprojderdisk(disk).value()*krprojderdiskshift<<" "
-	       <<ircorr*krprojshiftdisk<<" "
-	       <<ir*krprojshiftdisk<<" dphi= "
-	       <<ideltaphi*kphiproj123<<" dr= "
-	       <<ideltar*krprojshiftdisk<<" "
-	       <<imatch
-	       <<endl;
-	}
-	
 	  
 	if (imatch) {
 	  
@@ -738,14 +760,16 @@ public:
 	  if (debug1) {
 	    cout << "FPGAMatchCalculator found match in disk "<<getName()<<endl;
 	  }
-	  
+
+	  cout << "dphi = " << dphi << " dphiapprox = " << dphiapprox << endl;
+
 	  assert(fabs(dphi)<0.2);
 	  assert(fabs(dphiapprox)<0.2);
-	  
+
 	  tracklet->addMatchDisk(disk,ideltaphi,ideltar,
 				 drphi/stub->r(),dr,drphiapprox/stub->r(),drapprox,
 				 stub->alpha(),
-				 fpgastub->stubindex().value()+((fpgastub->phiregion().value())<<6),
+				 (fpgastub->phiregion().value()<<7)+fpgastub->stubindex().value(),
 				 stub->z(),tmp);
 	  if (debug1) {
 	    cout << "Accepted full match in disk " <<getName()
@@ -772,15 +796,33 @@ public:
 	    }
 	  } else {
 	    for (unsigned int l=0;l<fullmatches_.size();l++){
-	      if (((abs(tracklet->disk())==1&&tracklet->layer()==1)&&fullmatches_[l]->getName().substr(3,4)=="D1L1")||
-		  (tracklet->layer()==2&&fullmatches_[l]->getName().substr(3,4)=="D1L2")||    //dangerous to check only layer!!!
-		  ((abs(tracklet->disk())==1&&tracklet->layer()==0)&&fullmatches_[l]->getName().substr(3,4)=="D1D2")||
-		  ((tracklet->disk()==0&&tracklet->layer()==1)&&fullmatches_[l]->getName().substr(3,4)=="L1L2")||
-		  ((tracklet->disk()==0&&tracklet->layer()==3)&&fullmatches_[l]->getName().substr(3,4)=="L3L4")||
-		  ((abs(tracklet->disk())==3&&tracklet->layer()==0)&&fullmatches_[l]->getName().substr(3,4)=="D3D4")){
-		fullmatches_[l]->addMatch(tracklet,tmp);
-		if (debug1) {
-		  cout << "In "<<getName()<<" added match to "<<fullmatches_[l]->getName()<<endl;
+	      if (hourglass) {
+		int layer=tracklet->layer();
+		int disk=abs(tracklet->disk());
+		if ((layer==1&&disk==0&&fullmatches_[l]->getName().substr(3,4)=="L1L2")||
+		    (layer==3&&disk==0&&fullmatches_[l]->getName().substr(3,4)=="L3L4")||
+		    (layer==5&&disk==0&&fullmatches_[l]->getName().substr(3,4)=="L5L6")||
+		    (layer==0&&disk==1&&fullmatches_[l]->getName().substr(3,4)=="D1D2")||
+		    (layer==0&&disk==3&&fullmatches_[l]->getName().substr(3,4)=="D3D4")||
+		    (layer==1&&disk==1&&fullmatches_[l]->getName().substr(3,4)=="L1D1")||
+		    (layer==2&&disk==1&&fullmatches_[l]->getName().substr(3,4)=="L2D1")){
+		  assert(tracklet->homeSector()==iSector_);
+		  if (debug1) {
+		    cout << getName()<<" adding match to "<<fullmatches_[l]->getName()<<endl;
+		  }
+		  fullmatches_[l]->addMatch(tracklet,tmp);
+		}
+	      } else {
+		if (((abs(tracklet->disk())==1&&tracklet->layer()==1)&&(fullmatches_[l]->getName().substr(3,4)=="D1L1"||fullmatches_[l]->getName().substr(3,4)=="L1D1"))||
+		    (tracklet->layer()==2&&(fullmatches_[l]->getName().substr(3,4)=="D1L2"||fullmatches_[l]->getName().substr(3,4)=="L2D1"))||    //dangerous to check only layer!!!
+		    ((abs(tracklet->disk())==1&&tracklet->layer()==0)&&fullmatches_[l]->getName().substr(3,4)=="D1D2")||
+		    ((tracklet->disk()==0&&tracklet->layer()==1)&&fullmatches_[l]->getName().substr(3,4)=="L1L2")||
+		    ((tracklet->disk()==0&&tracklet->layer()==3)&&fullmatches_[l]->getName().substr(3,4)=="L3L4")||
+		    ((abs(tracklet->disk())==3&&tracklet->layer()==0)&&fullmatches_[l]->getName().substr(3,4)=="D3D4")){
+		  fullmatches_[l]->addMatch(tracklet,tmp);
+		  if (debug1) {
+		    cout << "In "<<getName()<<" added match to "<<fullmatches_[l]->getName()<<endl;
+		  }
 		}
 	      }
 	    }
@@ -933,8 +975,8 @@ private:
   int icorrshift_;
   int icorzshift_;
   int phi0shift_;
-  int phimatchcut_[3];
-  int zmatchcut_[3];
+  int phimatchcut_[7];
+  int zmatchcut_[7];
   double phimin_;
   double phimax_;
   double phioffset_;
@@ -944,6 +986,9 @@ private:
   double rcutPS_[7];
   double rcut2S_[7];
 
+  double phifact_;
+  double rzfact_;
+  
   FPGAAllStubs* allstubs_;
   FPGAAllProjections* allprojs_;
 

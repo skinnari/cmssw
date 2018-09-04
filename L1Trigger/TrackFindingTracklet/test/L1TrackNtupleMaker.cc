@@ -328,7 +328,7 @@ void L1TrackNtupleMaker::beginJob()
   // book histograms / make ntuple
   edm::Service<TFileService> fs;
 
-  SaveTracklet = false;
+  SaveTracklet = true;
 
   // initilize
   m_trk_pt    = new std::vector<float>;
@@ -908,10 +908,11 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       }
       */
 
-
       // ----------------------------------------------------------------------------------------------
       // loop over stubs on tracks
-      if (DebugMode && SaveStubs) {
+      /*
+      float tmp_trk_bend_chi2 = 0;
+      if (SaveStubs) {
 
 	// loop over stubs
 	for (int is=0; is<tmp_trk_nstub; is++) {
@@ -927,18 +928,41 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
 	  double y=posStub.y();
 	  double z=posStub.z();
 	  
+	  int isBarrel=-1; 
 	  int layer=-999999;
 	  if ( detIdStub.subdetId()==StripSubdetector::TOB ) {
+	    isBarrel=1;
 	    layer  = static_cast<int>(tTopo->layer(detIdStub));
-	    cout << "   stub in layer " << layer << " at position x y z = " << x << " " << y << " " << z << endl;
+	    if (DebugMode) cout << "   stub in layer " << layer << " at position x y z = " << x << " " << y << " " << z << endl;
 	  }
 	  else if ( detIdStub.subdetId()==StripSubdetector::TID ) {
+	    isBarrel=0;
 	    layer  = static_cast<int>(tTopo->layer(detIdStub));
-	    cout << "   stub in disk " << layer << " at position x y z = " << x << " " << y << " " << z << endl;
+	    if (DebugMode) cout << "   stub in disk " << layer << " at position x y z = " << x << " " << y << " " << z << endl;
 	  }	  
+
+
+	  DetId stackDetid = tTopo->stack(detIdStub);	  
+	  bool isPS = (theTrackerGeom->getDetectorType(stackDetid)==TrackerGeometry::ModuleType::Ph2PSP);	
+
+	  float pitch = 0.089;
+	  float sigma_bend = 0.45;
+	  
+	  if (isPS) pitch = 0.099;
+	  double tmp_stub_r = posStub.perp();
+
+	  float signedPt = 0.3*3.811202/100.0/(iterL1Track->getRInv());
+	  float trackBend = -(1.8*0.57*tmp_stub_r/100)/(pitch*signedPt);
+	  
+	  float stubBend = stubRefs.at(is)->getTriggerBend();
+	  if ( !isBarrel && z<0 ) stubBend=-stubBend;
+	  float tmp_bend_diff = stubBend - trackBend;
+	  float bend_chi2 = (tmp_bend_diff)*(tmp_bend_diff)/(sigma_bend*sigma_bend);
+	  tmp_trk_bend_chi2 += bend_chi2;
 	  
 	}//end loop over stubs
       }
+      */
       // ----------------------------------------------------------------------------------------------
 
 
@@ -1353,6 +1377,62 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       tmp_matchtrk_chi2 = matchedTracks.at(i_track)->getChi2(L1Tk_nPar);
       tmp_matchtrk_nstub  = (int) matchedTracks.at(i_track)->getStubRefs().size();
       if (SaveTracklet)	tmp_matchtrk_seed = (int) matchedTracks.at(i_track)->getWedge();
+
+
+
+
+      // ------------------------------------------------------------------------------------------
+      /*
+      tmp_matchtrk_bend_chi2 = 0;
+
+      std::vector< edm::Ref< edmNew::DetSetVector< TTStub< Ref_Phase2TrackerDigi_ > >, TTStub< Ref_Phase2TrackerDigi_ > > > stubRefs = matchedTracks.at(i_track)->getStubRefs();
+      int tmp_nstub = stubRefs.size();
+
+
+      for (int is=0; is<tmp_nstub; is++) {
+	
+	DetId detIdStub = theTrackerGeom->idToDet( (stubRefs.at(is)->getClusterRef(0))->getDetId() )->geographicalId();
+	
+	MeasurementPoint coords = stubRefs.at(is)->getClusterRef(0)->findAverageLocalCoordinatesCentered();      
+	const GeomDet* theGeomDet = theTrackerGeom->idToDet(detIdStub);
+	Global3DPoint posStub = theGeomDet->surface().toGlobal( theGeomDet->topology().localPosition(coords) );
+	
+	double x=posStub.x();
+	double y=posStub.y();
+	double z=posStub.z();
+	
+	int isBarrel = 0;
+	int layer=-999999;
+	if ( detIdStub.subdetId()==StripSubdetector::TOB ) {
+	  isBarrel = 1;
+	  layer  = static_cast<int>(tTopo->layer(detIdStub));
+	}
+	else if ( detIdStub.subdetId()==StripSubdetector::TID ) {
+	  isBarrel = 0;
+	  layer  = static_cast<int>(tTopo->layer(detIdStub));
+	}
+
+	DetId stackDetid = tTopo->stack(detIdStub);	  
+	bool isPS = (theTrackerGeom->getDetectorType(stackDetid)==TrackerGeometry::ModuleType::Ph2PSP);	
+	
+	float pitch = 0.089;
+	float sigma_bend = 0.45;
+	if (isPS) pitch = 0.099;
+	double tmp_stub_r = posStub.perp();
+
+	float signedPt = 0.3*3.811202/100.0/(matchedTracks.at(i_track)->getRInv());
+	float trackBend = -(1.8*0.57*tmp_stub_r/100)/(pitch*signedPt);
+	  
+	float stubBend = stubRefs.at(is)->getTriggerBend();
+	if ( !isBarrel && z>0 ) stubBend=-stubBend;
+	float tmp_bend_diff = stubBend - trackBend;
+	float bend_chi2 = (tmp_bend_diff)*(tmp_bend_diff)/(sigma_bend*sigma_bend);
+	tmp_matchtrk_bend_chi2 += bend_chi2;
+      }
+      */
+      // ------------------------------------------------------------------------------------------
+
+
     }
 
     if (nLooseMatch > 0) {

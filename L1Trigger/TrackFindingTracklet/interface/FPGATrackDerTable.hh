@@ -46,6 +46,7 @@ public:
    
   }
 
+
   ~FPGATrackDerTable() {
 
   }
@@ -211,6 +212,8 @@ public:
 
     int nentries=getEntries();
 
+    
+    
     for (int i=0;i<nentries;i++){
       FPGATrackDer& der=derivatives_[i];
       int layermask=der.getLayerMask();
@@ -220,7 +223,7 @@ public:
 
       double rinv=(irinv-((1<<(nrinvBitsTable-1))-0.5))*0.0057/(1<<(nrinvBitsTable-1));
       
-      bool print=getIndex(layermask,diskmask)==21024 && alphamask==4;
+      bool print=false;
       //bool print=getIndex(layermask,diskmask)==300 && alphamask==1;
       //print=false;
 
@@ -290,6 +293,7 @@ public:
       double D[4][12];
       int iD[4][12];
       double MinvDt[4][12];
+      double MinvDtDelta[4][12];
       int iMinvDt[4][12];
       double sigma[12];
       double kfactor[12];
@@ -304,6 +308,34 @@ public:
       
       calculateDerivatives(nlayers,r,ndisks,z,alpha,t,rinv,D,iD,MinvDt,iMinvDt,sigma,kfactor);
 
+      double delta=0.1;
+
+      //should be merged in calculateDerivatves???
+      for (int i=0;i<nlayers;i++){
+	if (r[i]>60.0) continue;
+
+	r[i]+=delta;
+
+	calculateDerivatives(nlayers,r,ndisks,z,alpha,t,
+			     rinv,D,iD,MinvDtDelta,iMinvDt,sigma,kfactor);
+	    
+	for (int ii=0;ii<nlayers;ii++){
+	  if (r[ii]>60.0) continue;
+	  double tder=(MinvDtDelta[2][2*ii+1]-MinvDt[2][2*ii+1])/delta;
+	  int itder=(1<<(fittbitshift+rcorrbits))*tder*kr*kzproj/ktpars;
+	  double zder=(MinvDtDelta[3][2*ii+1]-MinvDt[3][2*ii+1])/delta;
+	  int izder=(1<<(fitz0bitshift+rcorrbits))*zder*kr*kzproj/kzpars;
+	  der.settdzcorr(i,ii,tder);
+	  der.setz0dzcorr(i,ii,zder);
+	  der.setitdzcorr(i,ii,itder);
+	  der.setiz0dzcorr(i,ii,izder);
+	}
+	      
+	r[i]-=delta;
+      }
+	    
+
+      
       if (print) {
 	cout << "iMinvDt table build : "<<iMinvDt[0][10]<<" "<<iMinvDt[1][10]<<" "
 	     <<iMinvDt[2][10]<<" "<<iMinvDt[3][10]<<" "<<t<<" "<<nlayers<<" "<<ndisks<<endl;
@@ -338,17 +370,23 @@ public:
 	*/	
 
 	der.sett(t);
-
+	
 	//integer
-	assert(abs(iMinvDt[0][2*j])<(1<<15));
-	assert(abs(iMinvDt[0][2*j+1])<(1<<15));
-	assert(abs(iMinvDt[1][2*j])<(1<<15));
-	assert(abs(iMinvDt[1][2*j+1])<(1<<15));
-	assert(abs(iMinvDt[2][2*j])<(1<<15));
-	assert(abs(iMinvDt[2][2*j+1])<(1<<15));
-	assert(abs(iMinvDt[3][2*j])<(1<<15));
-	assert(abs(iMinvDt[3][2*j+1])<(1<<15));
+	assert(fabs(iMinvDt[0][2*j])<(1<<23));
+	assert(fabs(iMinvDt[0][2*j+1])<(1<<23));
+	assert(fabs(iMinvDt[1][2*j])<(1<<23));
+	assert(fabs(iMinvDt[1][2*j+1])<(1<<23));
+	assert(fabs(iMinvDt[2][2*j])<(1<<19));
+	assert(fabs(iMinvDt[2][2*j+1])<(1<<19));
+	assert(fabs(iMinvDt[3][2*j])<(1<<19));
+	assert(fabs(iMinvDt[3][2*j+1])<(1<<19));
 
+	if (print) {
+	  cout << "PRINT i "<<i<<" "<<j<<" "<<iMinvDt[1][2*j]<<" " 
+	       <<fabs(iMinvDt[1][2*j])<<endl;
+	}
+
+	
 	der.setirinvdphi(j,iMinvDt[0][2*j]); 
 	der.setirinvdzordr(j,iMinvDt[0][2*j+1]); 
 	der.setiphi0dphi(j,iMinvDt[1][2*j]); 
@@ -780,6 +818,182 @@ public:
 
 
 
+  static void invert(std::vector<std::vector<double> >& M,unsigned int n){
+
+    assert(M.size()==n);
+    assert(M[0].size()==2*n);
+   
+    unsigned int i,j,k;
+    double ratio,a;
+
+    for(i = 0; i < n; i++){
+      for(j = n; j < 2*n; j++){
+	if(i==(j-n))
+	  M[i][j] = 1.0;
+	else
+	  M[i][j] = 0.0;
+      }
+    }
+
+    for(i = 0; i < n; i++){
+      for(j = 0; j < n; j++){
+	if(i!=j){
+	  ratio = M[j][i]/M[i][i];
+	  for(k = 0; k < 2*n; k++){
+	    M[j][k] -= ratio * M[i][k];
+	  }
+	}
+      }
+    }
+
+    for(i = 0; i < n; i++){
+      a = M[i][i];
+      for(j = 0; j < 2*n; j++){
+	M[i][j] /= a;
+      }
+    }
+  }
+
+
+  static void getVarianceMatrix(bool layer[6],bool disk[5], int ptbin,
+				std::vector<std::vector< double > >& V) {
+
+    
+    static bool first=true;
+
+    static std::map<string, int> layerdiskmap;
+    
+    static double Vfull[11][11][4][1000];
+
+    //double sigmax=0.01/sqrt(12.0);
+    double sigmaz=0.15/sqrt(12.0);
+    double sigmaz2=5.0/sqrt(12.0);
+    
+    if (first) {
+
+      first=false;
+      
+      for(unsigned int i=0;i<11;i++) {
+	for(unsigned int j=0;j<11;j++) {
+	  for(unsigned int k=0;k<4;k++) {	  
+	    for(unsigned int l=0;l<1000;l++) {	  
+	      Vfull[i][j][k][l]=0.0;
+	    }
+	  }
+	}
+      }
+	  
+      ifstream in("variance.dat");
+
+      unsigned int ptbin;
+
+      int indexcount=0;
+
+      int index=0;//determined later, but initialize here
+      
+      std::string type;
+      
+      in >> type;
+      
+      while (in.good()) {
+
+	assert(type=="V" || type=="E");
+
+	if (type=="V") {
+	  string layer,disk;
+
+	  in >> ptbin >> layer >> disk;
+
+	  string layerdisk=layer+disk;
+
+	  if (layerdiskmap.find(layerdisk)==layerdiskmap.end()) {
+	    layerdiskmap[layerdisk]=indexcount;
+	    indexcount++;
+	  }
+
+	  index=layerdiskmap[layerdisk];
+
+	}
+
+	if (type=="E") {
+	  int i,j,entries;
+	  double vij;
+	  in >> i >> j >> vij >> entries;
+	  assert(ptbin<4);
+	  assert(i<11);
+	  assert(j<11);
+	  Vfull[i][j][ptbin][index]=vij;
+	  Vfull[j][i][ptbin][index]=vij;
+	}
+
+	in >> type;
+	  
+      }
+	
+    }
+
+    unsigned int index[11];
+    std::string layerdisk="0000000000000000";
+    
+    unsigned int N=0;
+    for(unsigned int i=0;i<6;i++) {
+      if (layer[i]) {
+	layerdisk[i]='1';
+	index[N]=i;
+	N++;
+      }
+    }
+    for(unsigned int i=0;i<5;i++) {
+      if (disk[i]) {
+	index[N]=i+6;
+	N++;
+      }
+    }
+
+    V.clear();
+
+    if (layerdiskmap.find(layerdisk)==layerdiskmap.end()) {
+      cout << "Could not find an entry for layerdisk : "<<layerdisk<<endl;
+      assert(0);
+    }
+
+    int mapindex=layerdiskmap[layerdisk];
+    
+    for(unsigned int i=0;i<2*N;i++) {
+      std::vector<double> tmp;
+      for(unsigned int j=0;j<4*N;j++) {
+	tmp.push_back(0.0);
+      }
+      V.push_back(tmp);
+    }
+
+    for(unsigned int i=0;i<2*N;i++) {
+      for(unsigned int j=0;j<2*N;j++) {
+	if (i%2==0 && j%2==0) {
+	  //if (i==j) cout << "i j index V : "<<i<<" "<<j<<" "<<index[j/2]
+	  //		 <<" "<<Vfull[index[i/2]][index[j/2]][ptbin][mapindex]<<endl;
+	  int indexi=index[i/2];
+	  int indexj=index[j/2];
+	  //if (indexi<6) indexi=5-indexi;
+	  //if (indexj<6) indexj=5-indexj;
+	  V[i][j]=Vfull[indexi][indexj][ptbin][mapindex];
+	}
+	if (i%2==1 && i==j){
+	  if (index[i/2]<3) {
+	    V[i][j]=sigmaz*sigmaz;
+	    continue;
+	  }
+	  if (index[i/2]<6) {
+	    V[i][j]=sigmaz2*sigmaz2;
+	    continue;
+	  }
+	  V[i][j]=sigmaz*sigmaz;   //Fixme have to tell is disk 2S modules...
+	}
+      }
+    }	
+    
+  }
+
 
   static void calculateDerivatives(unsigned int nlayers,
 				   double r[6],
@@ -794,8 +1008,6 @@ public:
 				   int iMinvDt[4][12],
 				   double sigma[12],
 				   double kfactor[12]){
-
-
 
 
 
@@ -1042,55 +1254,23 @@ public:
   
 
   
-  /*  
-
-  void invert(double M[4][8],unsigned int n){
-
-    assert(n<=4);
-
-    unsigned int i,j,k;
-    double ratio,a;
-
-    for(i = 0; i < n; i++){
-      for(j = n; j < 2*n; j++){
-	if(i==(j-n))
-	  M[i][j] = 1.0;
-	else
-	  M[i][j] = 0.0;
-      }
-    }
-
-    for(i = 0; i < n; i++){
-      for(j = 0; j < n; j++){
-	if(i!=j){
-	  ratio = M[j][i]/M[i][i];
-	  for(k = 0; k < 2*n; k++){
-	    M[j][k] -= ratio * M[i][k];
-	  }
-	}
-      }
-    }
-
-    for(i = 0; i < n; i++){
-      a = M[i][i];
-      for(j = 0; j < 2*n; j++){
-	M[i][j] /= a;
-      }
-    }
-  }
+  static void calculateDerivativesMS(unsigned int nlayers,
+				     double r[6],
+				     unsigned int ndisks,
+				     double z[5],
+				     double alpha[5],
+				     double t,
+				     double rinv,
+				     double D[4][12],
+				     int iD[4][12],
+				     double MinvDt[4][12],
+				     int iMinvDt[4][12],
+				     double sigma[12],
+				     double kfactor[12],
+				     int ptbin){
 
 
 
-  void calculateDerivativesTable(unsigned int nlayers,
-				 double r[6],
-				 unsigned int ndisks,
-				 double z[5],
-				 double alpha[5],
-				 double t,
-				 double rinv,
-				 double D[4][12],
-				 double MinvDt[4][12],
-				 int iMinvDt[4][12]){
 
 
     double sigmax=0.01/sqrt(12.0);
@@ -1105,7 +1285,54 @@ public:
 
     int j=0;
 
-    double M[4][8];
+    bool layer[6],disk[5];
+    for(unsigned int i=0;i<6;i++) layer[i]=false;
+    for(unsigned int i=0;i<5;i++) disk[i]=false;
+    for(unsigned int i=0;i<nlayers;i++){
+      for(unsigned int j=0;j<6;j++) {
+	if (fabs(r[i]-rmean[j])<drmax) layer[j]=true;
+      }
+    }
+    for(unsigned int i=0;i<ndisks;i++){
+      for(unsigned int j=0;j<5;j++) {
+	if (fabs(fabs(z[i])-zmean[j])<dzmax) {
+	  disk[j]=true;
+	  cout << "z zmean ndisks"<<z[i]<<" "<<zmean[j]<<" "<<ndisks<<" "<<nlayers<<endl;
+	}
+      }
+    }
+
+    std::vector<std::vector< double > > V;
+
+    cout << "layer : "<<nlayers<<" "<<layer[0]<<layer[1]<<layer[2]<<layer[3]<<layer[4]<<layer[5]<<endl;
+    cout << "disk  : "<<ndisks<<" "<<disk[0]<<disk[1]<<disk[2]<<disk[3]<<disk[4]<<endl;
+    
+    getVarianceMatrix(layer,disk,ptbin,V);
+
+    cout <<"V: "<<ptbin<<endl;
+    for(unsigned int ii=0;ii<2*n;ii+=2){
+      for(unsigned int jj=0;jj<2*n;jj+=2){
+	cout<<V[ii][jj]<<" ";
+      }
+      cout<<endl;
+    }
+    cout <<"Vcorr:"<<endl;
+    for(unsigned int ii=0;ii<2*n;ii+=2){
+      for(unsigned int jj=0;jj<2*n;jj+=2){
+	cout<<V[ii][jj]/sqrt(V[ii][ii]*V[jj][jj])<<" ";
+      }
+      cout<<endl;
+    }
+    
+    invert(V,2*n);
+
+    cout <<"Vinv:"<<endl;
+    for(unsigned int ii=0;ii<2*n;ii+=2){
+      for(unsigned int jj=0;jj<2*n;jj+=2){
+	cout<<V[ii][jj+2*n]<<" ";
+      }
+      cout<<endl;
+    }
 
 
     //here we handle a barrel hit
@@ -1115,27 +1342,28 @@ public:
 
       rnew[i]=ri;
 
-      //double rinv=0.000001; //should simplify?
-
       //first we have the phi position
-      D[0][j]=-0.5*ri*ri/sqrt(1-0.25*ri*ri*rinv*rinv)/sigmax;
-      D[1][j]=ri/sigmax;
+      D[0][j]=-0.5*ri*ri/sqrt(1-0.25*ri*ri*rinv*rinv);
+      D[1][j]=ri;
       D[2][j]=0.0;
       D[3][j]=0.0;
+      sigma[j]=sigmax;
+      kfactor[j]=kphi1;
       j++;
       //second the z position
       D[0][j]=0.0;
       D[1][j]=0.0;
       if (ri<60.0) {
-	D[2][j]=(2/rinv)*asin(0.5*ri*rinv)/sigmaz;
-	D[3][j]=1.0/sigmaz;
+	D[2][j]=(2/rinv)*asin(0.5*ri*rinv);
+	D[3][j]=1.0;
+        sigma[j]=sigmaz;
+        kfactor[j]=kz;
       } else {
-	D[2][j]=(2/rinv)*asin(0.5*ri*rinv)/sigmaz2;
-	D[3][j]=1.0/sigmaz2;
+	D[2][j]=(2/rinv)*asin(0.5*ri*rinv);
+	D[3][j]=1.0;
+        sigma[j]=sigmaz2;
+        kfactor[j]=kz;
       }
-
-      //cout << "0 D "<<ri<<" "<<rinv<<" "
-      //   <<D[0][j]<<" "<<D[1][j]<<" "<<D[2][j]<<" "<<D[3][j]<<endl;
 
       j++;
 
@@ -1146,16 +1374,12 @@ public:
 
       double zi=z[i];
 
-
-      //double rinv=0.000001;
       double z0=0.0;
  
       double rmultiplier=alpha[i]*zi/t;
-      //rmultiplier=0.0;
+
       double phimultiplier=zi/t;
       
-      //cout << "i zi t : "<<i<<" "<<zi<<" "<<t<<endl;
-
       double drdrinv=-2.0*sin(0.5*rinv*(zi-z0)/t)/(rinv*rinv)
       +(zi-z0)*cos(0.5*rinv*(zi-z0)/t)/(rinv*t);
       double drdphi0=0;
@@ -1170,55 +1394,49 @@ public:
 
       double r=(zi-z0)/t;
 
-      //cout << "r alpha : "<<r<<" "<<alpha[i]<<endl;
-
       rnew[i+nlayers]=r;
 
-      //cout << "rnew["<<i+nlayers<<"] = "<<rnew[i+nlayers]
-      //	   <<" "<<zi<<" "<<z0<<" "<<t<<endl;
-
-
-      //cout << "FITLINNEW r = "<<r<<endl; 
-
-      //second the rphi position
-
-      D[0][j]=(phimultiplier*dphidrinv+rmultiplier*drdrinv)/sigmax;
-      D[1][j]=(phimultiplier*dphidphi0+rmultiplier*drdphi0)/sigmax;
-      D[2][j]=(phimultiplier*dphidt+rmultiplier*drdt)/sigmax;
-      D[3][j]=(phimultiplier*dphidz0+rmultiplier*drdz0)/sigmax;
-
-      //cout << "1 D "<<D[0][j]<<" "<<D[1][j]<<" "<<D[2][j]<<" "<<D[3][j]<<endl;
+      D[0][j]=(phimultiplier*dphidrinv+rmultiplier*drdrinv);
+      D[1][j]=(phimultiplier*dphidphi0+rmultiplier*drdphi0);
+      D[2][j]=(phimultiplier*dphidt+rmultiplier*drdt);
+      D[3][j]=(phimultiplier*dphidz0+rmultiplier*drdz0);
+      sigma[j]=sigmax;
+      kfactor[j]=kphiproj123;
 
       j++;
 
-      //cout << "alpha i r = "<<alpha[i]<<" "<<i<<" "<<r<<endl;
       if (fabs(alpha[i])<1e-10) {
-	D[0][j]=drdrinv/sigmaz;
-	D[1][j]=drdphi0/sigmaz;
-	D[2][j]=drdt/sigmaz;
-	D[3][j]=drdz0/sigmaz;
+	D[0][j]=drdrinv;
+	D[1][j]=drdphi0;
+	D[2][j]=drdt;
+	D[3][j]=drdz0;
+        sigma[j]=sigmaz;
+        kfactor[j]=kr;
       }
       else {
-	D[0][j]=drdrinv/sigmaz2;
-	D[1][j]=drdphi0/sigmaz2;
-	D[2][j]=drdt/sigmaz2;
-	D[3][j]=drdz0/sigmaz2;
+	D[0][j]=drdrinv;
+	D[1][j]=drdphi0;
+	D[2][j]=drdt;
+	D[3][j]=drdz0;
+        sigma[j]=sigmaz2;
+        kfactor[j]=kr;
       }
 
-      //cout << "2 D "<<D[0][j]<<" "<<D[1][j]<<" "<<D[2][j]<<" "<<D[3][j]<<endl;
 
       j++;
       
 
     }
 
-    //cout << "j n : "<<j<<" "<<n<<endl;
-    
+    double M[4][8];
+
     for(unsigned int i1=0;i1<4;i1++){
       for(unsigned int i2=0;i2<4;i2++){
 	M[i1][i2]=0.0;
 	for(unsigned int j=0;j<2*n;j++){
-	  M[i1][i2]+=D[i1][j]*D[i2][j];	  
+	  for(unsigned int i=0;i<2*n;i++){
+	    M[i1][i2]+=D[i1][i]*V[i][j+2*n]*D[i2][j];	  
+	  }
 	}
       }
     }
@@ -1232,12 +1450,12 @@ public:
       }
     }  
 
-    for(unsigned int j=0;j<2*n;j++) {
-      for(unsigned int i1=0;i1<4;i1++) {
-	for(unsigned int i2=0;i2<4;i2++) {
-	  MinvDt[i1][j]+=M[i1][i2+4]*D[i2][j];
-	  //cout << "0 M D = "<<M[i1][i2+4]<<" "<<D[i2][j]<<endl;
-	
+    for(unsigned int i1=0;i1<4;i1++) {
+      for(unsigned int i2=0;i2<2*n;i2++) {
+	for(unsigned int i=0;i<4;i++) {
+	  for(unsigned int j=0;j<2*n;j++) {
+	    MinvDt[i1][i2]+=M[i1][i+4]*D[i][j]*V[j][i2+2*n];
+	  }
 	}
       }
     }
@@ -1245,71 +1463,87 @@ public:
 
     for (unsigned int i=0;i<n;i++) {
 
+      iD[0][2*i]=D[0][2*i]*(1<<chisqphifactbits)*krinvpars/(1<<fitrinvbitshift);
+      iD[1][2*i]=D[1][2*i]*(1<<chisqphifactbits)*kphi0pars/(1<<fitphi0bitshift);
+      iD[2][2*i]=D[2][2*i]*(1<<chisqphifactbits)*ktpars/(1<<fittbitshift);
+      iD[3][2*i]=D[3][2*i]*(1<<chisqphifactbits)*kzpars/(1<<fitz0bitshift);
+
+      
+      iD[0][2*i+1]=D[0][2*i+1]*(1<<chisqzfactbits)*krinvpars/(1<<fitrinvbitshift);
+      iD[1][2*i+1]=D[1][2*i+1]*(1<<chisqzfactbits)*kphi0pars/(1<<fitphi0bitshift);
+      iD[2][2*i+1]=D[2][2*i+1]*(1<<chisqzfactbits)*ktpars/(1<<fittbitshift);
+      iD[3][2*i+1]=D[3][2*i+1]*(1<<chisqzfactbits)*kzpars/(1<<fitz0bitshift);
+	
+      
+
 
       //First the barrel
       if (i<nlayers) {
 
-	MinvDt[0][2*i]*=rnew[i]/sigmax;
-	MinvDt[1][2*i]*=rnew[i]/sigmax;
-	MinvDt[2][2*i]*=rnew[i]/sigmax;
-	MinvDt[3][2*i]*=rnew[i]/sigmax;
+	MinvDt[0][2*i]*=rnew[i];
+	MinvDt[1][2*i]*=rnew[i];
+	MinvDt[2][2*i]*=rnew[i];
+	MinvDt[3][2*i]*=rnew[i];
 
-	//cout << "1 MinvDt[0][2*i] = "<<MinvDt[0][2*i]<<endl;
-
-      
+	
 	iMinvDt[0][2*i]=(1<<fitrinvbitshift)*MinvDt[0][2*i]*kphi1/krinvpars;
 	iMinvDt[1][2*i]=(1<<fitphi0bitshift)*MinvDt[1][2*i]*kphi1/kphi0pars;
 	iMinvDt[2][2*i]=(1<<fittbitshift)*MinvDt[2][2*i]*kphi1/ktpars;
 	iMinvDt[3][2*i]=(1<<fitz0bitshift)*MinvDt[3][2*i]*kphi1/kzpars;
 
 	if (rnew[i]<60.0) {
-	  MinvDt[0][2*i+1]/=sigmaz;
-	  MinvDt[1][2*i+1]/=sigmaz;
-	  MinvDt[2][2*i+1]/=sigmaz;
-	  MinvDt[3][2*i+1]/=sigmaz;
+	  //MinvDt[0][2*i+1]/=sigmaz;
+	  //MinvDt[1][2*i+1]/=sigmaz;
+	  //MinvDt[2][2*i+1]/=sigmaz;
+	  //MinvDt[3][2*i+1]/=sigmaz;
 
 	  iMinvDt[0][2*i+1]=(1<<fitrinvbitshift)*MinvDt[0][2*i+1]*kzproj/krinvpars;
 	  iMinvDt[1][2*i+1]=(1<<fitphi0bitshift)*MinvDt[1][2*i+1]*kzproj/kphi0pars;
 	  iMinvDt[2][2*i+1]=(1<<fittbitshift)*MinvDt[2][2*i+1]*kzproj/ktpars;
 	  iMinvDt[3][2*i+1]=(1<<fitz0bitshift)*MinvDt[3][2*i+1]*kzproj/kzpars;
 	} else {
-	  MinvDt[0][2*i+1]/=sigmaz2;
-	  MinvDt[1][2*i+1]/=sigmaz2;
-	  MinvDt[2][2*i+1]/=sigmaz2;
-	  MinvDt[3][2*i+1]/=sigmaz2;
+	  //MinvDt[0][2*i+1]/=sigmaz2;
+	  //MinvDt[1][2*i+1]/=sigmaz2;
+	  //MinvDt[2][2*i+1]/=sigmaz2;
+	  //MinvDt[3][2*i+1]/=sigmaz2;
 
-	  iMinvDt[0][2*i+1]=(1<<fitrinvbitshift)*MinvDt[0][2*i+1]*kzproj/krinvpars;
-	  iMinvDt[1][2*i+1]=(1<<fitphi0bitshift)*MinvDt[1][2*i+1]*kzproj/kphi0pars;
-	  iMinvDt[2][2*i+1]=(1<<fittbitshift)*MinvDt[2][2*i+1]*kzproj/ktpars;
-	  iMinvDt[3][2*i+1]=(1<<fitz0bitshift)*MinvDt[3][2*i+1]*kzproj/kzpars;
+	  int fact=(1<<(nbitszprojL123-nbitszprojL456));
+
+	  iMinvDt[0][2*i+1]=(1<<fitrinvbitshift)*MinvDt[0][2*i+1]*fact*kzproj/krinvpars;
+	  iMinvDt[1][2*i+1]=(1<<fitphi0bitshift)*MinvDt[1][2*i+1]*fact*kzproj/kphi0pars;
+	  iMinvDt[2][2*i+1]=(1<<fittbitshift)*MinvDt[2][2*i+1]*fact*kzproj/ktpars;
+	  iMinvDt[3][2*i+1]=(1<<fitz0bitshift)*MinvDt[3][2*i+1]*fact*kzproj/kzpars;
 	}
       }
 
       //Secondly the disks
       else {
 
-
 	if (fabs(alpha[i])<1e-10) {
-	  MinvDt[0][2*i]*=(rnew[i]/sigmax);
-	  MinvDt[1][2*i]*=(rnew[i]/sigmax);
-	  MinvDt[2][2*i]*=(rnew[i]/sigmax);
-	  MinvDt[3][2*i]*=(rnew[i]/sigmax);
+	  MinvDt[0][2*i]*=(rnew[i]);
+	  MinvDt[1][2*i]*=(rnew[i]);
+	  MinvDt[2][2*i]*=(rnew[i]);
+	  MinvDt[3][2*i]*=(rnew[i]);
 	} else {
-	  MinvDt[0][2*i]*=(rnew[i]/sigmax);
-	  MinvDt[1][2*i]*=(rnew[i]/sigmax);
-	  MinvDt[2][2*i]*=(rnew[i]/sigmax);
-	  MinvDt[3][2*i]*=(rnew[i]/sigmax);
+	  MinvDt[0][2*i]*=(rnew[i]);
+	  MinvDt[1][2*i]*=(rnew[i]);
+	  MinvDt[2][2*i]*=(rnew[i]);
+	  MinvDt[3][2*i]*=(rnew[i]);
 	}      
-
-	//cout << "2 MinvDt[0][2*i] = "<<MinvDt[0][2*i]<<endl;
 
 	assert(MinvDt[0][2*i]==MinvDt[0][2*i]);
 
-	iMinvDt[0][2*i]=(1<<fitrinvbitshift)*MinvDt[0][2*i]*kphiprojdisk/krinvparsdisk;
-	iMinvDt[1][2*i]=(1<<fitphi0bitshift)*MinvDt[1][2*i]*kphiprojdisk/kphi0parsdisk;
-	iMinvDt[2][2*i]=(1<<fittbitshift)*MinvDt[2][2*i]*kphiprojdisk/ktparsdisk;
-	iMinvDt[3][2*i]=(1<<fitz0bitshift)*MinvDt[3][2*i]*kphiprojdisk/kzdisk;
+	//iMinvDt[0][2*i]=(1<<fitrinvbitshift)*MinvDt[0][2*i]*kphiprojdisk/krinvparsdisk;
+	//iMinvDt[1][2*i]=(1<<fitphi0bitshift)*MinvDt[1][2*i]*kphiprojdisk/kphi0parsdisk;
+	//iMinvDt[2][2*i]=(1<<fittbitshift)*MinvDt[2][2*i]*kphiprojdisk/ktparsdisk;
+	//iMinvDt[3][2*i]=(1<<fitz0bitshift)*MinvDt[3][2*i]*kphiprojdisk/kzdisk;
 
+	iMinvDt[0][2*i]=(1<<fitrinvbitshift)*MinvDt[0][2*i]*kphiproj123/krinvpars;
+	iMinvDt[1][2*i]=(1<<fitphi0bitshift)*MinvDt[1][2*i]*kphiproj123/kphi0pars;
+	iMinvDt[2][2*i]=(1<<fittbitshift)*MinvDt[2][2*i]*kphiproj123/ktpars;
+	iMinvDt[3][2*i]=(1<<fitz0bitshift)*MinvDt[3][2*i]*kphiproj123/kz;
+
+	/*
 	if (fabs(alpha[i])<1e-10) {
 	  MinvDt[0][2*i+1]/=sigmaz;
 	  MinvDt[1][2*i+1]/=sigmaz;
@@ -1321,11 +1555,12 @@ public:
 	  MinvDt[2][2*i+1]/=sigmaz2;
 	  MinvDt[3][2*i+1]/=sigmaz2;
 	}
+	*/
 
-	iMinvDt[0][2*i+1]=(1<<fitrinvbitshift)*MinvDt[0][2*i+1]*krprojshiftdisk/krinvparsdisk;
-	iMinvDt[1][2*i+1]=(1<<fitphi0bitshift)*MinvDt[1][2*i+1]*krprojshiftdisk/kphi0parsdisk;
-	iMinvDt[2][2*i+1]=(1<<fittbitshift)*MinvDt[2][2*i+1]*krprojshiftdisk/ktparsdisk;
-	iMinvDt[3][2*i+1]=(1<<fitz0bitshift)*MinvDt[3][2*i+1]*krprojshiftdisk/kzdisk;
+	iMinvDt[0][2*i+1]=(1<<fitrinvbitshift)*MinvDt[0][2*i+1]*krprojshiftdisk/krinvpars;
+	iMinvDt[1][2*i+1]=(1<<fitphi0bitshift)*MinvDt[1][2*i+1]*krprojshiftdisk/kphi0pars;
+	iMinvDt[2][2*i+1]=(1<<fittbitshift)*MinvDt[2][2*i+1]*krprojshiftdisk/ktpars;
+	iMinvDt[3][2*i+1]=(1<<fitz0bitshift)*MinvDt[3][2*i+1]*krprojshiftdisk/kz;
       
       }
 
@@ -1334,7 +1569,8 @@ public:
 
   }
   
-  */
+
+  
 
 
   static double gett(int diskmask, int layermask) {
