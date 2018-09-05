@@ -865,7 +865,9 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
     aTrack.setMomentum(p34par,4);
     aTrack.setRInv(track->rinv(),4);
-    aTrack.setChi2(track->chisq(),4);
+    // for emulation, the chisq() function returns the chi2/dof. change for consistency (can always calculated the chi2/dof later). 
+    double tmpchi2 = track->chisq()*(2*track->stubs().size()-4);
+    aTrack.setChi2(tmpchi2,4);
     
 
     //Now do the 5 parameter fit
@@ -880,7 +882,8 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
     aTrack.setMomentum(p35par,5);
     aTrack.setRInv(track->rinv(),5);
-    aTrack.setChi2(track->chisq(),5);
+    double tmpchi25 = track->chisq()*(2*track->stubs().size()-4); // <= 5-parameter fit not yet implemented for emulation, so 4 is correct here
+    aTrack.setChi2(tmpchi25,5);
     
     
     vector<L1TStub*> stubptrs = track->stubs();
