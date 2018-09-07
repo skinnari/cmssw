@@ -773,12 +773,6 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
 
       if (fabs(trk_eta->at(it)) > TP_maxEta) continue;
       if (trk_pt->at(it) < TP_minPt) continue;
-      if (trk_chi2->at(it) > L1Tk_maxChi2) continue;
-      if (trk_nstub->at(it) < L1Tk_minNstub) continue;
-      if (useTightCuts && trk_pt->at(it)>5) {
-	if (trk_chi2->at(it)/(2*trk_nstub->at(it)-4) > 5.) continue;
-	if (trk_pt->at(it)>10 && trk_nstub->at(it)<5) continue;
-      }
 
       if (trk_pt->at(it) > 2.0) {
 	ntrk_pt2++;
@@ -2110,7 +2104,6 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
     h2_resVsEta_eta->Write();
     h2_resVsEta_eta_L->Write();
     h2_resVsEta_eta_H->Write();
-  }
 
     h2_resVsEta_z0->Draw();
     c.SaveAs(DIR+type+"_resVsEta_z0_rms.png");
@@ -2120,8 +2113,8 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
     c.SaveAs(DIR+type+"_resVsEta_ptRel_rms.png");
     h2_resVsEta_phi->Draw();
     c.SaveAs(DIR+type+"_resVsEta_phi_rms.png");
-
-
+  
+    // check residuals
     h2_mresVsEta_z0->Draw();
     h2_mresVsEta_z0->Write();
     c.SaveAs(DIR+type+"_mean-resVsEta_z0.png");
@@ -2139,7 +2132,6 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
     c.SaveAs(DIR+type+"_mean-resVsEta_phi.png");
     
 
-  if (doDetailedPlots) {
     h2_resVsEta_z0->Write();
     h2_resVsEta_z0_L->Write();
     h2_resVsEta_z0_H->Write();
@@ -2850,9 +2842,7 @@ void L1TrackNtuplePlot(TString type, TString treeName="", int TP_select_injet=0,
 
   float max = h_tp_vspt->GetMaximum();
   if (h_trk_all_vspt->GetMaximum() > max) max = h_trk_all_vspt->GetMaximum();
-  //h_tp_vspt->SetAxisRange(0.00001,max*1.5,"Y");  
   h_tp_vspt->SetAxisRange(0.001,max*1.5,"Y");  
-  //h_tp_vspt->SetAxisRange(0.01,max*1.05,"Y");  
 
   h_tp_vspt->Draw("hist");
   h_trk_all_vspt->Draw("same,hist");
