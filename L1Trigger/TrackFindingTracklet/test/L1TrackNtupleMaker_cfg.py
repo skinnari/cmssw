@@ -43,10 +43,10 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgradePLS3', '')
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(20))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10))
 
 if GEOMETRY == "D17":
-    #D17 (tilted barrel -- latest and greatest with T5 tracker, see: https://github.com/cms-sw/cmssw/blob/CMSSW_9_3_0_pre2/Configuration/Geometry/README.md)
+    #D17 (tilted barrel with T5 tracker, see: https://github.com/cms-sw/cmssw/blob/CMSSW_9_3_0_pre2/Configuration/Geometry/README.md)
     Source_Files = cms.untracked.vstring(
     "/store/relval/CMSSW_9_3_7/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU25ns_93X_upgrade2023_realistic_v5_2023D17PU200-v1/10000/5A8CFF7F-1E2D-E811-A7B0-0242AC130002.root"
     )
@@ -54,9 +54,15 @@ elif GEOMETRY == "TkOnly":
     Source_Files = cms.untracked.vstring(
     "file:/afs/cern.ch/work/s/skinnari/public/L1TK_90X/MuMinus_1to10_TkOnly.root"
     )
-process.source = cms.Source("PoolSource", fileNames = Source_Files)
+process.source = cms.Source("PoolSource", fileNames = Source_Files,
+                            inputCommands = cms.untracked.vstring( #this is needed to run on 9_3_X samples in 10_X_Y releases
+                                'keep *_*_*_*',
+                                'drop l1tEMTFHit2016*_*_*_*',
+                                'drop l1tEMTFTrack2016*_*_*_*'
+                                )
+)
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('TTbar_PU200_WithoutTruncation.root'), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string('ntuple_TTbar_PU200.root'), closeFileFast = cms.untracked.bool(True))
 
 
 
