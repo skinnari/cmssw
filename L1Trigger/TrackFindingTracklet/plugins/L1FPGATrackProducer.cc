@@ -846,9 +846,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     TTTrack<Ref_Phase2TrackerDigi_> aTrack;
 
     unsigned int trksector = track->sector();
-    unsigned int trkseed = 0; 
-    if (abs(track->seed()) < 10 || track->seed() > 10) trkseed = (unsigned int) (track->seed());
-    else trkseed = (unsigned int) (abs(track->seed())+20);
+    unsigned int trkseed = (unsigned int) abs(track->seed());
 
     aTrack.setSector(trksector); //tracklet phi sector
     aTrack.setWedge(trkseed);    //not a wedge but useful to keep the seed information... 
