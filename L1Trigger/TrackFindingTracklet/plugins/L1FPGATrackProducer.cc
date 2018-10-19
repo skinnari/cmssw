@@ -811,6 +811,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   FPGATimer PRTimer;
   FPGATimer METimer;
   FPGATimer MCTimer;
+  FPGATimer MPTimer;
   FPGATimer MTTimer;
   FPGATimer FTTimer;
   FPGATimer PDTimer;

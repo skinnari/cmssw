@@ -143,6 +143,18 @@ public:
 	    std::pair<FPGAStub*,L1TStub*> stub=vmstubs_->getStubBin(ibin,i);
 	    countall++;
 
+	    if (finephiME) {
+	      FPGAWord projphi=proj->fpgaphiproj(layer_);
+	      FPGAWord stubphicorr=stub.first->phicorr();
+
+	      int ifinephiproj=(projphi.value()>>(projphi.nbits()-8));
+	      int ifinephistubcorr=(stubphicorr.value()>>(stubphicorr.nbits()-8));
+	      
+	      if (abs(ifinephiproj-ifinephistubcorr)>1) {
+		continue;
+	      }
+	    }
+							   
 	    int z=stub.first->finez().value();
 
 	    if (ibin!=zbin1) z+=8;
@@ -223,6 +235,19 @@ public:
 	    std::pair<FPGAStub*,L1TStub*> stub=vmstubs_->getStubBin(ibin,i);
 	    countall++;
 
+	    if (finephiME) {
+	      FPGAWord projphi=proj->fpgaphiprojdisk(disk_);
+	      FPGAWord stubphicorr=stub.first->phicorr();
+	      
+	      int ifinephiproj=(projphi.value()>>(projphi.nbits()-8));
+	      int ifinephistubcorr=(stubphicorr.value()>>(stubphicorr.nbits()-8));
+	    
+	      if (abs(ifinephiproj-ifinephistubcorr)>1) {
+		continue;
+	      }
+	    }
+	    
+	    
 	    int r=stub.first->finer().value();
 	    
 	    if (ibin!=rbin1) r+=8;

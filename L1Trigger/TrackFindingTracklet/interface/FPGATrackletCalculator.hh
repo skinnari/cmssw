@@ -2617,17 +2617,22 @@ public:
     }
 
     bool success = true;
-    if(!ITC->t_final.local_passes())
+    if(!ITC->t_final.local_passes()) {
       success = false;
-     if(!ITC->rinv_final.local_passes()){
-      if (debug1) 
+    }
+    if(!ITC->rinv_final.local_passes()){
+      if (debug1) {
 	cout << "FPGATrackletCalculator::OverlapSeeding irinv too large: "<<ITC->rinv_final.get_fval()<<endl;
+      }
       success = false;
     }
     if (!ITC->z0_final.local_passes()) {
-      if (debug1) cout << "Failed tracklet z0 cut "<<ITC->z0_final.get_fval()<<" in layer 1"<<endl;
+      if (debug1) {
+	cout << "Failed tracklet z0 cut "<<ITC->z0_final.get_fval()<<" in layer 1"<<endl;
+      }
       success = false;
     }
+
     success = success && ITC->valid_trackpar.passes();
 
     if (!success) {
@@ -2637,7 +2642,9 @@ public:
     if (hourglass) {
       double phicrit=phi0approx-asin(0.5*rcrit*rinvapprox);
       bool keep=(phicrit>phicritminmc)&&(phicrit<phicritmaxmc);
-      if (!keep) return false;
+      if (!keep) {
+	return false;
+      }
     }
     
 

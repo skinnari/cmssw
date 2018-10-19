@@ -16,10 +16,12 @@ public:
     outputprojLPHI1=0;
     outputprojLPHI2=0;
     outputprojLPHI3=0;
+    outputprojLPHI4=0;
 
     outputprojDPHI1=0;
     outputprojDPHI2=0;
     outputprojDPHI3=0;
+    outputprojDPHI4=0;
 
     
     layer_=0;

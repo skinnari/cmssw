@@ -459,6 +459,10 @@ public:
 
 	bool imatch=(fabs(ideltaphi)<=phifact_*phimatchcut_[seedindex])&&(fabs(ideltaz*fact_)<=rzfact_*zmatchcut_[seedindex]);
 
+	//if (!imatch) {
+	//  cout << "Match fail in layer "<<layer_<<" dphi dz : "<< (fabs(ideltaphi)<=phifact_*phimatchcut_[seedindex])<<" "<<(fabs(ideltaz*fact_)<=rzfact_*zmatchcut_[seedindex])<<" "<<(fabs(ideltaphi)/(phifact_*phimatchcut_[seedindex]))<<" "<<fabs(ideltaz*fact_)/(rzfact_*zmatchcut_[seedindex])<<endl;
+	//}
+	
 	if (debug1) {
 	  cout << getName()<<" imatch = "<<imatch<<" ideltaphi cut "<<ideltaphi<<" "<<phimatchcut_[seedindex]
 	       <<" ideltaz*fact cut "<<ideltaz*fact_<<" "<<zmatchcut_[seedindex]<<endl;
@@ -760,6 +764,7 @@ public:
 	  if (debug1) {
 	    cout << "FPGAMatchCalculator found match in disk "<<getName()<<endl;
 	  }
+
 
 	  assert(fabs(dphi)<0.2);
 	  assert(fabs(dphiapprox)<0.2);

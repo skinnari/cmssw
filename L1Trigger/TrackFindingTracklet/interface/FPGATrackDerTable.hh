@@ -1085,11 +1085,12 @@ public:
 
       rnew[i+nlayers]=r;
 
-      D[0][j]=(phimultiplier*dphidrinv+rmultiplier*drdrinv)/sigmax;
-      D[1][j]=(phimultiplier*dphidphi0+rmultiplier*drdphi0)/sigmax;
-      D[2][j]=(phimultiplier*dphidt+rmultiplier*drdt)/sigmax;
-      D[3][j]=(phimultiplier*dphidz0+rmultiplier*drdz0)/sigmax;
       sigma[j]=sigmax;
+      
+      D[0][j]=(phimultiplier*dphidrinv+rmultiplier*drdrinv)/sigma[j];
+      D[1][j]=(phimultiplier*dphidphi0+rmultiplier*drdphi0)/sigma[j];
+      D[2][j]=(phimultiplier*dphidt+rmultiplier*drdt)/sigma[j];
+      D[3][j]=(phimultiplier*dphidz0+rmultiplier*drdz0)/sigma[j];
       kfactor[j]=kphiproj123;
 
       j++;

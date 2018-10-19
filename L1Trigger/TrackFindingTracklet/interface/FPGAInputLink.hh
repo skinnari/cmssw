@@ -75,7 +75,8 @@ public:
 
       FPGAWord r=stub.r();
       FPGAWord bend=stub.bend();
-      int bendbin=bend.value()>>(bend.nbits()-5);
+      int bendbin=bend.value();
+      //cout << "bend:"<<bend.value()<<" "<<bend.nbits()<<" "<<bendbin<<endl;
       int rbin=(r.value()+(1<<(r.nbits()-1)))>>(r.nbits()-3);
       
       int iphicorr=phiCorrLayers[stub.layer().value()].getphiCorrValue(bendbin,rbin);
@@ -91,6 +92,8 @@ public:
     
     if (hourglass) {
 
+      //cout << getName()<<" layer = "<<stub.layer().value()+1<<endl;
+      
       if (stub.layer().value()==-1 && isLayer() ) return; 
       if (stub.layer().value()!=-1 && isDisk() ) return;
       if (stub.layer().value()!=-1){
@@ -110,6 +113,8 @@ public:
 	phibin=iphivmRaw/(32/nallstubsdisks[layerdisk()-1]); 
       }
 
+      //cout << getName()<<" "<<iSector_<<" phibin phiregion : "<<phibin<<" "<<phiregion()<<endl;
+      
       if (phibin!=phiregion() && phibin!=phiregionoverlap()) return;
 
 

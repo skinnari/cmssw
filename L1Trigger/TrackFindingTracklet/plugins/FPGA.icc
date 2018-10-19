@@ -310,6 +310,16 @@ if (writeHitEff) {
     MCTimer.stop();
 
 
+    MPTimer.start();
+    for (unsigned int k=0;k<NSector;k++) {
+      sectors[k]->executeMP();
+      if(writemem&&k==writememsect){
+        sectors[k]->writeMC(first);
+      }
+    }
+    MPTimer.stop();
+
+
 
     MTTimer.start();
     //Here we return the matches

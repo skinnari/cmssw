@@ -177,6 +177,8 @@ public:
 
       int iz=(1<<nzbitsdisk)*((z-sign*zmean[abs(disk)-1])/fabs(zmax-zmin));
 
+      //if (disk<0) iz--;
+      
       assert(phimaxsec-phiminsec>0.0);
       if (stubphi_<phiminsec-(phimaxsec-phiminsec)/6.0) {
 	stubphi_+=two_pi;
@@ -544,7 +546,7 @@ public:
     //cout << "iphi idphi "<<phi_.value()<<" "<<idphi<<endl;
     
     //int iphicorr=phi_.value()+idphi;
-    int iphicorr=phi_.value()+phiCorr;
+    int iphicorr=phi_.value()-phiCorr;
 
     //cout << "phiCorr: layer bend old, new : "<<layer<<" "<<bend_.value()<<" "<<idphi<<" "<<phiCorr<<endl;
     
@@ -604,6 +606,7 @@ public:
   FPGAWord r() const { return r_; }
   FPGAWord z() const { return z_; }
   FPGAWord phi() const { return phi_; }
+  FPGAWord phicorr() const { return phicorr_; }
   FPGAWord alphanew() const { return alphanew_; }
 
 
@@ -656,7 +659,11 @@ public:
     }
     int sign=1;
     if (disk_.value()<0) sign=-1;
-    return z_.value()*kz+sign*zmean[abs(disk_.value())-1];
+    if (sign<0) {
+      return (z_.value()+1)*kz+sign*zmean[abs(disk_.value())-1];  //Not sure why this is needed to get agreement with integer calculations
+    } else {
+      return z_.value()*kz+sign*zmean[abs(disk_.value())-1];
+    }
   }
 
   double phiapprox(double phimin, double phimax){

@@ -27,6 +27,7 @@
 #include "FPGAProjectionTransceiver.hh"
 #include "FPGAMatchEngine.hh"
 #include "FPGAMatchCalculator.hh"
+#include "FPGAMatchProcessor.hh"
 #include "FPGAMatchTransceiver.hh"
 #include "FPGAFitTrack.hh"
 #include "FPGAPurgeDuplicate.hh"
@@ -59,7 +60,7 @@ public:
     
     if (hourglass) {
       double phi=stub.phi();
-      //cout << "FPGASector::addStub phi phimin_ phimax_ : "<<phi<<" "<<phimin_<<" "<<phimax_<<endl;
+      //cout << "FPGASector::addStub layer phi phimin_ phimax_ : "<<stub.layer()+1<<" "<<" "<<dtc<<" "<<phi<<" "<<phimin_<<" "<<phimax_<<endl;
       double dphi=two_pi/NSector/6.0;
       if (hourglass) {
 	dphi=0.5*(dphisectorHG-two_pi/NSector);
@@ -71,7 +72,7 @@ public:
 	//cout << "Adding entries for dtc : "<<dtc;
 	for (unsigned int i=0;i<IL_.size();i++){
 	  if (IL_[i]->getName().find("_"+dtc)!=string::npos){
-	    //cout << " "<<IL_[i]->getName();
+	    //cout << " Adding link "<<IL_[i]->getName()<<endl;
 	    tmp.push_back(i);
 	  }
 	}
@@ -84,6 +85,7 @@ public:
 	std::vector<int>& tmp=ILindex[dtc];
 	assert(tmp.size()!=0);
 	for (unsigned int i=0;i<tmp.size();i++){
+	  //cout << "Add stub to link"<<IL_[tmp[i]]->getName()<<endl;
 	  IL_[tmp[i]]->addStub(stub,fpgastub,dtc);
 	}
       }
@@ -204,9 +206,13 @@ public:
     } else if (procType=="MatchEngine:") {
       ME_.push_back(new FPGAMatchEngine(procName,isector_));
       Processes_[procName]=ME_.back();
-    } else if (procType=="MatchCalculator:") {
+    } else if (procType=="MatchCalculator:"||
+	       procType=="DiskMatchCalculator:") {
       MC_.push_back(new FPGAMatchCalculator(procName,isector_));
       Processes_[procName]=MC_.back();
+    } else if (procType=="MatchProcessor:") {
+      MP_.push_back(new FPGAMatchProcessor(procName,isector_));
+      Processes_[procName]=MP_.back();
     } else if (procType=="MatchTransceiver:") {
       MT_.push_back(new FPGAMatchTransceiver(procName,isector_));
       Processes_[procName]=MT_.back();
@@ -432,6 +438,12 @@ public:
     }
   }
 
+  void executeMP(){
+    for (unsigned int i=0;i<MP_.size();i++){
+      MP_[i]->execute();
+    }
+  }
+
   void executeFT(){
     fpgatracks_.clear();
     for (unsigned int i=0;i<FT_.size();i++){
@@ -581,6 +593,7 @@ private:
   std::vector<FPGAProjectionTransceiver*> PT_;
   std::vector<FPGAMatchEngine*> ME_;
   std::vector<FPGAMatchCalculator*> MC_;
+  std::vector<FPGAMatchProcessor*> MP_;
   std::vector<FPGAMatchTransceiver*> MT_;
   std::vector<FPGAFitTrack*> FT_;
   std::vector<FPGAPurgeDuplicate*> PD_;

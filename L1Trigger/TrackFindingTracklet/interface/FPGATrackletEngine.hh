@@ -37,34 +37,34 @@ public:
     r2_=0;
     if (name[3]=='L') {
       layer1_=name[4]-'0';
-      z1_=name[12]-'0';
+      //z1_=name[12]-'0';
     }
     if (name[3]=='D') {
       disk1_=name[4]-'0';
-      r1_=name[12]-'0';
+      //r1_=name[12]-'0';
     }
     if (name[11]=='L') {
       layer2_=name[12]-'0';
-      z2_=name[23]-'0';
+      //z2_=name[23]-'0';
     }
     if (name[11]=='D') {
       disk2_=name[12]-'0';
-      r2_=name[23]-'0';
+      //r2_=name[23]-'0';
     }
     if (name[12]=='L') {
       layer2_=name[13]-'0';
-      z2_=name[23]-'0';
+      //z2_=name[23]-'0';
     }
     if (name[12]=='D') {
       disk2_=name[13]-'0';
-      r2_=name[23]-'0';
+      //r2_=name[23]-'0';
     }
     
-    phi1_=name[10]-'0';
-    phi2_=name[21]-'0';
+    //phi1_=name[10]-'0';
+    //phi2_=name[21]-'0';
 
-    dct1_=name[6]-'0';
-    dct2_=name[17]-'0';
+    //dct1_=name[6]-'0';
+    //dct2_=name[17]-'0';
 
     innerphibits_=-1;
     outerphibits_=-1;

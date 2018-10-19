@@ -22,8 +22,10 @@ static std::string skimfile="";
 static bool dumppars=false;
 static bool dumpproj=false;
 
-static bool writeVerilog=false;  //Write out Verilog mudules for TCs
-static bool writeInvTable=false; //Write out tables of drinv in tracklet calculator
+static bool writeVerilog=false;     //Write out Verilog mudules for TCs
+static bool writeHLS=false;         //Write out HLS mudules for TCs
+static bool writeInvTable=false;    //Write out tables of drinv and invt in tracklet calculator for Verilog module
+static bool writeHLSInvTable=false; //Write out tables of drinv and invt in tracklet calculator for HLS module
 
 static bool writeFitDerTable=false; //Write out track derivative tables
 
@@ -83,7 +85,7 @@ static int nbitsalpha=4;
 static int alphaBitsTable=2; //For number of bits in track derivative table
 static int nrinvBitsTable=3; //number of bits for tabulating rinv dependence
 static bool writetrace=false; //Print out details about startup
-static bool debug1=false; //Print information about tracking
+static bool debug1=false; //Print detailed debug information about tracking
 static bool writeoutReal = false; 
 static bool writemem=false; //Note that for 'full' detector this will open
                             //a LOT of files, and the program will run excruciatingly slow
@@ -216,6 +218,7 @@ static double rinvcutte=0.01*0.3*3.8/ptcutte; //0.01 to convert to cm-1 in TE
 static double bendcut=1.5;
 static double bendcutdisk=2.0;
 static double z0cut=15.0;
+static bool finephiME=true;  //If set false accept all stubs in phi VM for ME
 
 
 static unsigned int NSector=hourglass?9:27; 
@@ -259,19 +262,17 @@ static const double routerPSdisk=65.0;
 
 static unsigned int MAXOFFSET=10000; //set to 0 for regular truncation
 
-static unsigned int OFFSET=hourglass?162:54; 
-
-static unsigned int MAXSTUBSLINK = OFFSET+MAXOFFSET; //Max stubs per link
-static unsigned int MAXLAYERROUTER = OFFSET+MAXOFFSET; //Max stubs handled by layer router
-static unsigned int MAXDISKROUTER = OFFSET+MAXOFFSET; //Max stubs handled by disk router
-static unsigned int MAXVMROUTER = OFFSET+MAXOFFSET; //Max stubs handled by VM router
-static unsigned int MAXTE = OFFSET+MAXOFFSET; //Maximum number of stub pairs to try in TE 
-static unsigned int MAXTC = OFFSET+MAXOFFSET; //Maximum number of tracklet parameter calculations
+static unsigned int MAXSTUBSLINK = (hourglass?162:54) + MAXOFFSET; //Max stubs per link
+static unsigned int MAXLAYERROUTER = (hourglass?162:54) + MAXOFFSET; //Max stubs handled by layer router
+static unsigned int MAXDISKROUTER = (hourglass?162:54) + MAXOFFSET; //Max stubs handled by disk router
+static unsigned int MAXVMROUTER = (hourglass?162:54) + MAXOFFSET; //Max stubs handled by VM router
+static unsigned int MAXTE = (hourglass?162:54) + MAXOFFSET; //Maximum number of stub pairs to try in TE 
+static unsigned int MAXTC = (hourglass?162:54) + MAXOFFSET; //Maximum number of tracklet parameter calculations
 //static unsigned int MAXPROJECTIONTRANSCEIVER = 10000; //Maximum number of projections to neighbor
-static unsigned int MAXPROJROUTER = OFFSET+MAXOFFSET; //Maximum number of projections to route
-static unsigned int MAXME = OFFSET+MAXOFFSET; //Maximum number of stub-projection matches to try
-static unsigned int MAXMC = OFFSET+MAXOFFSET; //Maximum number of match calculations
-static unsigned int MAXFIT = OFFSET+MAXOFFSET; //Maximum number of track fits
+static unsigned int MAXPROJROUTER = (hourglass?162:54) + MAXOFFSET; //Maximum number of projections to route
+static unsigned int MAXME = (hourglass?162:54) + MAXOFFSET; //Maximum number of stub-projection matches to try
+static unsigned int MAXMC = (hourglass?162:54) + MAXOFFSET; //Maximum number of match calculations
+static unsigned int MAXFIT = (hourglass?162:54) + MAXOFFSET; //Maximum number of track fits
 
 
 static double dphisector=two_pi/NSector;
