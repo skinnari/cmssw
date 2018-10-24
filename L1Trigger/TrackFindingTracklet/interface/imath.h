@@ -1,5 +1,4 @@
-//
-// Integer representation of floating point arithmetic suitable for FPGA designs
+// // Integer representation of floating point arithmetic suitable for FPGA designs
 // 
 // Author: Yuri Gershtein 
 // Date:   March 2018
@@ -135,6 +134,10 @@
 #define LUT_LATENCY   2
 #define DSP_LATENCY   3
 
+// Print out information on the pass/fail status of all variables. Warning:
+// this outputs a lot of information for busy events!
+static const bool printCutInfo_ = false;
+
 class var_cut;
 class var_flag;
 
@@ -184,6 +187,9 @@ class var_base {
     }
 #endif
   }
+
+  static struct Verilog {} verilog;
+  static struct HLS {} hls;
   
   std::string get_kstring();
   std::string get_name() {return name_;}
@@ -196,7 +202,8 @@ class var_base {
 
   bool local_passes() const;
   void passes(std::map<const var_base *,std::vector<bool> > &passes, const std::map<const var_base *,std::vector<bool> > * const previous_passes = NULL) const;
-  void print_cuts(std::map<const var_base *,std::set<std::string> > &cut_strings, const int step, const std::map<const var_base *,std::set<std::string> > * const previous_cut_strings = NULL) const;
+  void print_cuts(std::map<const var_base *,std::set<std::string> > &cut_strings, const int step, Verilog, const std::map<const var_base *,std::set<std::string> > * const previous_cut_strings = NULL) const;
+  void print_cuts(std::map<const var_base *,std::set<std::string> > &cut_strings, const int step, HLS, const std::map<const var_base *,std::set<std::string> > * const previous_cut_strings = NULL) const;
   void add_cut(var_cut *cut, const bool call_set_cut_var = true);
   var_base * get_cut_var();
 
@@ -228,17 +235,22 @@ class var_base {
   bool calculate(int debug_level);
   bool calculate(){return calculate(0);}
   virtual void local_calculate(){}
-  virtual void print(std::ofstream& fs, int l1=0, int l2=0, int l3=0){fs<<"// var_base here. Soemthing is wrong!! "<<l1<<", "<<l2<<", "<<l3<<"\n";}
-  void print_step(int step, std::ofstream& fs);
-  void print_all (std::ofstream& fs);
-  void print_truncation(std::string &t, const std::string &o1, const int ps) const;
+  virtual void print(std::ofstream& fs, Verilog, int l1=0, int l2=0, int l3=0){fs<<"// var_base here. Soemthing is wrong!! "<<l1<<", "<<l2<<", "<<l3<<"\n";}
+  virtual void print(std::ofstream& fs, HLS, int l1=0, int l2=0, int l3=0){fs<<"// var_base here. Soemthing is wrong!! "<<l1<<", "<<l2<<", "<<l3<<"\n";}
+  void print_step(int step, std::ofstream& fs, Verilog);
+  void print_step(int step, std::ofstream& fs, HLS);
+  void print_all (std::ofstream& fs, Verilog);
+  void print_all (std::ofstream& fs, HLS);
+  void print_truncation(std::string &t, const std::string &o1, const int ps, Verilog) const;
+  void print_truncation(std::string &t, const std::string &o1, const int ps, HLS) const;
   void get_inputs(std::vector<var_base*> *vd); //collect all inputs
 
   int  pipe_counter() {return pipe_counter_;}
   void pipe_increment() {pipe_counter_++;}
   void add_delay(int i) {pipe_delays_.push_back(i);}
   bool has_delay(int i); //returns true if already have this variable delayed.
-  static void Verilog_print(std::vector<var_base*> v, std::ofstream& fs);
+  static void Design_print(std::vector<var_base*> v, std::ofstream& fs, Verilog);
+  static void Design_print(std::vector<var_base*> v, std::ofstream& fs, HLS);
   static std::string pipe_delay(var_base *v, int nbits, int delay);
   std::string pipe_delays(const int step);
   static std::string pipe_delay_wire(var_base *v, std::string name_delayed, int nbits, int delay);
@@ -325,7 +337,8 @@ class var_adjustK : public var_base {
   void adjust(double Knew, double epsilon = 1e-5, bool do_assert = false, int nbits = -1);
   
   void local_calculate();
-  void print(std::ofstream& fs, int l1=0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, Verilog, int l1=0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, HLS, int l1=0, int l2 = 0, int l3 = 0);
 
  protected:
   int lr_;
@@ -356,7 +369,8 @@ class var_adjustKR : public var_base {
   }
   
   void local_calculate();
-  void print(std::ofstream& fs, int l1=0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, Verilog, int l1=0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, HLS, int l1=0, int l2 = 0, int l3 = 0);
 
  protected:
   int lr_;
@@ -401,7 +415,8 @@ class var_param : public var_base {
     fval_ = ival * K_;
     val_  = fval_;
   }
-  void print(std::ofstream& fs, int l1 = 0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, Verilog, int l1 = 0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, HLS, int l1 = 0, int l2 = 0, int l3 = 0);
 };
 
 class var_def : public var_base {
@@ -441,7 +456,8 @@ class var_def : public var_base {
     ival_ = ival;
     fval_ = ival * K_;
   }
-  void print(std::ofstream& fs, int l1=0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, Verilog, int l1=0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, HLS, int l1=0, int l2 = 0, int l3 = 0);
 };
 
 
@@ -529,7 +545,8 @@ class var_add : public var_base {
   }  
 
   void local_calculate();
-  void print(std::ofstream& fs, int l1=0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, Verilog, int l1=0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, HLS, int l1=0, int l2 = 0, int l3 = 0);
 
  protected:
   int ps_;
@@ -622,7 +639,8 @@ class var_subtract : public var_base {
   }  
 
   void local_calculate();
-  void print(std::ofstream& fs, int l1=0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, Verilog, int l1=0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, HLS, int l1=0, int l2 = 0, int l3 = 0);
 
  protected:
   int ps_;
@@ -650,7 +668,8 @@ class var_nounits : public var_base {
   }
 
   void local_calculate();
-  void print(std::ofstream& fs, int l1=0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, Verilog, int l1=0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, HLS, int l1=0, int l2 = 0, int l3 = 0);
 
  protected:
   int ps_;
@@ -669,7 +688,8 @@ class var_shiftround : public var_base {
     K_     = p1->get_K();
   }
   void local_calculate();
-  void print(std::ofstream& fs, int l1=0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, Verilog, int l1=0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, HLS, int l1=0, int l2 = 0, int l3 = 0);
   
   protected:
     int shift_;
@@ -688,7 +708,8 @@ class var_shift : public var_base {
     K_     = p1->get_K();
   }
   void local_calculate();
-  void print(std::ofstream& fs, int l1=0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, Verilog, int l1=0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, HLS, int l1=0, int l2 = 0, int l3 = 0);
   
   protected:
     int shift_;
@@ -705,7 +726,8 @@ class var_neg : public var_base {
     K_     = p1->get_K();
   }
   void local_calculate();
-  void print(std::ofstream& fs, int l1=0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, Verilog, int l1=0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, HLS, int l1=0, int l2 = 0, int l3 = 0);
 };
 
 
@@ -734,7 +756,8 @@ class var_timesC : public var_base {
   }
 
   void local_calculate();
-  void print(std::ofstream& fs, int l1=0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, Verilog, int l1=0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, HLS, int l1=0, int l2 = 0, int l3 = 0);
 
  protected:
   int ps_;
@@ -784,7 +807,8 @@ class var_mult : public var_base {
     }
   }
   void local_calculate();
-  void print(std::ofstream& fs, int l1=0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, Verilog, int l1=0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, HLS, int l1=0, int l2 = 0, int l3 = 0);
 
  protected:
   int ps_;
@@ -887,7 +911,8 @@ class var_DSP_postadd : public var_base {
     K_ = ki2 * pow(2,Kmap_["2"]);    
   }
   void local_calculate();
-  void print(std::ofstream& fs, int l1=0, int l2 = 0, int l3 = 0);
+  using var_base::print;
+  void print(std::ofstream& fs, Verilog, int l1=0, int l2 = 0, int l3 = 0);
 
  protected:
   int ps_;
@@ -939,8 +964,10 @@ class var_inv : public var_base {
   double  get_Ioffset(){return offset_/p1_->get_K();} 
   
   void local_calculate();
-  void print(std::ofstream& fs, int l1=0, int l2 = 0, int l3 = 0);
-  void writeLUT(std::ofstream& fs);
+  void print(std::ofstream& fs, Verilog, int l1=0, int l2 = 0, int l3 = 0);
+  void print(std::ofstream& fs, HLS, int l1=0, int l2 = 0, int l3 = 0);
+  void writeLUT(std::ofstream& fs, Verilog) const;
+  void writeLUT(std::ofstream& fs, HLS) const;
 
   int ival_to_addr(int ival){
     return ((ival>>shift_)&mask_);
@@ -1009,7 +1036,9 @@ class var_cut : public var_base {
   double get_upper_cut() const {return upper_cut_;}
 
   void local_passes(std::map<const var_base *,std::vector<bool> > &passes, const std::map<const var_base *,std::vector<bool> > * const previous_passes = NULL) const;
-  void print(std::map<const var_base *,std::set<std::string> > &cut_strings, const int step, const std::map<const var_base *,std::set<std::string> > * const previous_cut_strings = NULL) const;
+  using var_base::print;
+  void print(std::map<const var_base *,std::set<std::string> > &cut_strings, const int step, Verilog, const std::map<const var_base *,std::set<std::string> > * const previous_cut_strings = NULL) const;
+  void print(std::map<const var_base *,std::set<std::string> > &cut_strings, const int step, HLS, const std::map<const var_base *,std::set<std::string> > * const previous_cut_strings = NULL) const;
 
   void set_parent_flag(var_flag *parent_flag, const bool call_add_cut);
   var_flag * get_parent_flag() {return parent_flag_;}
@@ -1044,7 +1073,8 @@ class var_flag : public var_base {
 
   void calculate_step();
   bool passes();
-  void print(std::ofstream& fs, int l1=0, int l2=0, int l3=0);
+  void print(std::ofstream& fs, Verilog, int l1=0, int l2=0, int l3=0);
+  void print(std::ofstream& fs, HLS, int l1=0, int l2=0, int l3=0);
 };
 
 #endif

@@ -315,7 +315,7 @@ public:
   var_cut x6a_cut{&x6a,-0.02,0.02};
   var_cut x6m_cut{&x6m,-2.,2.};
   var_cut phi0a_cut{&phi0a,-dphisector,dphisector};
-  var_cut z0a_cut{&z0a,-120.,120.};
+  var_cut z0a_cut{&z0a,-240.,240.};
   var_cut phi0_cut{&phi0,-2*dphisector,2*dphisector};
   var_cut rinv_cut{&rinv,-maxrinv,maxrinv};
   var_cut t_cut{&t,-7.9,7.9};
