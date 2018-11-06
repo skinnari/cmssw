@@ -164,14 +164,15 @@ public:
    assert(iTC!=-1);
    
    if (name_.substr(3,4)=="L1L2") iSeed = 0;
-   else if (name_.substr(3,4)=="L3L4") iSeed = 1;
-   else if (name_.substr(3,4)=="L5L6") iSeed = 2;
-   else if (name_.substr(3,4)=="D1D2") iSeed = 3;
-   else if (name_.substr(3,4)=="D3D4") iSeed = 4;
-   else if (name_.substr(3,4)=="D1L1") iSeed = 5;
-   else if (name_.substr(3,4)=="D1L2") iSeed = 6;
-   else if (name_.substr(3,4)=="L1D1") iSeed = 5;
-   else if (name_.substr(3,4)=="L2D1") iSeed = 6;
+   else if (name_.substr(3,4)=="L3L4") iSeed = 2;
+   else if (name_.substr(3,4)=="L5L6") iSeed = 3;
+   else if (name_.substr(3,4)=="D1D2") iSeed = 4;
+   else if (name_.substr(3,4)=="D3D4") iSeed = 5;
+   else if (name_.substr(3,4)=="D1L1") iSeed = 6;
+   else if (name_.substr(3,4)=="D1L2") iSeed = 7;
+   else if (name_.substr(3,4)=="L1D1") iSeed = 6;
+   else if (name_.substr(3,4)=="L2D1") iSeed = 7;
+   else if (name_.substr(3,4)=="L2L3") iSeed = 1;
 
    assert(iSeed!=-1);
 
@@ -192,13 +193,24 @@ public:
    assert((layer_!=0)||(disk_!=0));
 
    
-   if (iSeed==0||iSeed==1||iSeed==2) {
+   if (iSeed==0||iSeed==1||iSeed==2||iSeed==3) {
      if (layer_==1) {
        rproj_[0]=rmeanL3;
        rproj_[1]=rmeanL4;
        rproj_[2]=rmeanL5;
        rproj_[3]=rmeanL6;
        lproj_[0]=3;
+       lproj_[1]=4;
+       lproj_[2]=5;
+       lproj_[3]=6;
+     }
+
+     if (layer_==2) {
+       rproj_[0]=rmeanL1;
+       rproj_[1]=rmeanL4;
+       rproj_[2]=rmeanL5;
+       rproj_[3]=rmeanL6;
+       lproj_[0]=1;
        lproj_[1]=4;
        lproj_[2]=5;
        lproj_[3]=6;
@@ -227,7 +239,7 @@ public:
      }
    }
 
-   if (iSeed==3||iSeed==4) {
+   if (iSeed==4||iSeed==5) {
      if (disk_==1) {
        zproj_[0]=zmeanD3;
        zproj_[1]=zmeanD4;
@@ -248,7 +260,7 @@ public:
    }
 
 
-   if (iSeed==5||iSeed==6) {
+   if (iSeed==6||iSeed==7) {
      zprojoverlap_[0]=zmeanD2;
      zprojoverlap_[1]=zmeanD3;
      zprojoverlap_[2]=zmeanD4;
@@ -1430,7 +1442,7 @@ public:
     
     assert(layer_==innerFPGAStub->layer().value()+1);
     
-    assert(layer_==1||layer_==3||layer_==5);
+    assert(layer_==1||layer_==2||layer_==3||layer_==5);
 
     	  
     double r1=innerStub->r();
@@ -1469,6 +1481,7 @@ public:
     
     IMATH_TrackletCalculator *ITC;
     if(layer_==1)      ITC = &ITC_L1L2;
+    else if(layer_==2) ITC = &ITC_L2L3;
     else if(layer_==3) ITC = &ITC_L3L4;
     else               ITC = &ITC_L5L6;
     
@@ -1534,6 +1547,17 @@ public:
     tapprox    = ITC->t_final.get_fval();
     z0approx   = ITC->z0_final.get_fval();
     
+    /*
+    cout << "texact:"<<t<<" tapprox:"<<tapprox<<endl;
+    cout << "z0exact:"<<z0<<" z0approx:"<<z0approx<<" "
+	 <<" zeroth order:"<<z1-tapprox*r1
+	 <<" first order:"
+	 <<z1-tapprox*r1*(1+r1*r1*rinvapprox*rinvapprox/24.0)
+	 <<" wrong first order:"
+	 <<z1-tapprox*r1*(1+r1*r1*rinvapprox*rinvapprox/6.0)
+	 <<endl;
+    */
+    
     phiprojapprox[0] = ITC->phiL_0_final.get_fval();
     phiprojapprox[1] = ITC->phiL_1_final.get_fval();
     phiprojapprox[2] = ITC->phiL_2_final.get_fval();
@@ -1544,8 +1568,6 @@ public:
     zprojapprox[2]   = ITC->zL_2_final.get_fval();
     zprojapprox[3]   = ITC->zL_3_final.get_fval();
 
-    
-    
     for(int i=0; i<4; ++i){
       phiderapprox[i] = ITC->der_phiL_final.get_fval();
       zderapprox[i]   = ITC->der_zL_final.get_fval();
@@ -1781,6 +1803,7 @@ public:
 
     if (hourglass) {
       double phicrit=phi0approx-asin(0.5*rcrit*rinvapprox);
+      //cout << "phicrit phicritminmc phicritmaxmc : "<<phicrit<<" "<<phicritminmc<<" "<<phicritmaxmc<<endl;
       bool keep=(phicrit>phicritminmc)&&(phicrit<phicritmaxmc);
       if (!keep) return false;
     }
@@ -2014,6 +2037,18 @@ public:
     tapprox    = ITC->t_final.get_fval();
     z0approx   = ITC->z0_final.get_fval();
 
+    /*
+    cout << "texact:"<<t<<" tapprox:"<<tapprox<<endl;
+    cout << "z0exact:"<<z0<<" z0approx:"<<z0approx<<" "
+	 <<" zeroth order:"<<z1-tapprox*r1
+	 <<" first order:"
+	 <<z1-tapprox*r1*(1+r1*r1*rinvapprox*rinvapprox/24.0)
+	 <<" wrong first order:"
+	 <<z1-tapprox*r1*(1+r1*r1*rinvapprox*rinvapprox/6.0)
+	 <<endl;
+    */
+    
+    
     phiprojapprox[0] = ITC->phiL_0_final.get_fval();
     phiprojapprox[1] = ITC->phiL_1_final.get_fval();
     phiprojapprox[2] = ITC->phiL_2_final.get_fval();
@@ -2618,6 +2653,9 @@ public:
 
     bool success = true;
     if(!ITC->t_final.local_passes()) {
+      if (debug1) {
+	cout << "FPGATrackletCalculator::OverlapSeeding t too large: "<<ITC->t_final.get_fval()<<endl;
+      }
       success = false;
     }
     if(!ITC->rinv_final.local_passes()){
@@ -2636,6 +2674,15 @@ public:
     success = success && ITC->valid_trackpar.passes();
 
     if (!success) {
+      if (debug1) {
+	
+	cout << "FPGATrackletCalculator::OverlapSeeding rejected no success: "
+	     <<ITC->valid_trackpar.passes()<<" rinv="
+	     <<ITC->rinv_final.get_ival()*ITC->rinv_final.get_K()<<" eta="
+	     <<asinh(ITC->t_final.get_ival()*ITC->t_final.get_K())<<" z0="
+	     <<ITC->z0_final.get_ival()*ITC->z0_final.get_K()<<" phi0="
+	     <<ITC->phi0_final.get_ival()*ITC->phi0_final.get_K()<<endl;
+      }
       return false;
     }
 
@@ -2643,6 +2690,9 @@ public:
       double phicrit=phi0approx-asin(0.5*rcrit*rinvapprox);
       bool keep=(phicrit>phicritminmc)&&(phicrit<phicritmaxmc);
       if (!keep) {
+	if (debug1) {
+	  cout << "FPGATrackletCalculator::OverlapSeeding fail phicrit "<<endl;
+	}
 	return false;
       }
     }
@@ -2868,6 +2918,7 @@ private:
 
 public:
   static IMATH_TrackletCalculator ITC_L1L2;
+  static IMATH_TrackletCalculator ITC_L2L3;
   static IMATH_TrackletCalculator ITC_L3L4;
   static IMATH_TrackletCalculator ITC_L5L6;
   
@@ -2884,6 +2935,7 @@ public:
 };
 
 IMATH_TrackletCalculator FPGATrackletCalculator::ITC_L1L2{1,2};
+IMATH_TrackletCalculator FPGATrackletCalculator::ITC_L2L3{2,3};
 IMATH_TrackletCalculator FPGATrackletCalculator::ITC_L3L4{3,4};
 IMATH_TrackletCalculator FPGATrackletCalculator::ITC_L5L6{5,6};
 

@@ -38,6 +38,7 @@ public:
     }
     assert((layer_!=0)||(disk_!=0));
     overlap_=false;
+    extra_=false;
     subname=name.substr(11,1);
     if (subname=="X") overlap_=true;
     if (subname=="Y") overlap_=true;
@@ -49,6 +50,10 @@ public:
     if (hourglass) {
       if (subname=="Z") overlap_=true;
     }
+    if (subname=="I") extra_=true;
+    if (subname=="J") extra_=true;
+    if (subname=="K") extra_=true;
+    if (subname=="L") extra_=true;
     
     subname=name.substr(12,2);
     phibin_=subname[0]-'0';
@@ -67,6 +72,9 @@ public:
     if (overlap_ and layer_==2) isinner_ = true;
     if (overlap_ and layer_==3) isinner_ = false;
     if (overlap_ and disk_==1) isinner_ = false; 
+
+    if (extra_ and layer_==2) isinner_ = true;
+    if (extra_ and layer_==3) isinner_ = false;
     
   }
   
@@ -75,6 +83,9 @@ public:
     int binlookup=stub.first->getVMBits().value();
     if (overlap_) {
       binlookup=stub.first->getVMBitsOverlap().value();
+    }
+    if (extra_) {
+      binlookup=stub.first->getVMBitsExtra().value();
     }
     if (binlookup<0) {
       cout << getName() << " binlookup = "<<binlookup<<endl;
@@ -100,7 +111,7 @@ public:
 	}
     } else {
       if (stub.first->isBarrel()){
-	if (layer_%2==0) {
+	if (!isinner_) {
 	  stubsbinned_[bin].push_back(stub);
 	}
 	
@@ -116,6 +127,7 @@ public:
         	
       }
     }
+    if (debug1) cout << "Adding stubs to "<<getName()<<endl;
     stubs_.push_back(stub);
     return true;
   }
@@ -295,6 +307,9 @@ public:
       } else {
 	if (layer_>0) {
 	  nvm=nallstubslayers[layer_-1]*nvmtelayers[layer_-1];
+	  if (extra_) {
+	    nvm=nallstubslayers[layer_-1]*nvmteextralayers[layer_-1];
+	  }
 	}
 	if (disk_>0) {
 	  nvm=nallstubsdisks[disk_-1]*nvmtedisks[disk_-1];
@@ -406,6 +421,7 @@ private:
   int phibin_;
   FPGAVMStubsTE* other_;
   bool overlap_;
+  bool extra_;
   bool isinner_;  // is inner layer/disk for TE purpose
   double phimin_;
   double phimax_;

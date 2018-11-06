@@ -35,7 +35,7 @@ public:
 	   kphi1*pow(2,SS_phiD_shift), kphi1/kr*pow(2,SS_phiderD_shift), kr*pow(2,PS_rD_shift),kr/kz*pow(2,PS_rderD_shift));
     printf("=============================================\n");
 
-    
+
     printf("initilaizing 1/dr LUT %f %f\n",rmean[i1-1],rmean[i2-1]);
     double dr_mean = rmean[i2-1]-rmean[i1-1];
     drinv.initLUT(dr_mean);
@@ -163,15 +163,16 @@ public:
   var_mult x4 {"x4",&R6, &delta0};
   var_mult x6a{"x6a",&delta2,&x4, 0.04};
   var_nounits x6b{"x6b",&x6a};
-  var_add  x6m{"x6m",&minus1,&x6b, 2.};
+  var_add     x6m{"x6m",&minus1,&x6b, 2.};
   var_mult phi0a{"phi0a",&delta1,&x6m, dphisector};
 
   var_mult     z0a{"z0a",&r1abs, &deltaZ, 120.};
+  var_mult     z0b{"z0b",&z0a, &x6m, 120.};
   
   var_add  phi0{"phi0",&phi1,&phi0a, 2*dphisector};
-  var_mult     rinv{"rinv",&a2n, &delta0, 2*maxrinv};
-  var_mult     t{"t",&a, &deltaZ, 4};
-  var_subtract z0{"z0",&z1,&z0a,40.};
+  var_mult rinv{"rinv",&a2n, &delta0, 2*maxrinv};
+  var_mult t{"t",&a, &deltaZ, 4};
+  var_add  z0{"z0",&z1,&z0b,40.};
 
   var_adjustK rinv_final{"rinv_final",&rinv, kphi1/kr*pow(2,rinv_shift)};
   var_adjustK phi0_final{"phi0_final",&phi0, kphi1*pow(2,phi0_shift)};

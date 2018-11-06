@@ -48,6 +48,9 @@ public:
       assert(bin>=0);
       assert(bin<MEBinsDisks);
       if (stub.first->disk().value()<0) bin+=MEBinsDisks;
+      if (debug1) {
+	cout << getName() << " adding stub to bin "<<bin<<endl;
+      }
       binnedstubs_[bin].push_back(stub);
       
     }

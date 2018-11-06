@@ -68,7 +68,8 @@ public:
 
     innerphibits_=-1;
     outerphibits_=-1;
-    
+
+    extra_=(layer1_==2&&layer2_==3);
 
   }
 
@@ -113,6 +114,7 @@ public:
 
     
     if (!((doL1L2&&(layer1_==1)&&(layer2_==2))||
+	  (doL2L3&&(layer1_==2)&&(layer2_==3))||
 	  (doL3L4&&(layer1_==3)&&(layer2_==4))||
 	  (doL5L6&&(layer1_==5)&&(layer2_==6))||
 	  (doD1D2&&(disk1_==1)&&(disk2_==2))||
@@ -126,6 +128,8 @@ public:
     unsigned int countall=0;
     unsigned int countpass=0;
 
+    //cout << "In "<<getName()<<endl;
+    
     assert(innervmstubs_!=0);
     assert(outervmstubs_!=0);
 
@@ -264,11 +268,14 @@ public:
 	}
 	
 	if ((layer1_==1 && layer2_==2)||
+	    (layer1_==2 && layer2_==3)||
 	    (layer1_==3 && layer2_==4)||
-	    (layer1_==5 && layer2_==6)) {
-	  
+	    (layer1_==5 && layer2_==6)) {	  
 
 	  int lookupbits=innerstub.first->getVMBits().value();
+	  if (extra_) {
+	    lookupbits=innerstub.first->getVMBitsExtra().value();
+	  }
 	  int zdiffmax=(lookupbits>>7);	
 	  int newbin=(lookupbits&127);
 	  int bin=newbin/8;
@@ -291,10 +298,13 @@ public:
 	      std::pair<FPGAStub*,L1TStub*> outerstub=outervmstubs_->getStubBinned(ibin,j);
               
 	      int zbin=(outerstub.first->getVMBits().value()&7);
+	      if (extra_) {
+		zbin=(outerstub.first->getVMBitsExtra().value()&7);
+	      }
 	      if (start!=ibin) zbin+=8;
 	      if (zbin<zbinfirst||zbin-zbinfirst>zdiffmax) {
 		if (debug1) {
-		  cout << "Stubpair rejected because of wrong zbin"<<endl;
+		  cout << "Stubpair rejected because of wrong fine z"<<endl;
 		}
 		continue;
 	      }
@@ -312,6 +322,10 @@ public:
 	      if (hourglass) {
 		unsigned int nvminner=nallstubslayers[layer1_-1]*nvmtelayers[layer1_-1];
 		unsigned int nvmouter=nallstubslayers[layer1_]*nvmtelayers[layer1_];
+		if (extra_){
+		  nvminner=nallstubslayers[layer1_-1]*nvmteextralayers[layer1_-1];
+		  nvmouter=nallstubslayers[layer1_]*nvmteextralayers[layer1_];
+		}
 		unsigned int nvmbitsinner=nbits(nvminner);
 		unsigned int nvmbitsouter=nbits(nvmouter);
 	      	iphiinnerbin=innerstub.first->iphivmFineBins(nvmbitsinner,innerphibits_);
@@ -500,6 +514,7 @@ public:
 
     
     if ((layer1_==1 && layer2_==2)||
+	(layer1_==2 && layer2_==3)||
 	(layer1_==3 && layer2_==4)||
 	(layer1_==5 && layer2_==6)){
       
@@ -862,6 +877,8 @@ private:
   FPGAVMStubsTE* outervmstubs_;
   
   FPGAStubPairs* stubpairs_;
+
+  bool extra_;
   
   vector<bool> phitable_;
   //vector<double> bendtableinner_;

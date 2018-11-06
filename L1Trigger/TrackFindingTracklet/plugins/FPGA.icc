@@ -342,7 +342,6 @@ if (writeHitEff) {
     }
     FTTimer.stop();
 
-
     PDTimer.start();
     for (unsigned int k=0;k<NSector;k++) {
       sectors[k]->executePD(tracks);	  
@@ -426,12 +425,16 @@ if (writeHitEff) {
             std::map<int, int> stubsTrk2 = tracks[jtrk]->stubID();
             nStubS[jtrk] = stubsTrk2.size();
 
-            // Count shared stubs
+            // Count shared stubs:
             for(std::map<int, int>::iterator  st=stubsTrk1.begin(); st!=stubsTrk1.end(); st++) {
+              // Find stubs in same layer
               if(stubsTrk2.find(st->first) != stubsTrk2.end()) {
+                // Find tracks from adjacent sectors
                 if((tracks[itrk]->sector() > tracks[jtrk]->sector()) || (tracks[jtrk]->sector()-tracks[itrk]->sector()==(int)NSector-1)) {
+                  // Compare stub ids, taking into account sector bits
                   if((st->second+(1<<9))==stubsTrk2[st->first]) nShare[jtrk]++;
                 } else if((tracks[itrk]->sector() < tracks[jtrk]->sector()) || (tracks[itrk]->sector()-tracks[jtrk]->sector()==(int)NSector-1)) {
+                  // Compare stub ids, taking into account sector bits
                   if((st->second-(1<<9))==stubsTrk2[st->first]) nShare[jtrk]++;
                 }
               }

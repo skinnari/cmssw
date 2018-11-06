@@ -89,6 +89,8 @@ public:
       zmatchcut_[4]=2.0/kz;
       phimatchcut_[6]=0.05/(kphi1*rmean[layer_-1]);
       zmatchcut_[6]=1.5/kz;
+      phimatchcut_[7]=0.1/(kphi1*rmean[layer_-1]);
+      zmatchcut_[7]=0.7/kz;
     }
     if (layer_==2){
       phimatchcut_[1]=0.06/(kphi1*rmean[layer_-1]);
@@ -109,12 +111,16 @@ public:
       zmatchcut_[0]=3.0/kz;
       phimatchcut_[2]=0.05/(kphi1*rmean[layer_-1]);
       zmatchcut_[2]=7.0/kz;
+      phimatchcut_[7]=0.19/(kphi1*rmean[layer_-1]);
+      zmatchcut_[7]=3.0/kz;
     }
     if (layer_==5){
       phimatchcut_[0]=0.4/(kphi1*rmean[layer_-1]);
       zmatchcut_[0]=3.0/kz;
       phimatchcut_[1]=0.08/(kphi1*rmean[layer_-1]);
       zmatchcut_[1]=8.0/kz;
+      phimatchcut_[7]=0.4/(kphi1*rmean[layer_-1]);
+      zmatchcut_[7]=3.0/kz;
     }
     if (layer_==6){
       phimatchcut_[0]=0.5/(kphi1*rmean[layer_-1]);
@@ -141,6 +147,11 @@ public:
 
       rphicutPS_[4]=0.10;
       rcutPS_[4]=0.5;
+      
+      rphicutPS_[7]=0.2;
+      rcutPS_[7]=0.5;
+      rphicut2S_[7]=0.5;
+      rcut2S_[7]=3.8;      
 
     }
 
@@ -167,6 +178,12 @@ public:
       rcutPS_[6]=0.5;
       rphicut2S_[6]=0.15;
       rcut2S_[6]=3.4;      
+
+      rphicutPS_[7]=0.2;
+      rcutPS_[7]=0.5;
+      rphicut2S_[7]=0.5;
+      rcut2S_[7]=3.8;      
+           
     }
 
     if (abs(disk_)==3){
@@ -189,7 +206,13 @@ public:
       rphicutPS_[6]=0.15;
       rcutPS_[6]=0.8;
       rphicut2S_[6]=0.25;
-      rcut2S_[6]=3.8;      
+      rcut2S_[6]=3.8;
+
+      rphicutPS_[7]=0.2;
+      rcutPS_[7]=0.5;
+      rphicut2S_[7]=0.5;
+      rcut2S_[7]=3.8;            
+      
     }
 
 
@@ -215,6 +238,11 @@ public:
       rphicut2S_[6]=0.5;
       rcut2S_[6]=3.8;      
 
+      rphicutPS_[7]=0.2;
+      rcutPS_[7]=0.5;
+      rphicut2S_[7]=0.5;
+      rcut2S_[7]=3.8;            
+      
     }
 
 
@@ -417,7 +445,7 @@ public:
 	double dphiapprox=phi-(tracklet->phiprojapprox(layer_)+
 			       dr*tracklet->phiprojderapprox(layer_));
 
-	
+	    
 	if (hourglass) {
 	  dphiapprox+=0.5*two_pi/NSector;
 	}
@@ -428,6 +456,12 @@ public:
 	double dzapprox=z-(tracklet->zprojapprox(layer_)+
 				   dr*tracklet->zprojderapprox(layer_));
 	
+	//if (layer_<3) {
+	//  cout << "dz: "<<layer_<<" "<<tracklet->zproj(layer_)-
+	//    tracklet->zprojapprox(layer_)<<endl;
+	//}
+
+	
 	int seedindex=-1;
 
 	if (seedlayer==1&&seeddisk==0) seedindex=0;  //L1L2
@@ -437,6 +471,7 @@ public:
 	if (seedlayer==0&&abs(seeddisk)==3) seedindex=4;  //D3D4
 	if (seedlayer==1&&abs(seeddisk)==1) seedindex=5;  //L1D1
 	if (seedlayer==2&&abs(seeddisk)==1) seedindex=6;  //L2D1
+	if (seedlayer==2&&seeddisk==0) seedindex=7;  //L2L3
 
 	if (seedindex<0) {
 	  cout << "seedlayer abs(seeddisk) : "<<seedlayer<<" "<<abs(seeddisk)<<endl;
@@ -511,6 +546,7 @@ public:
 		int layer=tracklet->layer();
 		int disk=abs(tracklet->disk());
 		if ((layer==1&&disk==0&&fullmatches_[l]->getName().substr(3,4)=="L1L2")||
+		    (layer==2&&disk==0&&fullmatches_[l]->getName().substr(3,4)=="L2L3")||
 		    (layer==3&&disk==0&&fullmatches_[l]->getName().substr(3,4)=="L3L4")||
 		    (layer==5&&disk==0&&fullmatches_[l]->getName().substr(3,4)=="L5L6")||
 		    (layer==0&&disk==1&&fullmatches_[l]->getName().substr(3,4)=="D1D2")||
@@ -691,6 +727,7 @@ public:
 	if (seedlayer==0&&abs(seeddisk)==3) seedindex=4;  //D3D4
 	if (seedlayer==1&&abs(seeddisk)==1) seedindex=5;  //L1D1
 	if (seedlayer==2&&abs(seeddisk)==1) seedindex=6;  //L2D1
+	if (seedlayer==2&&seeddisk==0) seedindex=7;  //L2L3
 
 	if (seedindex<0) {
 	  cout << "seedlayer abs(seeddisk) : "<<seedlayer<<" "<<abs(seeddisk)<<endl;
@@ -808,7 +845,8 @@ public:
 		    (layer==0&&disk==1&&fullmatches_[l]->getName().substr(3,4)=="D1D2")||
 		    (layer==0&&disk==3&&fullmatches_[l]->getName().substr(3,4)=="D3D4")||
 		    (layer==1&&disk==1&&fullmatches_[l]->getName().substr(3,4)=="L1D1")||
-		    (layer==2&&disk==1&&fullmatches_[l]->getName().substr(3,4)=="L2D1")){
+		    (layer==2&&disk==1&&fullmatches_[l]->getName().substr(3,4)=="L2D1")||
+		    (layer==2&&disk==0&&fullmatches_[l]->getName().substr(3,4)=="L2L3")){
 		  assert(tracklet->homeSector()==iSector_);
 		  if (debug1) {
 		    cout << getName()<<" adding match to "<<fullmatches_[l]->getName()<<endl;
@@ -978,16 +1016,16 @@ private:
   int icorrshift_;
   int icorzshift_;
   int phi0shift_;
-  int phimatchcut_[7];
-  int zmatchcut_[7];
+  int phimatchcut_[8];
+  int zmatchcut_[8];
   double phimin_;
   double phimax_;
   double phioffset_;
 
-  double rphicutPS_[7];
-  double rphicut2S_[7];
-  double rcutPS_[7];
-  double rcut2S_[7];
+  double rphicutPS_[8];
+  double rphicut2S_[8];
+  double rcutPS_[8];
+  double rcut2S_[8];
 
   double phifact_;
   double rzfact_;

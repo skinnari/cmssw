@@ -63,6 +63,7 @@ public:
   }
 
   void execute(std::vector<FPGATrack*>& outputtracks_) {
+
     inputtracks_.clear();
 
     for (unsigned int i=0;i<inputtracklets_.size();i++) {
@@ -75,7 +76,7 @@ public:
     if(inputtracks_.size()==0) return;
     
     unsigned int numTrk = inputtracks_.size();
-
+    
     // Set the sector for FPGATrack, enabling the ability to do adjacent sector removal
     for(unsigned int strk=0; strk<numTrk; strk++) {
       inputtracks_[strk]->setSector(iSector_);
@@ -112,6 +113,7 @@ public:
       }
     } // end grid removal
 
+
     // Removal by comparing pairs of tracks
     if(RemovalType=="ichi" || RemovalType=="nstub") {
       //print tracks for debugging
@@ -126,8 +128,6 @@ public:
       }
       
       for(unsigned int itrk=0; itrk<numTrk-1; itrk++) { // numTrk-1 since last track has no other to compare to
-
-	int npstrki=inputtracks_[itrk]->nPSstubs();
 	
         // If primary track is a duplicate, it cannot veto any...move on
         if(inputtracks_[itrk]->duplicate()==1) continue;
@@ -159,28 +159,17 @@ public:
         for(unsigned int jtrk=itrk+1; jtrk<numTrk; jtrk++) {
           // Skip duplicate tracks
           if(inputtracks_[jtrk]->duplicate()==1) continue;
-
-	  int npstrkj=inputtracks_[jtrk]->nPSstubs();
 	  
           // Chi2 duplicate removal
           if(RemovalType=="ichi") {
             if((nStubP-nShare[jtrk] < minIndStubs) || (nStubS[jtrk]-nShare[jtrk] < minIndStubs)) {
-
-	      if (npstrki<npstrkj) {
+              if((int)inputtracks_[itrk]->ichisq() > (int)inputtracks_[jtrk]->ichisq()) {
                 inputtracks_[itrk]->setDuplicate(true);
-	      } else if (npstrkj<npstrki) {
+              }
+              else if((int)inputtracks_[itrk]->ichisq() <= (int)inputtracks_[jtrk]->ichisq()) {
                 inputtracks_[jtrk]->setDuplicate(true);
-	      } else {
-		if((int)inputtracks_[itrk]->ichisq() > (int)inputtracks_[jtrk]->ichisq()) {
-		  if (npstrki<npstrkj) cout << "WARNING removing track with more PS "<<npstrki<<" "<<npstrkj<<endl; 
-		  inputtracks_[itrk]->setDuplicate(true);
-		}
-		else if((int)inputtracks_[itrk]->ichisq() <= (int)inputtracks_[jtrk]->ichisq()) {
-		  if (npstrkj<npstrki) cout << "WARNING removing track with more PS "<<npstrkj<<" "<<npstrki<<endl; 
-		  inputtracks_[jtrk]->setDuplicate(true);
-		}
-		else cout << "Error: Didn't tag either track in duplicate pair." << endl;
-	      }
+              }
+              else cout << "Error: Didn't tag either track in duplicate pair." << endl;
             }
           } // end ichi removal
 
@@ -209,9 +198,12 @@ public:
         outputtracks_.push_back(inputtracklets_[i]->getTrack(j)->getTrack());
       }
     }
+
+    
   }
 
 
+  
 private:
 
   std::vector<FPGATrack*> inputtracks_;

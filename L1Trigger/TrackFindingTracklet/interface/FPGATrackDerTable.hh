@@ -865,7 +865,6 @@ public:
     
     static double Vfull[11][11][4][1000];
 
-    //double sigmax=0.01/sqrt(12.0);
     double sigmaz=0.15/sqrt(12.0);
     double sigmaz2=5.0/sqrt(12.0);
     

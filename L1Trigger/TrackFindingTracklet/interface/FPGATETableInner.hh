@@ -35,6 +35,8 @@ public:
     zbits_=zbits;
     rbits_=rbits;
 
+    bool extra=layer1==2&&layer2==3;
+    
     rbins_=(1<<rbits);
     rminl1_=rmean[layer1-1]-drmax;
     rmaxl1_=rmean[layer1-1]+drmax;
@@ -50,7 +52,7 @@ public:
     for (int izbin=0;izbin<zbins_;izbin++) {
       for (int irbin=0;irbin<rbins_;irbin++) {
 	//int ibin=irbin+izbin*rbins_;
-	int value=getLookupValue(izbin,irbin);
+	int value=getLookupValue(izbin,irbin,extra);
 	//cout << "table "<<table_.size()<<" "<<value<<" "<<rmeanl2_<<endl;
 	table_.push_back(value);
       }
@@ -63,7 +65,7 @@ public:
   }
 
   // negative return means that seed can not be formed
-  int getLookupValue(int izbin, int irbin){
+  int getLookupValue(int izbin, int irbin, bool extra){
 
     double z1=zminl1_+izbin*dz_;
     double z2=zminl1_+(izbin+1)*dz_;
@@ -71,6 +73,10 @@ public:
     double r1=rminl1_+irbin*dr_;
     double r2=rminl1_+(irbin+1)*dr_;
 
+    if (extra and fabs(0.5*(z1+z2))<52.0) {   //This seeding combinations should not be for central region of detector
+      return -1; 
+    }
+    
     double zmaxl2=-2*zlength;
     double zminl2=2*zlength;
 

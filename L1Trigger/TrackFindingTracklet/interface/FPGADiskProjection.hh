@@ -54,8 +54,9 @@ public:
     fpgaphiprojder_.set(iphider,nbitsphiprojderL123,false,__LINE__,__FILE__);
     fpgarprojder_.set(irder,nrbitsprojderdisk,false,__LINE__,__FILE__);
 
-    int rbin1=8.0*(irproj*krprojshiftdisk-1-rmindiskvm)/(rmaxdisk-rmindiskvm);
-    int rbin2=8.0*(irproj*krprojshiftdisk+1-rmindiskvm)/(rmaxdisk-rmindiskvm);
+    //FIXME the -3 and +3 should be evaluated and efficiency for matching hits checked.
+    int rbin1=8.0*(irproj*krprojshiftdisk-3-rmindiskvm)/(rmaxdisk-rmindiskvm);
+    int rbin2=8.0*(irproj*krprojshiftdisk+3-rmindiskvm)/(rmaxdisk-rmindiskvm);
 
     if (irproj*krprojshiftdisk<20.0) {
       cout <<" WARNING : irproj = "<<irproj<<" "<<irproj*krprojshiftdisk<<" "<<projdisk_<<endl;

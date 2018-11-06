@@ -157,11 +157,12 @@ public:
   var_mult phi0a{"phi0a",&delta1,&x6m, dphisector};
 
   var_mult     z0a{"z0a",&r1abs, &deltaZ, 240.};
+  var_mult     z0b{"z0b",&z0a, &x6m,   240.};
   
   var_add  phi0{"phi0",&phi1,&phi0a, 2*dphisector};
-  var_mult     rinv{"rinv",&a2n, &delta0, 8*maxrinv};
-  var_mult     t{"t",&a, &deltaZ, 7.9};
-  var_subtract z0{"z0",&z1,&z0a,320.};
+  var_mult rinv{"rinv",&a2n, &delta0, 8*maxrinv};
+  var_mult t{"t",&a, &deltaZ, 7.9};
+  var_add  z0{"z0",&z1,&z0b,320.};
 
   var_adjustK rinv_final{"rinv_final",&rinv, kphi1/kr*pow(2,rinv_shift)};
   var_adjustK phi0_final{"phi0_final",&phi0, kphi1*pow(2,phi0_shift)};

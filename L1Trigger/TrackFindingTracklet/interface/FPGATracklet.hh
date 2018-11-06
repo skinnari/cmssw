@@ -100,6 +100,17 @@ public:
       projlayer_[2]=5;
       projlayer_[3]=6;
     }
+
+    if (innerStub_->layer()==1) {
+      rproj_[0]=rmeanL1;
+      rproj_[1]=rmeanL4;
+      rproj_[2]=rmeanL5;
+      rproj_[3]=rmeanL6;
+      projlayer_[0]=1;
+      projlayer_[1]=4;
+      projlayer_[2]=5;
+      projlayer_[3]=6;
+    }
     
     if (innerStub_->layer()==2) {
       rproj_[0]=rmeanL1;
@@ -218,7 +229,7 @@ public:
       for (int i=0;i<4;i++) {
 
 	if (!validproj[i]) continue;
-	
+
 	layerproj_[projlayer_[i]-1].init(projlayer_[i],
 					 rproj_[i],
 					 iphiproj[i],
@@ -1558,6 +1569,10 @@ if (diskresid_[1].valid()) {
     if (dphi>0.5*two_pi) dphi-=two_pi;
     if (dphi<-0.5*two_pi) dphi+=two_pi;
 
+    //if (match(1)==false) {
+    //  return false; 
+    //}
+    
     bool found=(fabs(deta)<0.06)&&(fabs(dphi)<0.01);
     
     //cout << "deta dphi "<<deta<<" "<<dphi<<" "<<found<<endl;

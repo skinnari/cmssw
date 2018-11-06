@@ -131,6 +131,10 @@ public:
 	    output=="vmstuboutPHIF"+s+"n"+ns||
 	    output=="vmstuboutPHIG"+s+"n"+ns||
 	    output=="vmstuboutPHIH"+s+"n"+ns||
+	    output=="vmstuboutPHII"+s+"n"+ns||
+	    output=="vmstuboutPHIJ"+s+"n"+ns||
+	    output=="vmstuboutPHIK"+s+"n"+ns||
+	    output=="vmstuboutPHIL"+s+"n"+ns||
 	    output=="vmstuboutPHIX"+s+"n"+ns||
 	    output=="vmstuboutPHIY"+s+"n"+ns||
 	    output=="vmstuboutPHIZ"+s+"n"+ns||
@@ -148,8 +152,10 @@ public:
 	  if (memory->getName().substr(3,2)=="TE") {
 	    FPGAVMStubsTE* tmp=dynamic_cast<FPGAVMStubsTE*>(memory);
 	    assert(tmp!=0);
-	    if (memory->getName().substr(11,1)[0]<'O') {
+	    if (memory->getName().substr(11,1)[0]<'I') {
 	      vmstubsTEPHI_[i].push_back(tmp);
+	    } else if (memory->getName().substr(11,1)[0]<'M') {
+	      vmstubsTEExtraPHI_[i].push_back(tmp);
 	    } else {
 	      vmstubsTEOverlapPHI_[i].push_back(tmp);
 	    }
@@ -255,12 +261,14 @@ public:
 
 
 	  int binlookup=-1;
+	  int binlookupextra=-1;
 	  if (overlap) {
 	    assert(layer_==1||layer_==2);
 	    binlookup=lookupInnerOverlapLayer(stub.first);
 	  } else {
 	    switch (layer_) {
 	    case 2 : binlookup=lookupOuterLayer(stub.first);
+	      binlookupextra=lookupInnerLayer(stub.first);
 	      break;
 	    case 4 : binlookup=lookupOuterLayer(stub.first);
 	      break;
@@ -269,44 +277,65 @@ public:
 	    case 1 : binlookup=lookupInnerLayer(stub.first);
 	      break;
 	    case 3 : binlookup=lookupInnerLayer(stub.first);
+	      binlookupextra=lookupOuterLayer(stub.first);
 	      break;
 	    case 5 : binlookup=lookupInnerLayer(stub.first);
 	      break;
 	    default : assert(0);
 	    }
 	  }
-	  if (binlookup==-1) continue;
-	  if (overlap) {
-	    stub.first->setVMBitsOverlap(binlookup);
-	  } else {
-	    stub.first->setVMBits(binlookup);
+	  if ((layer_==2 or layer_==3) && binlookupextra!=-1) {
+	    stub.first->setVMBitsExtra(binlookupextra);
+	  }
+
+	  if (binlookup!=-1) {
+	    if (overlap) {
+	      stub.first->setVMBitsOverlap(binlookup);
+	    } else {
+	      stub.first->setVMBits(binlookup);
+	    }
 	  }
 	  
 	  unsigned int layer=stub.first->layer().value();
-	  if (overlap) {
-	    iphiRaw=iphiRaw/(32/(nallstubsoverlaplayers[layer]*nvmteoverlaplayers[layer]));
-	    for (unsigned int l=0;l<vmstubsTEOverlapPHI_[iphiRaw].size();l++){
-	      vmstubsTEOverlapPHI_[iphiRaw][l]->addStub(stub);
+	  if ((layer==1 || layer== 2) && binlookupextra!=-1 ) {
+	    int iphiRawTmp=iphiRaw/(32/(nallstubslayers[layer]*nvmteextralayers[layer]));
+	    for (unsigned int l=0;l<vmstubsTEExtraPHI_[iphiRawTmp].size();l++){
 	      if (debug1) {
-		cout << getName()<<" adding stub to "<<vmstubsTEOverlapPHI_[iphiRaw][l]->getName()<<endl;
+		cout << getName()<<" try adding extra stub to "<<vmstubsTEExtraPHI_[iphiRawTmp][l]->getName()<<endl;
 	      }
-	      insert=true;
-	    }
-	  } else {
-	    iphiRaw=iphiRaw/(32/(nallstubslayers[layer]*nvmtelayers[layer]));
-	    for (unsigned int l=0;l<vmstubsTEPHI_[iphiRaw].size();l++){
-	      vmstubsTEPHI_[iphiRaw][l]->addStub(stub);
-	      if (debug1) {
-		cout << getName()<<" adding stub to "<<vmstubsTEPHI_[iphiRaw][l]->getName()<<endl;
-	      }
+	      vmstubsTEExtraPHI_[iphiRawTmp][l]->addStub(stub);
 	      insert=true;
 	    }
 	  }
-	
-	  if (!insert) {
-	    cout << getName()<<" did not insert stub"<<endl;
+	  
+	  if (binlookup!=-1) {
+	    if (overlap) {
+	      int iphiRawTmp=iphiRaw/(32/(nallstubsoverlaplayers[layer]*nvmteoverlaplayers[layer]));
+	      for (unsigned int l=0;l<vmstubsTEOverlapPHI_[iphiRawTmp].size();l++){
+		if (debug1) {
+		  cout << getName()<<" try adding overlap stub to "<<vmstubsTEOverlapPHI_[iphiRawTmp][l]->getName()<<endl;
+		}
+		vmstubsTEOverlapPHI_[iphiRawTmp][l]->addStub(stub);
+		insert=true;
+	      }
+	    } else {
+	      int iphiRawTmp=iphiRaw/(32/(nallstubslayers[layer]*nvmtelayers[layer]));
+	      for (unsigned int l=0;l<vmstubsTEPHI_[iphiRawTmp].size();l++){
+		if (debug1) {
+		  cout << getName()<<" try adding stub to "<<vmstubsTEPHI_[iphiRawTmp][l]->getName()<<endl;
+		}
+		vmstubsTEPHI_[iphiRawTmp][l]->addStub(stub);
+		insert=true;
+	      }
+	    }
 	  }
-	  assert(insert);
+	  
+	  if (false) {
+	    if (!insert) {
+	      cout << getName()<<" did not insert stub"<<endl;
+	    }
+	    assert(insert);
+	  }
 	}
       }
 
@@ -640,15 +669,17 @@ public:
 
   int lookupOuterLayer(FPGAStub* stub){
 
-    assert(layer_==2||layer_==4||layer_==6);
+    assert(layer_==2||layer_==3||layer_==4||layer_==6);
     
     static FPGATETableOuter outerTableL2;
+    static FPGATETableOuter outerTableL3;
     static FPGATETableOuter outerTableL4;
     static FPGATETableOuter outerTableL6;
     static bool first=true;
 
     if (first) {
       outerTableL2.init(2,7,4);
+      outerTableL3.init(3,7,4);
       outerTableL4.init(4,7,4);
       outerTableL6.init(6,7,4);
       first=false;
@@ -661,6 +692,8 @@ public:
     switch (layer_){
     case 2: return outerTableL2.lookup(zbin,rbin);
       break;
+    case 3: return outerTableL3.lookup(zbin,rbin);
+      break;
     case 4: return outerTableL4.lookup(zbin,rbin);
       break;
     case 6: return outerTableL6.lookup(zbin,rbin);
@@ -672,15 +705,17 @@ public:
 
   int lookupInnerLayer(FPGAStub* stub){
 
-    assert(layer_==1||layer_==3||layer_==5);
+    assert(layer_==1||layer_==2||layer_==3||layer_==5);
     
     static FPGATETableInner innerTableL1;
+    static FPGATETableInner innerTableL2;
     static FPGATETableInner innerTableL3;
     static FPGATETableInner innerTableL5;
     static bool first=true;
 
     if (first) {
       innerTableL1.init(1,2,7,4);
+      innerTableL2.init(2,3,7,4);
       innerTableL3.init(3,4,7,4);
       innerTableL5.init(5,6,7,4);
       first=false;
@@ -692,6 +727,8 @@ public:
     int rbin=(r.value()+(1<<(r.nbits()-1)))>>(r.nbits()-4);
     switch (layer_){
     case 1: return innerTableL1.lookup(zbin,rbin);
+      break;
+    case 2: return innerTableL2.lookup(zbin,rbin);
       break;
     case 3: return innerTableL3.lookup(zbin,rbin);
       break;
@@ -744,6 +781,7 @@ private:
   vector<FPGAAllStubs*> allstubs_;
 
   vector<FPGAVMStubsTE*> vmstubsTEPHI_[32];
+  vector<FPGAVMStubsTE*> vmstubsTEExtraPHI_[32];
   vector<FPGAVMStubsTE*> vmstubsTEOverlapPHI_[32];
   vector<FPGAVMStubsME*> vmstubsMEPHI_[32];
 

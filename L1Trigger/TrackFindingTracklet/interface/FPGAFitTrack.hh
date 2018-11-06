@@ -489,13 +489,16 @@ public:
       r[i]=rmean[layers[i]-1];
       if (layers[i]==tracklet->layer()) {
 	realrstub[i]=tracklet->innerStub()->r();
+	//r[i]=realrstub[i]; //test
       }
       if (layers[i]==tracklet->layer()+1) {
 	realrstub[i]=tracklet->outerStub()->r();
+	//r[i]=realrstub[i]; //test
       }
       if (tracklet->validResid(layers[i])&&layers[i]<4) {
 	std::pair<FPGAStub*,L1TStub*> stubptrs=tracklet->stubptrs(layers[i]);
 	realrstub[i]=stubptrs.second->r();
+	//r[i]=realrstub[i];  //test
 	assert(fabs(realrstub[i]-r[i])<5.0);
       }
       rstub[i]=r[i];
@@ -541,9 +544,9 @@ public:
       }
     }
     
-
+    
     for (unsigned int i=0;i<nlayers;i++){
-      if (r[i]>60.0) continue;	    
+      if (r[i]>60.0) continue;
       for (unsigned int ii=0;ii<nlayers;ii++){
 	if (r[ii]>60.0) continue;
 	
@@ -566,7 +569,7 @@ public:
       }    
     }
 
-
+    
 
     
     double rinvseed=tracklet->rinvapprox();
@@ -912,6 +915,7 @@ public:
 
     }
 
+    
     tracklet->setFitPars(rinvfit,phi0fit,tfit,z0fit,chisqfit,
 			 rinvfitexact,phi0fitexact,tfitexact,
 			 z0fitexact,chisqfitexact,
@@ -1073,7 +1077,7 @@ public:
       }
 
 
-      if(debug1) cout<<getName()<<" : nMatches = "<<nMatches<<"\n";
+      if(debug1) cout<<getName()<<" : nMatches = "<<nMatches<<" "<<asinh(bestTracklet->t())<<"\n";
 
       if (nMatches>=2) {
 	countFit++;

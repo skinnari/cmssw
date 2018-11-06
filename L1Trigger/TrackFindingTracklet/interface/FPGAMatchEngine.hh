@@ -227,7 +227,7 @@ public:
 	for (unsigned int ibin=rbin1;ibin<=rbin2;ibin++) {
 
 	  unsigned int nstub=vmstubs_->nStubsBin(ibin);
-	  
+
 	  for(unsigned int i=0;i<nstub;i++){
 	    if (debug1) {
 	      cout << "Found stub in "<<getName()<<endl;

@@ -599,6 +599,26 @@ public:
 
   FPGAWord getVMBitsOverlap() const { return vmbitsoverlap_; }
   
+
+  void setVMBitsExtra(int bits){
+    int nbits=-1;
+    if (vmbitsextra_.value()!=-1) cout << "Error VMbits extra already set : "<<vmbits_.value()<<" "<<bits<<endl;
+    assert(vmbitsextra_.value()==-1); //Should never change the value; -1 means uninitialized
+    if (layer_.value()==1) { //L2
+      nbits=2*NLONGVMBITS+1+3;
+    }
+    if (layer_.value()==2) { //L3
+      nbits=2*NLONGVMBITS;
+    }
+    //cout << "layer, disk : "<<layer_.value()<<" "<<disk_.value()<<endl;
+    assert(nbits>=0);
+    vmbitsextra_.set(bits,nbits,true,__LINE__,__FILE__);
+  }
+
+  FPGAWord getVMBitsExtra() const { return vmbitsextra_; }
+  
+
+
   FPGAWord phivm() const {return phivm_; }
 
   FPGAWord bend() const {return bend_; }
@@ -807,6 +827,7 @@ private:
 
   FPGAWord vmbits_;
   FPGAWord vmbitsoverlap_;
+  FPGAWord vmbitsextra_;
 
   FPGAWord finer_;
   FPGAWord finez_;

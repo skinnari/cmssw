@@ -96,6 +96,7 @@ static bool warnNoMem=false;  //If true will print out warnings about missing pr
 //Program flow (should be true for normal operation)
 //enables the stub finding in these layer/disk combinations
 static bool doL1L2=true;
+static bool doL2L3=true;
 static bool doL3L4=true;
 static bool doL5L6=true;
 
@@ -166,6 +167,7 @@ static double zmean[5]={zmeanD1,zmeanD2,zmeanD3,zmeanD4,zmeanD5};
 
 static unsigned int nallstubslayers[6]={8,4,4,4,4,4};
 static unsigned int nvmtelayers[6]={4,8,4,8,4,8};
+static unsigned int nvmteextralayers[6]={0,4,4,0,0,0};
 
 static unsigned int nallprojlayers[6]={8,4,4,4,4,4};
 static unsigned int nvmmelayers[6]={4,8,8,8,8,8};

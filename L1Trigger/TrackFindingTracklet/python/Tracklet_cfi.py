@@ -28,7 +28,8 @@ TTTracksFromTrackletEmulation = cms.EDProducer("L1FPGATrackProducer",
                                                asciiFileName = cms.untracked.string(""),
                                                failscenario = cms.untracked.int32(0),
                                                trackerGeometryType  = cms.untracked.string(""),  #tilted barrel is assumed, use "flat" if running on flat
-                                               # specific emulation inputs
+                                               # specific emulation inputs 
+                                               # (if running on CRAB use "../../fitpattern.txt" etc instead)
                                                fitPatternFile  = cms.FileInPath('L1Trigger/TrackFindingTracklet/test/fitpattern.txt'),
 #                                               memoryModulesFile  = cms.FileInPath('L1Trigger/TrackFindingTracklet/test/memorymodules_new.dat'),
 #                                               processingModulesFile  = cms.FileInPath('L1Trigger/TrackFindingTracklet/test/processingmodules_new.dat'),
