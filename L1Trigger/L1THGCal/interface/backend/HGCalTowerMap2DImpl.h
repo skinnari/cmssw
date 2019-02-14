@@ -33,7 +33,6 @@ class HGCalTowerMap2DImpl{
   std::vector<double> layerWeights_;
   HGCalTriggerTools triggerTools_;
   std::unordered_map<int, l1t::HGCalTowerMap> newTowerMaps();
-
   HGCalTriggerTowerGeometryHelper towerGeometryHelper_;
 
 };
