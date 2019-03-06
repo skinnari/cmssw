@@ -1,64 +1,51 @@
 import FWCore.ParameterSet.Config as cms
 
 from L1Trigger.L1CaloTrigger.l1EGammaCrystalsProducer_cfi import l1EGammaCrystalsProducer
-from L1Trigger.Phase2L1ParticleFlow.hgc3dClustersForPF_cff import *
 
 l1ParticleFlow_prerequisites = cms.Sequence(
-    l1EGammaCrystalsProducer + 
-    hgc3dClustersForPF_STC
+    l1EGammaCrystalsProducer 
 )
 
 from L1Trigger.Phase2L1ParticleFlow.pfTracksFromL1Tracks_cfi import pfTracksFromL1Tracks
-import L1Trigger.Phase2L1ParticleFlow.pfClustersFromHGC3DClusters_cfi
 from L1Trigger.Phase2L1ParticleFlow.pfClustersFromL1EGClusters_cfi import pfClustersFromL1EGClusters
 from L1Trigger.Phase2L1ParticleFlow.pfClustersFromCombinedCalo_cfi import pfClustersFromCombinedCalo
 from L1Trigger.Phase2L1ParticleFlow.l1pfProducer_cfi import l1pfProducer
 
 # Calorimeter part: ecal + hcal + hf only
 pfClustersFromCombinedCaloHCal = pfClustersFromCombinedCalo.clone(
-    hcalHGCTowers = [], 
+    hcalHGCTowers = [], hcalDigis = [],
     hcalDigisBarrel = True, hcalDigisHF = False,
     hadCorrector = cms.string("L1Trigger/Phase2L1ParticleFlow/data/hadcorr_barrel.root"),
-    )
+    resol = cms.PSet(
+            etaBins = cms.vdouble( 0.700,  1.200,  1.600),
+            offset  = cms.vdouble( 2.582,  2.191, -0.077),
+            scale   = cms.vdouble( 0.122,  0.143,  0.465),
+            kind    = cms.string('calo'),
+    ))
+pfTracksFromL1TracksBarrel = pfTracksFromL1Tracks.clone(
+    resolCalo = pfClustersFromCombinedCaloHCal.resol.clone(),
+)
+
 pfClustersFromCombinedCaloHF = pfClustersFromCombinedCalo.clone(
     ecalCandidates = [], hcalHGCTowers = [],
-    hcalDigisBarrel = False, hcalDigisHF = True,
+    phase2barrelCaloTowers = [],
     hadCorrector = cms.string("L1Trigger/Phase2L1ParticleFlow/data/hfcorr.root"),
     resol = cms.PSet(
             etaBins = cms.vdouble( 3.500,  4.000,  4.500,  5.000),
-            offset  = cms.vdouble( 0.580,  0.594,  0.355, -1.310),
-            scale   = cms.vdouble( 0.174,  0.172,  0.220,  0.692),
-            ptMin   = cms.vdouble( 5.000,  5.000,  5.000,  5.000),
-            ptMax   = cms.vdouble(999999, 999999, 999999, 999999),
+            offset  = cms.vdouble( 1.099,  0.930,  1.009,  1.369),
+            scale   = cms.vdouble( 0.152,  0.151,  0.144,  0.179),
             kind    = cms.string('calo'),
     ))
 
 
 
 # Calorimeter part: hgcal
-hgc3DClustersNoNoise = cms.EDProducer("HGC3DClusterSimpleSelector",
-    src = cms.InputTag("hgcalBackEndLayer2ProducerSTC","HGCalBackendLayer2Processor3DClustering"),
-    cut = cms.string("coreShowerLength>3"),
-    )
-pfClustersFromHGC3DClusters = L1Trigger.Phase2L1ParticleFlow.pfClustersFromHGC3DClusters_cfi.pfClustersFromHGC3DClusters.clone(
-    src = cms.InputTag("hgc3DClustersNoNoise"),
-    corrector = cms.string("L1Trigger/Phase2L1ParticleFlow/data/hadcorr_HGCal3D_STC.root"),
-    correctorEmfMax = cms.double(1.125),
-    emId  = cms.string("hOverE < 0.25 && hOverE >= 0"),
-    etMin = 1.0, 
-    resol = cms.PSet(
-        etaBins = cms.vdouble( 1.900,  2.200,  2.500,  2.800,  3.100),
-        offset  = cms.vdouble( 0.731,  1.632,  0.282,  0.926,  1.122),
-        scale   = cms.vdouble( 0.114,  0.065,  0.098,  0.075,  0.103),
-        kind    = cms.string('calo')
-    ),
-)
+from L1Trigger.Phase2L1ParticleFlow.pfClustersFromHGC3DClusters_cfi import pfClustersFromHGC3DClusters
 
 l1ParticleFlow_calo = cms.Sequence(
     pfClustersFromL1EGClusters +
     pfClustersFromCombinedCaloHCal +
     pfClustersFromCombinedCaloHF +
-    hgc3DClustersNoNoise +
     pfClustersFromHGC3DClusters
 )
 
@@ -66,6 +53,7 @@ l1ParticleFlow_calo = cms.Sequence(
 # PF in the barrel
 l1pfProducerBarrel = l1pfProducer.clone(
     # inputs
+    tracks = cms.InputTag('pfTracksFromL1TracksBarrel'),
     emClusters = [ cms.InputTag('pfClustersFromL1EGClusters') ],
     hadClusters = [ cms.InputTag('pfClustersFromCombinedCaloHCal:calibrated') ],
     # track-based PUPPI
@@ -87,7 +75,7 @@ l1pfProducerBarrel = l1pfProducer.clone(
     ),
 )
 l1ParticleFlow_pf_barrel = cms.Sequence(
-    pfTracksFromL1Tracks +   
+    pfTracksFromL1TracksBarrel +   
     l1pfProducerBarrel
 )
 
@@ -128,6 +116,7 @@ l1pfProducerHGCal = l1pfProducer.clone(
         ),
     ),
 )
+l1pfProducerHGCal.linking.trackCaloDR = 0.1 # more precise cluster positions
 
 l1ParticleFlow_pf_hgcal = cms.Sequence(
     pfTracksFromL1TracksHGCal +   
@@ -139,6 +128,7 @@ l1ParticleFlow_pf_hgcal = cms.Sequence(
 # PF in HF
 l1pfProducerHF = l1pfProducer.clone(
     # inputs
+    tracks = cms.InputTag(''), # no tracks
     emClusters = [ ],
     hadClusters = [ cms.InputTag('pfClustersFromCombinedCaloHF:calibrated') ],
     # not really useful, but for consistency
@@ -179,12 +169,22 @@ l1pfCandidates = cms.EDProducer("L1TPFCandMultiMerger",
     labelsToMerge = cms.vstring("Calo", "TK", "TKVtx", "PF", "Puppi"),
 )
 
+l1PuppiCandidatesForMET = cms.EDFilter("L1TPFCandSelector",
+    src = cms.InputTag("l1pfCandidates:Puppi"),
+    cut = cms.string("charge != 0 ||"+
+                     "abs(eta) < 1.5 ||"+
+                     "(pt > 20 && abs(eta) < 2.5) ||"+
+                     "(pt > 40 && 2.5 <= abs(eta) <= 2.85) ||"+
+                     "(pt > 30 && abs(eta) > 3.0)")
+)
+
 l1ParticleFlow_proper = cms.Sequence(
     l1ParticleFlow_calo +
     l1ParticleFlow_pf_barrel +
     l1ParticleFlow_pf_hgcal +
     l1ParticleFlow_pf_hf +
     l1pfCandidates
+    + l1PuppiCandidatesForMET
 )
 
 l1ParticleFlow = cms.Sequence(l1ParticleFlow_prerequisites + l1ParticleFlow_proper)
