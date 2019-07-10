@@ -7,7 +7,7 @@ import FWCore.Utilities.FileUtils as FileUtils
 import os
 process = cms.Process("L1TrackNtuple")
 
-#GEOMETRY = "D21"
+#GEOMETRY = "D21" # <== to run on D21 / D17 samples, please change flag "geomTDR" to *true* in ../interface/FPGAConstants.hh 
 GEOMETRY = "D41"
 
  
@@ -28,7 +28,7 @@ elif GEOMETRY == "D21":
     print "using geometry " + GEOMETRY + " (tilted)"
     process.load('Configuration.Geometry.GeometryExtended2023D21Reco_cff')
     process.load('Configuration.Geometry.GeometryExtended2023D21_cff')
-elif GEOMETRY == "D41":
+elif GEOMETRY == "D41": 
     print "using geometry " + GEOMETRY + " (tilted)"
     process.load('Configuration.Geometry.GeometryExtended2023D41Reco_cff')
     process.load('Configuration.Geometry.GeometryExtended2023D41_cff')
@@ -63,13 +63,9 @@ elif GEOMETRY == "D41": # Tilted barrel T14 tracker
     Source_Files = cms.untracked.vstring(
         "/store/relval/CMSSW_10_6_0_pre4/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU25ns_106X_upgrade2023_realistic_v2_2023D41PU200-v1/10000/FEA5D564-937A-8D4B-9C9A-696EFC05AB58.root"
     )
-elif GEOMETRY == "TkOnly":
-    Source_Files = cms.untracked.vstring(
-        "file:/afs/cern.ch/work/s/skinnari/public/L1TK_90X/MuMinus_1to10_TkOnly.root"
-)
-else: 
-    print "not a valid geometry!"
-
+else:
+    print "this is not a valid geometry!!!"
+    
 process.source = cms.Source("PoolSource", 
                             fileNames = Source_Files,
                             inputCommands = cms.untracked.vstring(
@@ -95,22 +91,28 @@ process.load("SimTracker.TrackTriggerAssociation.TrackTriggerAssociator_cff")
 if GEOMETRY != "TkOnly":
     from SimTracker.TrackTriggerAssociation.TTClusterAssociation_cfi import *
     TTClusterAssociatorFromPixelDigis.digiSimLinks = cms.InputTag("simSiPixelDigis","Tracker")
-    
+
 process.TTClusterStub = cms.Path(process.TrackTriggerClustersStubs)
 process.TTClusterStubTruth = cms.Path(process.TrackTriggerAssociatorClustersStubs)
 
 from L1Trigger.TrackFindingTracklet.Tracklet_cfi import *
 
-### floating-point simulation
+## floating-point simulation
 #process.load("L1Trigger.TrackFindingTracklet.L1TrackletTracks_cff")
-#TTTracksFromTracklet.asciiFileName = cms.untracked.string("output.txt")
 #process.TTTracks = cms.Path(process.L1TrackletTracks)
 #process.TTTracksWithTruth = cms.Path(process.L1TrackletTracksWithAssociators)
+
 
 ## emulation 
 process.load("L1Trigger.TrackFindingTracklet.L1TrackletEmulationTracks_cff")
 process.TTTracksEmulation = cms.Path(process.L1TrackletEmulationTracks)
 process.TTTracksEmulationWithTruth = cms.Path(process.L1TrackletEmulationTracksWithAssociators)
+
+
+## Extended (displaced) emulation
+# process.load("L1Trigger.TrackFindingTracklet.L1ExtendedTrackletEmulationTracks_cff")
+# process.TTTracksExtendedEmulation = cms.Path(process.L1ExtendedTrackletEmulationTracks)
+# process.TTTracksExtendedEmulationWithTruth = cms.Path(process.L1ExtendedTrackletEmulationTracksWithAssociators)
 
 
 ############################################################
@@ -137,6 +139,7 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackNtupleMaker',
                                        TP_maxZ0 = cms.double(30.0),      # only save TPs with |z0| < X cm
                                        #L1TrackInputTag = cms.InputTag("TTTracksFromTracklet", "Level1TTTracks"),                 ## TTTrack input
                                        L1TrackInputTag = cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks"),         ## TTTrack input
+                                       # L1TrackInputTag = cms.InputTag("TTTracksFromExtendedTrackletEmulation", "Level1TTTracks"), ## TTTrack input (displaced)
                                        MCTruthTrackInputTag = cms.InputTag("TTTrackAssociatorFromPixelDigis", "Level1TTTracks"),  ## MCTruth input 
                                        # other input collections
                                        L1StubInputTag = cms.InputTag("TTStubsFromPhase2TrackerDigis","StubAccepted"),
@@ -151,11 +154,15 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackNtupleMaker',
 process.ana = cms.Path(process.L1TrackNtuple)
 
 # use this if you want to re-run the stub making
-#process.schedule = cms.Schedule(process.TTClusterStub,process.TTClusterStubTruth,process.TTTracksEmulationWithTruth,process.ana)
+# process.schedule = cms.Schedule(process.TTClusterStub,process.TTClusterStubTruth,process.TTTracksEmulationWithTruth,process.ana)
 
 # use this if cluster/stub associators not available 
-#process.schedule = cms.Schedule(process.TTClusterStubTruth,process.TTTracksEmulationWithTruth,process.ana)
+# process.schedule = cms.Schedule(process.TTClusterStubTruth,process.TTTracksEmulationWithTruth,process.ana)
 
 # use this to only run tracking + track associator
-#process.schedule = cms.Schedule(process.TTTracksWithTruth,process.ana)            # floating-point simulation
+# process.schedule = cms.Schedule(process.TTTracksWithTruth,process.ana)            # floating-point simulation
 process.schedule = cms.Schedule(process.TTTracksEmulationWithTruth,process.ana)    # emulation
+
+# use this to only run extended tracking + track associator
+# process.schedule = cms.Schedule(process.TTTracksExtendedEmulationWithTruth,process.ana)
+
