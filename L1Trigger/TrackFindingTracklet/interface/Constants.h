@@ -15,7 +15,7 @@
 
 static const bool doKF=true; //true => use KF (assumes USEHYBRID is defined)
 static const bool printDebugKF=false; // if true print lots of debugging statements related to the KF fit
-static const bool bookHistos=true; //set to true/false to turn on/off histogram booking internal to the tracking
+static const bool bookHistos=false; //set to true/false to turn on/off histogram booking internal to the tracking
 
 static unsigned int nHelixPar = 4; // 4 or 5 param helix fit.
 static bool hourglassExtended=false; // turn on displaced tracking, also edit L1TrackNtupleMaker_cfg.py (search for "Extended" on several lines)
@@ -23,7 +23,7 @@ static bool hourglassExtended=false; // turn on displaced tracking, also edit L1
 //Gemetry extensions
 static const std::string geomext=hourglassExtended?"hourglassExtended":"hourglass";  
 
-static const bool geomTDR=true; // false => newest T14 tracker, true => "TDR" (T5/T6 tracker, D21/D11/D17 CMS geometries)
+static const bool geomTDR=false; // false => newest T14 tracker, true => "TDR" (T5/T6 tracker, D21/D11/D17 CMS geometries)
 
 static const int TMUX = 6;
 
