@@ -17,7 +17,7 @@ void HGCalMulticluster::saveEnergyInterpretation(const HGCalMulticluster::Energy
 double HGCalMulticluster::interpretationFraction(const HGCalMulticluster::EnergyInterpretation eInt) const {
     auto intAndEnergyFraction = energyInterpretationFractions_.find(eInt);
     if(intAndEnergyFraction == energyInterpretationFractions_.end()) {
-      // FIXME: this is an arbitary choice: we return the default cluster energy if this interpreation is not available!
+      // NOTE: this is an arbitary choice: we return the default cluster energy if this interpreation is not available!
       return 1;
     }
     return intAndEnergyFraction->second;
