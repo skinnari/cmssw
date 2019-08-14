@@ -8,6 +8,7 @@
 #include "L1Trigger/L1THGCal/interface/backend/HGCalMulticlusteringImpl.h"
 #include "L1Trigger/L1THGCal/interface/backend/HGCalHistoSeedingImpl.h"
 #include "L1Trigger/L1THGCal/interface/backend/HGCalHistoClusteringImpl.h"
+#include "L1Trigger/L1THGCal/interface/backend/HGCalTriggerClusterInterpreterBase.h"
 
 class HGCalBackendLayer2Processor3DClustering : public HGCalBackendLayer2ProcessorBase {
 public:
@@ -28,6 +29,15 @@ public:
     } else {
       throw cms::Exception("HGCTriggerParameterError") << "Unknown Multiclustering type '" << typeMulticluster << "'";
     }
+
+    for(auto interpretationPset: conf.getParameter<std::vector<edm::ParameterSet>>("energy_interpretations")) {
+      std::cout << "Interpretation: " << interpretationPset.getParameter<std::string>("type") << std::endl;
+      std::unique_ptr<HGCalTriggerClusterInterpreterBase> interpreter{
+        HGCalTriggerClusterInterpreterFactory::get()->create(interpretationPset.getParameter<std::string>("type"))};
+      interpreter->initialize(interpretationPset);
+      energy_interpreters_.push_back(std::move(interpreter));
+    }
+
   }
 
   void run(const edm::Handle<l1t::HGCalClusterBxCollection>& collHandle,
@@ -68,6 +78,12 @@ public:
         // Should not happen, clustering type checked in constructor
         break;
     }
+
+    // Call all the energy interpretation modules on the cluster collection
+    for(const auto &interpreter: energy_interpreters_) {
+      interpreter->interpret(collCluster3D);
+    }
+
   }
 
 private:
@@ -82,6 +98,8 @@ private:
 
   /* algorithm type */
   MulticlusterType multiclusteringAlgoType_;
+
+  std::vector<std::unique_ptr<HGCalTriggerClusterInterpreterBase>> energy_interpreters_;
 };
 
 DEFINE_EDM_PLUGIN(HGCalBackendLayer2Factory,

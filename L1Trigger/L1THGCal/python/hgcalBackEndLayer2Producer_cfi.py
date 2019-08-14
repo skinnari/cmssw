@@ -56,7 +56,7 @@ seed_smoothing_hcal = cms.vdouble(
         1., 1., 1., 1., 1.,
         1., 1., 2., 1., 1.,
         1., 1., 1., 1., 1.,
-        1., 1., 1., 1., 1., 
+        1., 1., 1., 1., 1.,
         )
 
 
@@ -141,8 +141,15 @@ histoMax_C3d_params = cms.PSet(
         histoMax_C3d_seeding_parameters = histoMax_C3d_seeding_params.clone(),
         )
 
+energy_interpretations = cms.VPSet(
+    cms.PSet(type = cms.string('HGCalTriggerClusterInterpretationEM'))
+    )
+
+
+
 be_proc = cms.PSet(ProcessorName  = cms.string('HGCalBackendLayer2Processor3DClustering'),
-                   C3d_parameters = histoMax_C3d_params.clone()
+                   C3d_parameters = histoMax_C3d_params.clone(),
+                   energy_interpretations = energy_interpretations
                    )
 
 hgcalBackEndLayer2Producer = cms.EDProducer(
