@@ -40,8 +40,9 @@ void HGCalTriggerClusterInterpretationEM::eventSetup(const edm::EventSetup& es) 
 
 
 void HGCalTriggerClusterInterpretationEM::interpret(l1t::HGCalMulticlusterBxCollection& multiclusters) const {
+  for(unsigned int idx = 0; idx != multiclusters.size(); idx++) {
+    l1t::HGCalMulticluster& cluster3d = multiclusters[idx];
 
-  for(auto cluster3d: multiclusters) {
     const GlobalPoint& cluster3d_position = cluster3d.centreProj();
     // const
     double energy = 0.;
