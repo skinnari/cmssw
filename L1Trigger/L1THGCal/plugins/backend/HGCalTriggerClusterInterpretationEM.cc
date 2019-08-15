@@ -58,11 +58,5 @@ void HGCalTriggerClusterInterpretationEM::interpret(l1t::HGCalMulticlusterBxColl
     }
     energy -= scale_corrections_coeff_.at(0)*fabs(cluster3d.eta())+scale_corrections_coeff_.at(1);
     cluster3d.saveEnergyInterpretation(l1t::HGCalMulticluster::EnergyInterpretation::EM, max(energy, 0.));
-    std::cout << cluster3d.detId()
-              << " E (GeV): " << cluster3d.energy()
-              << " pT (GeV): " << cluster3d.pt()
-              << " E_EM (GeV): " << cluster3d.iEnergy(l1t::HGCalMulticluster::EnergyInterpretation::EM)
-              << " pT_EM (GeV): " << cluster3d.iPt(l1t::HGCalMulticluster::EnergyInterpretation::EM) << std::endl;
-
   }
 }

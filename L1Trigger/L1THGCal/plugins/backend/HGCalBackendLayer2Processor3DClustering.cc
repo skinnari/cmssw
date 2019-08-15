@@ -31,7 +31,6 @@ public:
     }
 
     for(auto interpretationPset: conf.getParameter<std::vector<edm::ParameterSet>>("energy_interpretations")) {
-      std::cout << "Interpretation: " << interpretationPset.getParameter<std::string>("type") << std::endl;
       std::unique_ptr<HGCalTriggerClusterInterpreterBase> interpreter{
         HGCalTriggerClusterInterpreterFactory::get()->create(interpretationPset.getParameter<std::string>("type"))};
       interpreter->initialize(interpretationPset);
