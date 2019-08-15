@@ -81,6 +81,7 @@ public:
 
     // Call all the energy interpretation modules on the cluster collection
     for(const auto &interpreter: energy_interpreters_) {
+      interpreter->eventSetup(es);
       interpreter->interpret(collCluster3D);
     }
 
