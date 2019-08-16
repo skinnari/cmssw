@@ -30,13 +30,12 @@ public:
       throw cms::Exception("HGCTriggerParameterError") << "Unknown Multiclustering type '" << typeMulticluster << "'";
     }
 
-    for(auto interpretationPset: conf.getParameter<std::vector<edm::ParameterSet>>("energy_interpretations")) {
+    for (auto interpretationPset : conf.getParameter<std::vector<edm::ParameterSet>>("energy_interpretations")) {
       std::unique_ptr<HGCalTriggerClusterInterpreterBase> interpreter{
-        HGCalTriggerClusterInterpreterFactory::get()->create(interpretationPset.getParameter<std::string>("type"))};
+          HGCalTriggerClusterInterpreterFactory::get()->create(interpretationPset.getParameter<std::string>("type"))};
       interpreter->initialize(interpretationPset);
       energy_interpreters_.push_back(std::move(interpreter));
     }
-
   }
 
   void run(const edm::Handle<l1t::HGCalClusterBxCollection>& collHandle,
@@ -79,11 +78,10 @@ public:
     }
 
     // Call all the energy interpretation modules on the cluster collection
-    for(const auto &interpreter: energy_interpreters_) {
+    for (const auto& interpreter : energy_interpreters_) {
       interpreter->eventSetup(es);
       interpreter->interpret(collCluster3D);
     }
-
   }
 
 private:

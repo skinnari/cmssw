@@ -31,31 +31,26 @@ namespace l1t {
       hOverEValid_ = true;
     }
 
-    enum EnergyInterpretation {
-      EM = 0
-    };
+    //FIXME: this should not be defined here so that adding an interpreation doesn't actually affect the dataformat?
+    enum EnergyInterpretation { EM = 0 };
 
     void saveEnergyInterpretation(const HGCalMulticluster::EnergyInterpretation eInt, double energy);
 
     double iEnergy(const HGCalMulticluster::EnergyInterpretation eInt) const {
-      return energy()*interpretationFraction(eInt);
+      return energy() * interpretationFraction(eInt);
     }
 
-    double iPt(const HGCalMulticluster::EnergyInterpretation eInt) const {
-      return pt()*interpretationFraction(eInt);
-    }
+    double iPt(const HGCalMulticluster::EnergyInterpretation eInt) const { return pt() * interpretationFraction(eInt); }
 
     math::XYZTLorentzVector iP4(const HGCalMulticluster::EnergyInterpretation eInt) const {
-      return p4()*interpretationFraction(eInt);
+      return p4() * interpretationFraction(eInt);
     }
 
     math::PtEtaPhiMLorentzVector iPolarP4(const HGCalMulticluster::EnergyInterpretation eInt) const {
-      return math::PtEtaPhiMLorentzVector(pt()*interpretationFraction(eInt), eta(), phi(), 0.);
+      return math::PtEtaPhiMLorentzVector(pt() * interpretationFraction(eInt), eta(), phi(), 0.);
     }
 
-
   private:
-
     double interpretationFraction(const HGCalMulticluster::EnergyInterpretation eInt) const;
 
     float hOverE_;

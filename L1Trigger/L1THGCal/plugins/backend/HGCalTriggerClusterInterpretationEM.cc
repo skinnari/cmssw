@@ -4,14 +4,12 @@
 #include "DataFormats/L1THGCal/interface/HGCalMulticluster.h"
 #include "L1Trigger/L1THGCal/interface/HGCalTriggerTools.h"
 
-
 class HGCalTriggerClusterInterpretationEM : public HGCalTriggerClusterInterpreterBase {
-
 public:
   HGCalTriggerClusterInterpretationEM();
   ~HGCalTriggerClusterInterpretationEM() override{};
   void initialize(const edm::ParameterSet& conf) final;
-  void eventSetup(const edm::EventSetup& es)  final;
+  void eventSetup(const edm::EventSetup& es) final;
   void interpret(l1t::HGCalMulticlusterBxCollection& multiclusters) const final;
 
 private:
@@ -24,7 +22,6 @@ private:
 
 DEFINE_HGC_TPG_CLUSTER_INTERPRETER(HGCalTriggerClusterInterpretationEM, "HGCalTriggerClusterInterpretationEM");
 
-
 HGCalTriggerClusterInterpretationEM::HGCalTriggerClusterInterpretationEM() {}
 
 void HGCalTriggerClusterInterpretationEM::initialize(const edm::ParameterSet& conf) {
@@ -33,31 +30,27 @@ void HGCalTriggerClusterInterpretationEM::initialize(const edm::ParameterSet& co
   dr_bylayer_ = conf.getParameter<std::vector<double>>("dr_bylayer");
 }
 
-
-void HGCalTriggerClusterInterpretationEM::eventSetup(const edm::EventSetup& es) {
-  triggerTools_.eventSetup(es);
-}
-
+void HGCalTriggerClusterInterpretationEM::eventSetup(const edm::EventSetup& es) { triggerTools_.eventSetup(es); }
 
 void HGCalTriggerClusterInterpretationEM::interpret(l1t::HGCalMulticlusterBxCollection& multiclusters) const {
-  for(unsigned int idx = 0; idx != multiclusters.size(); idx++) {
+  for (unsigned int idx = 0; idx != multiclusters.size(); idx++) {
     l1t::HGCalMulticluster& cluster3d = multiclusters[idx];
 
     const GlobalPoint& cluster3d_position = cluster3d.centreProj();
     // const
     double energy = 0.;
 
-    for(const auto& cluster2d: cluster3d.constituents()) {
+    for (const auto& cluster2d : cluster3d.constituents()) {
       const unsigned layer = triggerTools_.layerWithOffset(cluster2d.first);
-      if(layer <= 28) {
+      if (layer <= 28) {
         double dr = (cluster3d_position - cluster2d.second->centreProj()).mag();
-        const unsigned layer_index = (layer-1)/2;
-        if(dr <= dr_bylayer_.at(layer_index)) {
-          energy += layer_containment_corrs_.at(layer_index)*cluster2d.second->energy();
+        const unsigned layer_index = (layer - 1) / 2;
+        if (dr <= dr_bylayer_.at(layer_index)) {
+          energy += layer_containment_corrs_.at(layer_index) * cluster2d.second->energy();
         }
       }
     }
-    energy += scale_corrections_coeff_.at(1)*fabs(cluster3d.eta())+scale_corrections_coeff_.at(0);
+    energy += scale_corrections_coeff_.at(1) * fabs(cluster3d.eta()) + scale_corrections_coeff_.at(0);
     cluster3d.saveEnergyInterpretation(l1t::HGCalMulticluster::EnergyInterpretation::EM, max(energy, 0.));
   }
 }
