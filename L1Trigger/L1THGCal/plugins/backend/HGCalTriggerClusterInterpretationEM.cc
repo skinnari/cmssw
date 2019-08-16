@@ -57,7 +57,7 @@ void HGCalTriggerClusterInterpretationEM::interpret(l1t::HGCalMulticlusterBxColl
         }
       }
     }
-    energy -= scale_corrections_coeff_.at(0)*fabs(cluster3d.eta())+scale_corrections_coeff_.at(1);
+    energy += scale_corrections_coeff_.at(1)*fabs(cluster3d.eta())+scale_corrections_coeff_.at(0);
     cluster3d.saveEnergyInterpretation(l1t::HGCalMulticluster::EnergyInterpretation::EM, max(energy, 0.));
   }
 }
