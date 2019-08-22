@@ -31,7 +31,6 @@ namespace l1t {
       hOverEValid_ = true;
     }
 
-    //FIXME: this should not be defined here so that adding an interpreation doesn't actually affect the dataformat?
     enum EnergyInterpretation { EM = 0 };
 
     void saveEnergyInterpretation(const HGCalMulticluster::EnergyInterpretation eInt, double energy);

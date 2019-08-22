@@ -25,9 +25,20 @@ DEFINE_HGC_TPG_CLUSTER_INTERPRETER(HGCalTriggerClusterInterpretationEM, "HGCalTr
 HGCalTriggerClusterInterpretationEM::HGCalTriggerClusterInterpretationEM() {}
 
 void HGCalTriggerClusterInterpretationEM::initialize(const edm::ParameterSet& conf) {
-  layer_containment_corrs_ = conf.getParameter<std::vector<double>>("layer_containment_corr");
+  layer_containment_corrs_ = conf.getParameter<std::vector<double>>("layer_containment_corrs");
   scale_corrections_coeff_ = conf.getParameter<std::vector<double>>("scale_correction_coeff");
   dr_bylayer_ = conf.getParameter<std::vector<double>>("dr_bylayer");
+
+  if (scale_corrections_coeff_.size() != 2) {
+    throw cms::Exception("HGCTriggerParameterError")
+        << "HGCalTriggerClusterInterpretationEM::scale_correction_coeff parameter has size: "
+        << scale_corrections_coeff_.size() << " while expected is 2";
+  }
+  if (layer_containment_corrs_.size() != dr_bylayer_.size()) {
+    throw cms::Exception("HGCTriggerParameterError")
+        << "HGCalTriggerClusterInterpretationEM::layer_containment_corrs and "
+           "HGCalTriggerClusterInterpretationEM::dr_bylayer have different size!";
+  }
 }
 
 void HGCalTriggerClusterInterpretationEM::eventSetup(const edm::EventSetup& es) { triggerTools_.eventSetup(es); }
@@ -37,12 +48,11 @@ void HGCalTriggerClusterInterpretationEM::interpret(l1t::HGCalMulticlusterBxColl
     l1t::HGCalMulticluster& cluster3d = multiclusters[idx];
 
     const GlobalPoint& cluster3d_position = cluster3d.centreProj();
-    // const
     double energy = 0.;
 
     for (const auto& cluster2d : cluster3d.constituents()) {
       const unsigned layer = triggerTools_.layerWithOffset(cluster2d.first);
-      if (layer <= 28) {
+      if (layer <= layer_containment_corrs_.size() * 2) {
         double dr = (cluster3d_position - cluster2d.second->centreProj()).mag();
         const unsigned layer_index = (layer - 1) / 2;
         if (dr <= dr_bylayer_.at(layer_index)) {
