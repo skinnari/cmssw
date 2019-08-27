@@ -51,12 +51,11 @@ void HGCalTriggerClusterInterpretationEM::interpret(l1t::HGCalMulticlusterBxColl
     double energy = 0.;
 
     for (const auto& cluster2d : cluster3d.constituents()) {
-      const unsigned layer = triggerTools_.layerWithOffset(cluster2d.first);
-      if (layer <= layer_containment_corrs_.size() * 2) {
+      const unsigned layer = triggerTools_.triggerLayer(cluster2d.first);
+      if (layer <= layer_containment_corrs_.size() - 1) {
         double dr = (cluster3d_position - cluster2d.second->centreProj()).mag();
-        const unsigned layer_index = (layer - 1) / 2;
-        if (dr <= dr_bylayer_.at(layer_index)) {
-          energy += layer_containment_corrs_.at(layer_index) * cluster2d.second->energy();
+        if (dr <= dr_bylayer_.at(layer)) {
+          energy += layer_containment_corrs_.at(layer) * cluster2d.second->energy();
         }
       }
     }
