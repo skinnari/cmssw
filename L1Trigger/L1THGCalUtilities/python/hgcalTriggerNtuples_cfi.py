@@ -82,7 +82,7 @@ ntuple_multiclusters = cms.PSet(
     Multiclusters = cms.InputTag('hgcalBackEndLayer2Producer:HGCalBackendLayer2Processor3DClustering'),
     EGIdentification = egamma_identification_histomax.clone(),
     FillLayerInfo = cms.bool(False),
-    EnergyInterpretations = cms.vuint32(0)
+    FillInterpretationInfo = cms.bool(True)
 )
 
 ntuple_panels = cms.PSet(

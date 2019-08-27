@@ -17,9 +17,9 @@ private:
   edm::EDGetToken multiclusters_token_;
 
   bool fill_layer_info_;
-  std::unique_ptr<HGCalTriggerClusterIdentificationBase> id_;
+  bool fill_interpretation_info_;
 
-  std::vector<unsigned> interpretations_;
+  std::unique_ptr<HGCalTriggerClusterIdentificationBase> id_;
 
   int cl3d_n_;
   std::vector<uint32_t> cl3d_id_;
@@ -62,7 +62,7 @@ DEFINE_EDM_PLUGIN(HGCalTriggerNtupleFactory, HGCalTriggerNtupleHGCMulticlusters,
 HGCalTriggerNtupleHGCMulticlusters::HGCalTriggerNtupleHGCMulticlusters(const edm::ParameterSet& conf)
     : HGCalTriggerNtupleBase(conf),
       fill_layer_info_(conf.getParameter<bool>("FillLayerInfo")),
-      interpretations_(conf.getParameter<std::vector<unsigned>>("EnergyInterpretations")) {}
+      fill_interpretation_info_(conf.getParameter<bool>("FillInterpretationInfo")) {}
 
 void HGCalTriggerNtupleHGCMulticlusters::initialize(TTree& tree,
                                                     const edm::ParameterSet& conf,
@@ -113,7 +113,7 @@ void HGCalTriggerNtupleHGCMulticlusters::initialize(TTree& tree,
   tree.Branch(withPrefix("ntc90"), &cl3d_ntc90_);
   tree.Branch(withPrefix("bdteg"), &cl3d_bdteg_);
   tree.Branch(withPrefix("quality"), &cl3d_quality_);
-  if (interpretations_.size() != 0) {
+  if (fill_interpretation_info_) {
     tree.Branch(withPrefix("ipt"), &cl3d_ipt_);
     tree.Branch(withPrefix("ienergy"), &cl3d_ienergy_);
   }
@@ -161,9 +161,11 @@ void HGCalTriggerNtupleHGCMulticlusters::fill(const edm::Event& e, const edm::Ev
     cl3d_ntc90_.emplace_back(cl3d_itr->triggerCells90percent());
     cl3d_bdteg_.emplace_back(id_->value(*cl3d_itr));
     cl3d_quality_.emplace_back(cl3d_itr->hwQual());
-    for (auto interp : interpretations_) {
-      cl3d_ipt_.emplace_back(cl3d_itr->iPt(static_cast<l1t::HGCalMulticluster::EnergyInterpretation>(interp)));
-      cl3d_ienergy_.emplace_back(cl3d_itr->iEnergy(static_cast<l1t::HGCalMulticluster::EnergyInterpretation>(interp)));
+    if (fill_interpretation_info_) {
+      for (auto interp : cl3d_itr->energyInterpretations()) {
+        cl3d_ipt_.emplace_back(cl3d_itr->iPt(interp));
+        cl3d_ienergy_.emplace_back(cl3d_itr->iEnergy(interp));
+      }
     }
 
     //Per layer cluster information

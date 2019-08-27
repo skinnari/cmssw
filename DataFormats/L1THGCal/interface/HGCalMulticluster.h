@@ -49,6 +49,14 @@ namespace l1t {
       return math::PtEtaPhiMLorentzVector(pt() * interpretationFraction(eInt), eta(), phi(), 0.);
     }
 
+    std::vector<EnergyInterpretation> energyInterpretations() const {
+      std::vector<EnergyInterpretation> keys;
+      for (auto &kvp : energyInterpretationFractions_) {
+        keys.emplace_back(kvp.first);
+      }
+      return keys;
+    }
+
   private:
     double interpretationFraction(const HGCalMulticluster::EnergyInterpretation eInt) const;
 
