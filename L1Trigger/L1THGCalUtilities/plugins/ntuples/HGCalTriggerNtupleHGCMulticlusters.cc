@@ -161,11 +161,16 @@ void HGCalTriggerNtupleHGCMulticlusters::fill(const edm::Event& e, const edm::Ev
     cl3d_ntc90_.emplace_back(cl3d_itr->triggerCells90percent());
     cl3d_bdteg_.emplace_back(id_->value(*cl3d_itr));
     cl3d_quality_.emplace_back(cl3d_itr->hwQual());
+
     if (fill_interpretation_info_) {
+      std::vector<float> iPts;
+      std::vector<float> iEnergies;
       for (auto interp : cl3d_itr->energyInterpretations()) {
-        cl3d_ipt_.emplace_back(cl3d_itr->iPt(interp));
-        cl3d_ienergy_.emplace_back(cl3d_itr->iEnergy(interp));
+        iPts.emplace_back(cl3d_itr->iPt(interp));
+        iEnergies.emplace_back(cl3d_itr->iEnergy(interp));
       }
+      cl3d_ipt_.push_back(iPts);
+      cl3d_ienergy_.push_back(iEnergies);
     }
 
     //Per layer cluster information
