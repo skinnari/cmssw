@@ -18,7 +18,8 @@ process.load('Configuration.EventContent.EventContent_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
 #process.load('Configuration.Geometry.GeometryExtended2023D41Reco_cff')
 #process.load('Configuration.Geometry.GeometryExtended2023D41_cff')
-process.load('Configuration.Geometry.GeometryExtended2023D35Reco_cff')                                                                                                                              pprocess.load('Configuration.Geometry.GeometryExtended2023D35_cff')  
+process.load('Configuration.Geometry.GeometryExtended2023D35Reco_cff')                                                                  
+process.load('Configuration.Geometry.GeometryExtended2023D35_cff')  
 process.load('Configuration.StandardSequences.SimL1Emulator_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
@@ -35,8 +36,8 @@ process.load('CalibCalorimetry.CaloTPG.CaloTPGTranscoder_cfi')
 
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10))
 Source_Files = cms.untracked.vstring(
-    #"/store/relval/CMSSW_10_6_0_pre3/RelValElectronGunPt2To100/GEN-SIM-DIGI-RAW/105X_upgrade2023_realistic_v5_2023D41noPU-v2/10000/011E8CAC-87DC-A041-83EC-2CB1F8863E45.root"
-    "/store/mc/PhaseIIMTDTDRAutumn18DR/SingleE_FlatPt-2to100/FEVT/NoPU_103X_upgrade2023_realistic_v2-v1/70000/F9B9F776-3DB1-5040-B16D-9B55CCCD3F82.root"
+   #"/store/mc/PhaseIITDRSpring19DR/SingleElectron_PT2to100/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/40000/FC554DC8-1F1C-644A-B131-D07533351CA3.root"
+   "/store/mc/PhaseIIMTDTDRAutumn18DR/SingleE_FlatPt-2to100/FEVT/NoPU_103X_upgrade2023_realistic_v2-v1/70000/F580DB8B-1012-024B-9E38-04B88DA9413C.root"
 )
     
 process.source = cms.Source("PoolSource", 
