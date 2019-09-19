@@ -3,9 +3,19 @@
 ############################################################
 
 import FWCore.ParameterSet.Config as cms
+import FWCore.ParameterSet.VarParsing as VarParsing ##parsing argument
 import FWCore.Utilities.FileUtils as FileUtils
 import os
 from Configuration.StandardSequences.Eras import eras
+
+options = VarParsing.VarParsing ('analysis')
+# get and parse the command line arguments
+options.parseArguments()
+
+#options.outputFile = 'D35_single_electron.root'
+#options.inputFiles= '/store/mc/PhaseIIMTDTDRAutumn18DR/SingleE_FlatPt-2to100/FEVT/NoPU_103X_upgrade2023_realistic_v2-v1/70000/F9B9F776-3DB1-5040-B16D-9B55CCCD3F82.root '
+#options.maxEvents = 100  # -1 means all events
+
 process = cms.Process("L1TrackElectrons",eras.Phase2C4_trigger)
 
 
@@ -31,7 +41,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, '103X_upgrade2023_realistic_v2'
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(options.maxEvents))
 Source_Files = cms.untracked.vstring(
     "/store/mc/PhaseIIMTDTDRAutumn18DR/SingleE_FlatPt-2to100/FEVT/NoPU_103X_upgrade2023_realistic_v2-v1/70000/F9B9F776-3DB1-5040-B16D-9B55CCCD3F82.root",
     "/store/mc/PhaseIIMTDTDRAutumn18DR/SingleE_FlatPt-2to100/FEVT/NoPU_103X_upgrade2023_realistic_v2-v1/70000/F580DB8B-1012-024B-9E38-04B88DA9413C.root",
@@ -41,7 +51,7 @@ Source_Files = cms.untracked.vstring(
 )
     
 process.source = cms.Source("PoolSource", 
-                            fileNames = Source_Files,
+                            fileNames = cms.untracked.vstring(options.inputFiles),
                             inputCommands = cms.untracked.vstring(
                               'keep *_*_*_*',
                               'drop l1tEMTFHit2016*_*_*_*',
@@ -49,7 +59,7 @@ process.source = cms.Source("PoolSource",
                               )
                             )
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('ntuple_L1TkElec.root'), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string(options.outputFile), closeFileFast = cms.untracked.bool(True))
 
 
 
@@ -67,14 +77,14 @@ process.load("RecoVertex.BeamSpotProducer.BeamSpot_cfi")
 #process.TTTracksWithTruth = cms.Path(process.offlineBeamSpot*process.L1TrackletTracksWithAssociators)
 
 ## emulation 
-process.load("L1Trigger.TrackFindingTracklet.L1TrackletEmulationTracks_cff")
-process.TTTracksEmulation = cms.Path(process.offlineBeamSpot*process.L1TrackletEmulationTracks)
-process.TTTracksEmulationWithTruth = cms.Path(process.offlineBeamSpot*process.L1TrackletEmulationTracksWithAssociators)
+#process.load("L1Trigger.TrackFindingTracklet.L1TrackletEmulationTracks_cff")
+#process.TTTracksEmulation = cms.Path(process.offlineBeamSpot*process.L1TrackletEmulationTracks)
+#process.TTTracksEmulationWithTruth = cms.Path(process.offlineBeamSpot*process.L1TrackletEmulationTracksWithAssociators)
 
 # Extended (displaced) emulation
-#process.load("L1Trigger.TrackFindingTracklet.L1ExtendedTrackletEmulationTracks_cff")
-#process.TTTracksExtendedEmulation = cms.Path(process.offlineBeamSpot*process.L1ExtendedTrackletEmulationTracks)
-#process.TTTracksExtendedEmulationWithTruth = cms.Path(process.offlineBeamSpot*process.L1ExtendedTrackletEmulationTracksWithAssociators)
+process.load("L1Trigger.TrackFindingTracklet.L1ExtendedTrackletEmulationTracks_cff")
+process.TTTracksExtendedEmulation = cms.Path(process.offlineBeamSpot*process.L1ExtendedTrackletEmulationTracks)
+process.TTTracksExtendedEmulationWithTruth = cms.Path(process.offlineBeamSpot*process.L1ExtendedTrackletEmulationTracksWithAssociators)
 
 
 ############################################################
@@ -106,10 +116,10 @@ process.pL1EG_HGC = cms.Path( process.l1EGammaEEProducer )
 ############################################################
 
 process.L1TkElNtuple = cms.EDAnalyzer('L1TrackElectronNtupler',
-                                      L1Tk_nPar = cms.int32(4), #4 or 5-parameter fit?
+                                      L1Tk_nPar = cms.int32(5), #4 or 5-parameter fit?
                                       #L1TrackInputTag = cms.InputTag("TTTracksFromTracklet", "Level1TTTracks"),
-                                      L1TrackInputTag = cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks"),
-                                      #L1TrackInputTag = cms.InputTag("TTTracksFromExtendedTrackletEmulation", "Level1TTTracks"),
+                                      #L1TrackInputTag = cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks"),
+                                      L1TrackInputTag = cms.InputTag("TTTracksFromExtendedTrackletEmulation", "Level1TTTracks"),
                                       MCTruthTrackInputTag = cms.InputTag("TTTrackAssociatorFromPixelDigis", "Level1TTTracks"),
                                       GenParticleInputTag = cms.InputTag("genParticles",""),
                                       L1EGammaCrystalInputTag = cms.InputTag("L1EGammaClusterEmuProducer","L1EGammaCollectionBXVEmulator"),
@@ -131,6 +141,8 @@ process.out = cms.OutputModule("PoolOutputModule",
 process.FEVToutput_step = cms.EndPath(process.out)
 
 # this generates the trigger primitives from barrel ECAL + HGCal, runs 3 versions of L1 tracking (floating-point tracklet simulation, hybrid, extended hybrid), and the analyzers
-process.schedule = cms.Schedule(process.hgcl1tpg_step, process.EcalEBtp_step, process.pL1EG_EB, process.pL1EG_HGC, 
-                                process.TTTracksEmulationWithTruth, process.ana)
+#process.schedule = cms.Schedule(process.hgcl1tpg_step, process.EcalEBtp_step, process.pL1EG_EB, process.pL1EG_HGC, 
+#                                process.TTTracksEmulationWithTruth, process.ana)
+process.schedule = cms.Schedule(process.hgcl1tpg_step, process.EcalEBtp_step, process.pL1EG_EB, process.pL1EG_HGC,
+                                process.TTTracksExtendedEmulationWithTruth, process.ana)
 
