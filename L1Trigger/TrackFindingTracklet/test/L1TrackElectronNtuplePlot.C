@@ -58,12 +58,12 @@ float phiCorr (float &pt,float &eta,float &phi,int &charge,int &hgc,float phicor
 float etaCorr (float &eta,float &z0,int &hgc); // eta correction
 vector<float> dZAtDRMatchPtVMaker ( vector<float> &mainpt, vector<float> &maineta, vector<float> &mainphi, vector<int> &mainlooseTkID, vector<int> &mainhgc, vector<float> &looppt, vector<float> &loopeta, vector<float> &loopphi, vector<int> &loopcharge, vector<float> &loopz0, float dr, bool phietacorr, float correction=0, float trackZ0multiplier=1.0 );
 vector<float> dLAtDRMatchPtVMaker ( vector<float> &mainpt, vector<float> &maineta, vector<float> &mainphi, vector<int> &mainlooseTkID, vector<int> &mainhgc, vector<float> &looppt, vector<float> &loopeta, vector<float> &loopphi, vector<int> &loopcharge, vector<float> &loopz0, float dr, bool phietacorr, float correction=0, float trackZ0multiplier=1.0 );
-vector<float> dPhiAtDRMatchPtVMaker ( vector<float> &mainpt, vector<float> &maineta, vector<float> &mainphi, vector<int> &mainlooseTkID, vector<int> &mainhgc, vector<float> &looppt, vector<float> &loopeta, vector<float> &loopphi, vector<int> &loopcharge, vector<float> &loopz0, float dr, bool phietacorr, bool dphimatch, bool iso);
+vector<float> dPhiAtDRMatchPtVMaker ( vector<float> &mainpt, vector<float> &maineta, vector<float> &mainphi, vector<int> &mainlooseTkID, vector<int> &mainhgc, vector<float> &looppt, vector<float> &loopeta, vector<float> &loopphi, vector<int> &loopcharge, vector<float> &loopz0, vector<float> &loopd0, float dr,bool phietacorr, bool dphimatch, bool iso);
 vector<float> dEtaAtDRMatchPtVMaker ( vector<float> &mainpt, vector<float> &maineta, vector<float> &mainphi, vector<int> &mainlooseTkID, vector<int> &mainhgc, vector<float> &looppt, vector<float> &loopeta, vector<float> &loopphi, vector<int> &loopcharge, vector<float> &loopz0, float dr, bool phietacorr, bool dphimatch, bool iso);
 vector<float> dPhiTrack ( vector<float> &mainpt, vector<float> &maineta, vector<float> &mainphi, vector<float> &looppt, vector<float> &loopeta, vector<float> &loopphi, vector<int> &loopcharge, float dr);
 vector<float> dEgamma ( vector<float> &mainpt, vector<float> &maineta, vector<float> &mainphi,vector<float> &looppt, vector<float> &loopeta, vector<float> &loopphi, vector<int> &looplooseTkID, vector<int> &loophgc, vector<float> &loopdphi, vector<float> &loopdeta, vector<float> &loopdz, vector<float> &loopdl, float dr, bool tk_eg_match, bool gen_eg_delta, int delta);
 vector<float> dR ( vector<float> &mainpt, vector<float> &maineta, vector<float> &mainphi, vector<float> &looppt, vector<float> &loopeta, vector<float> &loopphi);
-float rel_isolation (float &mainpt, float &maineta, float &mainphi, float &mainz0, vector<float> &looppt, vector<float> &loopeta, vector<float> &loopphi, vector<float> &loopz0 );
+float rel_isolation (float &mainpt, float &maineta, float &mainphi, float &mainz0, float &maind0, vector<float> &looppt, vector<float> &loopeta, vector<float> &loopphi, vector<float> &loopz0, vector<float> &loopd0 );
 
 // ----------------------------------------------------------------------------------------------------------------
 // Main script
@@ -119,6 +119,7 @@ void L1TrackElectronNtuplePlot(TString type, bool ifcorr=true, bool dphimatching
   vector<float>* trk_phi;
   vector<int>* trk_charge;
   vector<float>* trk_z0;
+  vector<float>* trk_d0;
  
   TBranch* b_gen_pt;
   TBranch* b_gen_eta;
@@ -136,6 +137,7 @@ void L1TrackElectronNtuplePlot(TString type, bool ifcorr=true, bool dphimatching
   TBranch* b_trk_phi;
   TBranch* b_trk_z0;
   TBranch* b_trk_charge;
+  TBranch* b_trk_d0;
     
   gen_pt=0;
   gen_eta=0;
@@ -153,6 +155,7 @@ void L1TrackElectronNtuplePlot(TString type, bool ifcorr=true, bool dphimatching
   trk_phi=0;
   trk_charge=0;
   trk_z0=0;
+  trk_d0=0;
     
     
   tree->SetBranchAddress("gen_pt",   &gen_pt,   &b_gen_pt);
@@ -170,6 +173,7 @@ void L1TrackElectronNtuplePlot(TString type, bool ifcorr=true, bool dphimatching
   tree->SetBranchAddress("trk_phi",  &trk_phi,  &b_trk_phi);
   tree->SetBranchAddress("trk_eta",  &trk_eta,  &b_trk_eta);
   tree->SetBranchAddress("trk_z0", &trk_z0, &b_trk_z0);
+  tree->SetBranchAddress("trk_d0", &trk_d0, &b_trk_d0);
   tree->SetBranchAddress("trk_charge",   &trk_charge,   &b_trk_charge);
     
     
@@ -202,11 +206,6 @@ void L1TrackElectronNtuplePlot(TString type, bool ifcorr=true, bool dphimatching
   int count_egtrk=0;
   int count_egtrk_H=0;
   int count_egtrk_L=0;
-    
-  int count_egamma=0; //counting egamma objects
-  int count_dr_egamma=0; //counting egamma objects matched with tracks dr matching
-  
-
   
 
   // ----------------------------------------------------------------------------------------------------------------
@@ -323,7 +322,7 @@ void L1TrackElectronNtuplePlot(TString type, bool ifcorr=true, bool dphimatching
     
     auto dr=dR(*gen_pt,*gen_eta,*gen_phi,*trk_pt,*trk_eta,*trk_phi); //return delta R for further study
     auto dphitrack=dPhiTrack(*gen_pt,*gen_eta,*gen_phi,*trk_pt,*trk_eta,*trk_phi,*trk_charge,0.1);// gen particle match to track
-    auto elec_dphi=dPhiAtDRMatchPtVMaker(*elec_et,*elec_eta,*elec_phi,*elec_looseTkID,*elec_hgc,*trk_pt,*trk_eta,*trk_phi,*trk_charge,*trk_z0,0.08,ifcorr,dphimatching,ifiso);//L1EG match to track, dphi=9999 means no match
+    auto elec_dphi=dPhiAtDRMatchPtVMaker(*elec_et,*elec_eta,*elec_phi,*elec_looseTkID,*elec_hgc,*trk_pt,*trk_eta,*trk_phi,*trk_charge,*trk_z0,*trk_d0,0.08,ifcorr,dphimatching,ifiso);//L1EG match to track, dphi=9999 means no match
     auto elec_deta=dEtaAtDRMatchPtVMaker(*elec_et,*elec_eta,*elec_phi,*elec_looseTkID,*elec_hgc,*trk_pt,*trk_eta,*trk_phi,*trk_charge,*trk_z0,0.1,ifcorr,dphimatching,ifiso); // return deta for further study
     auto elec_dz=dZAtDRMatchPtVMaker(*elec_et,*elec_eta,*elec_phi,*elec_looseTkID,*elec_hgc,*trk_pt,*trk_eta,*trk_phi,*trk_charge,*trk_z0,0.1,ifcorr);//return dz for further study
     auto elec_dl=dLAtDRMatchPtVMaker(*elec_et,*elec_eta,*elec_phi,*elec_looseTkID,*elec_hgc,*trk_pt,*trk_eta,*trk_phi,*trk_charge,*trk_z0,0.1,ifcorr);//return dl for further study
@@ -495,9 +494,7 @@ void L1TrackElectronNtuplePlot(TString type, bool ifcorr=true, bool dphimatching
         if (isbarrel==0&&fabs(EG_eta.at(i)) > 1.479) continue;
         if (isbarrel==1&&fabs(EG_eta.at(i)) < 1.479) continue;
         
-        count_egamma++;
         if (EG_dPhi.at(i)>=9998) continue;
-        count_dr_egamma++;
         
         h_EG_dPhivsdEta->Fill(EG_dPhi.at(i),EG_dEta.at(i));
         
@@ -827,12 +824,7 @@ cout<<"number of EGamma ="<<EG_et.size()<<endl;
   k = (float)count_egtrk_H;
   N = (float)count_all_H;
   if (fabs(N)>0) cout << "efficiency for L1Eletron with pT > 40 = " << k/N*100.0 << " +- " << 1.0/N*sqrt(k*(1.0 - k/N))*100.0 << endl;
-    
-  k = (float)count_dr_egamma;
-  N = (float)count_egamma;
-  if (fabs(N)>0) cout << endl<<"efficiency for eg-trk mathcing " << k/N*100.0 << " +- " << 1.0/N*sqrt(k*(1.0 - k/N))*100.0 << endl;
   
-    
 //  resdR->Draw();
 //  resdR->Write();
 //  c.SaveAs(DIR+type+"_res_dR.pdf");
@@ -1070,7 +1062,7 @@ void mySmallText(Double_t x,Double_t y,Color_t color,char *text) {
 }
 
 // This is one of the most important functions in this program, it takes l1eg objects and try to match it with l1 tracks, corrections/isolation/matching criteria can be specified. This function returns a vector of dphi values. dphi = 9999 means l1eg has no matched l1tk.
-vector<float> dPhiAtDRMatchPtVMaker ( vector<float> &mainpt, vector<float> &maineta, vector<float> &mainphi, vector<int> &mainlooseTkID, vector<int> &mainhgc, vector<float> &looppt, vector<float> &loopeta, vector<float> &loopphi, vector<int> &loopcharge, vector<float> &loopz0, float dr,bool phietacorr, bool dphimatch, bool iso){
+vector<float> dPhiAtDRMatchPtVMaker ( vector<float> &mainpt, vector<float> &maineta, vector<float> &mainphi, vector<int> &mainlooseTkID, vector<int> &mainhgc, vector<float> &looppt, vector<float> &loopeta, vector<float> &loopphi, vector<int> &loopcharge, vector<float> &loopz0, vector<float> &loopd0, float dr,bool phietacorr, bool dphimatch, bool iso){
     vector<float> perobjectmindphi;
     TLorentzVector r, g, g1, g2;
     //
@@ -1105,6 +1097,7 @@ vector<float> dPhiAtDRMatchPtVMaker ( vector<float> &mainpt, vector<float> &main
             vector<float> candeta;
             vector<float> candphi;
             vector<float> candz0;
+            vector<float> candd0;
             //
             for (std::size_t j = 0; j != loopeta.size(); ++j) { // assume this is loop over tracks (doesnt have to be)
                 if (looppt.at(j)<5) continue; // add pt cut on tracks
@@ -1137,6 +1130,7 @@ vector<float> dPhiAtDRMatchPtVMaker ( vector<float> &mainpt, vector<float> &main
                         candeta.push_back(loopeta.at(j));
                         candphi.push_back(loopphi.at(j));
                         candz0.push_back(loopz0.at(j));
+                        candd0.push_back(loopd0.at(j));
 
                     }
                     dphideta=r.DeltaPhi(g)*r.DeltaPhi(g)/(dphicut*dphicut)+(r.Eta()-g.Eta())*(r.Eta()-g.Eta())/(detacut*detacut);
@@ -1145,6 +1139,7 @@ vector<float> dPhiAtDRMatchPtVMaker ( vector<float> &mainpt, vector<float> &main
                         candeta.push_back(loopeta.at(j));
                         candphi.push_back(loopphi.at(j));
                         candz0.push_back(loopz0.at(j));
+                        candd0.push_back(loopd0.at(j));
                         
                     }
                     
@@ -1154,7 +1149,7 @@ vector<float> dPhiAtDRMatchPtVMaker ( vector<float> &mainpt, vector<float> &main
             if(iso){// add isolation cut
                 for (std::size_t k = 0; k != candeta.size(); ++k){
                     g1.SetPtEtaPhiM( candpt.at(k), candeta.at(k), candphi.at(k), 0. );
-                    auto rel_iso=rel_isolation(candpt.at(k),candeta.at(k),candphi.at(k),candz0.at(k),looppt,loopeta,loopphi,loopz0);
+                    auto rel_iso=rel_isolation(candpt.at(k),candeta.at(k),candphi.at(k),candz0.at(k),candd0.at(k),looppt,loopeta,loopphi,loopz0,loopd0);
                     if (rel_iso<max_iso&&ptmatch<g1.Pt()){
                         ptmatch = g1.Pt();
                         dphimin=r.DeltaPhi(g1);
@@ -1515,13 +1510,17 @@ vector<float> dR ( vector<float> &mainpt, vector<float> &maineta, vector<float> 
 }
 
 // track isolations
-float rel_isolation (float &mainpt, float &maineta, float &mainphi, float &mainz0, vector<float> &looppt, vector<float> &loopeta, vector<float> &loopphi, vector<float> &loopz0 ){
+float rel_isolation (float &mainpt, float &maineta, float &mainphi, float &mainz0, float &maind0, vector<float> &looppt, vector<float> &loopeta, vector<float> &loopphi, vector<float> &loopz0, vector<float> &loopd0 ){
     TLorentzVector r, g;
     float pt_sum=0;
+    float detacut=0.01;
+    float dphicut=0.15;
+    float dphideta;
     r.SetPtEtaPhiM( mainpt, maineta, mainphi, 0. );
     for (std::size_t j = 0; j != loopeta.size(); ++j) {
         g.SetPtEtaPhiM( looppt.at(j), loopeta.at(j), loopphi.at(j), 0. );
-        if (fabs(mainz0-loopz0.at(j))<0.6&&r.DeltaR(g)>0.12&&r.DeltaR(g)<0.27){
+        dphideta=r.DeltaPhi(g)*r.DeltaPhi(g)/(dphicut*dphicut)+(r.Eta()-g.Eta())*(r.Eta()-g.Eta())/(detacut*detacut);
+        if (fabs(mainz0-loopz0.at(j))<0.6&&fabs(maind0-loopd0.at(j))<0.5&&r.DeltaR(g)>0.03&&r.DeltaR(g)<0.2){
             pt_sum+=g.Pt();
         }
     }
