@@ -12,9 +12,9 @@ options = VarParsing.VarParsing ('analysis')
 # get and parse the command line arguments
 options.parseArguments()
 
-#options.outputFile = 'D35_single_electron.root'
-#options.inputFiles= '/store/mc/PhaseIIMTDTDRAutumn18DR/SingleE_FlatPt-2to100/FEVT/NoPU_103X_upgrade2023_realistic_v2-v1/70000/F9B9F776-3DB1-5040-B16D-9B55CCCD3F82.root '
-#options.maxEvents = 100  # -1 means all events
+options.outputFile = 'D35_single_electron.root'
+options.inputFiles= '/store/mc/PhaseIIMTDTDRAutumn18DR/SingleE_FlatPt-2to100/FEVT/NoPU_103X_upgrade2023_realistic_v2-v1/70000/F9B9F776-3DB1-5040-B16D-9B55CCCD3F82.root '
+options.maxEvents = 100  # -1 means all events
 
 process = cms.Process("L1TrackElectrons",eras.Phase2C4_trigger)
 
