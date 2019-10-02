@@ -76,15 +76,15 @@ process.load("RecoVertex.BeamSpotProducer.BeamSpot_cfi")
 #process.TTTracks = cms.Path(process.offlineBeamSpot*process.L1TrackletTracks)
 #process.TTTracksWithTruth = cms.Path(process.offlineBeamSpot*process.L1TrackletTracksWithAssociators)
 
-## emulation 
-#process.load("L1Trigger.TrackFindingTracklet.L1TrackletEmulationTracks_cff")
-#process.TTTracksEmulation = cms.Path(process.offlineBeamSpot*process.L1TrackletEmulationTracks)
-#process.TTTracksEmulationWithTruth = cms.Path(process.offlineBeamSpot*process.L1TrackletEmulationTracksWithAssociators)
+# emulation 
+process.load("L1Trigger.TrackFindingTracklet.L1TrackletEmulationTracks_cff")
+process.TTTracksEmulation = cms.Path(process.offlineBeamSpot*process.L1TrackletEmulationTracks)
+process.TTTracksEmulationWithTruth = cms.Path(process.offlineBeamSpot*process.L1TrackletEmulationTracksWithAssociators)
 
-# Extended (displaced) emulation
-process.load("L1Trigger.TrackFindingTracklet.L1ExtendedTrackletEmulationTracks_cff")
-process.TTTracksExtendedEmulation = cms.Path(process.offlineBeamSpot*process.L1ExtendedTrackletEmulationTracks)
-process.TTTracksExtendedEmulationWithTruth = cms.Path(process.offlineBeamSpot*process.L1ExtendedTrackletEmulationTracksWithAssociators)
+## Extended (displaced) emulation
+#process.load("L1Trigger.TrackFindingTracklet.L1ExtendedTrackletEmulationTracks_cff")
+#process.TTTracksExtendedEmulation = cms.Path(process.offlineBeamSpot*process.L1ExtendedTrackletEmulationTracks)
+#process.TTTracksExtendedEmulationWithTruth = cms.Path(process.offlineBeamSpot*process.L1ExtendedTrackletEmulationTracksWithAssociators)
 
 
 ############################################################
@@ -110,6 +110,29 @@ process.pL1EG_EB = cms.Path( process.L1EGammaClusterEmuProducer )
 process.load('L1Trigger.L1CaloTrigger.l1EGammaEEProducer_cfi')
 process.pL1EG_HGC = cms.Path( process.l1EGammaEEProducer )
 
+
+
+############################################################
+# add standard L1TkElectron producers
+############################################################
+
+from L1Trigger.L1TTrackMatch.L1TkElectronTrackProducer_cfi import L1TkElectronsCrystal
+L1TkElectronsCrystal.L1TrackInputTag = cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks")
+process.pL1TkElectronsCrystal = cms.Path( L1TkElectronsCrystal )
+
+from L1Trigger.L1TTrackMatch.L1TkElectronTrackProducer_cfi import L1TkIsoElectronsCrystal
+L1TkIsoElectronsCrystal.L1TrackInputTag = cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks")
+process.pL1TkIsoElectronsCrystal = cms.Path( L1TkIsoElectronsCrystal )
+
+from L1Trigger.L1TTrackMatch.L1TkElectronTrackProducer_cfi import L1TkElectronsHGC
+L1TkElectronsHGC.L1TrackInputTag = cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks")
+process.pL1TkElectronsHGC = cms.Path( L1TkElectronsHGC )
+
+from L1Trigger.L1TTrackMatch.L1TkElectronTrackProducer_cfi import L1TkIsoElectronsHGC
+L1TkIsoElectronsHGC.L1TrackInputTag = cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks")
+process.pL1TkIsoElectronsHGC = cms.Path( L1TkIsoElectronsHGC )
+
+
              
 ############################################################
 # Track + Electron Ntuple
@@ -118,12 +141,16 @@ process.pL1EG_HGC = cms.Path( process.l1EGammaEEProducer )
 process.L1TkElNtuple = cms.EDAnalyzer('L1TrackElectronNtupler',
                                       L1Tk_nPar = cms.int32(5), #4 or 5-parameter fit?
                                       #L1TrackInputTag = cms.InputTag("TTTracksFromTracklet", "Level1TTTracks"),
-                                      #L1TrackInputTag = cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks"),
-                                      L1TrackInputTag = cms.InputTag("TTTracksFromExtendedTrackletEmulation", "Level1TTTracks"),
+                                      L1TrackInputTag = cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks"),
+                                      #L1TrackInputTag = cms.InputTag("TTTracksFromExtendedTrackletEmulation", "Level1TTTracks"),
                                       MCTruthTrackInputTag = cms.InputTag("TTTrackAssociatorFromPixelDigis", "Level1TTTracks"),
                                       GenParticleInputTag = cms.InputTag("genParticles",""),
                                       L1EGammaCrystalInputTag = cms.InputTag("L1EGammaClusterEmuProducer","L1EGammaCollectionBXVEmulator"),
-                                      L1EGammaHGCInputTag = cms.InputTag("l1EGammaEEProducer","L1EGammaCollectionBXVWithCuts")
+                                      L1EGammaHGCInputTag = cms.InputTag("l1EGammaEEProducer","L1EGammaCollectionBXVWithCuts"),
+                                      tkEGBarrelInputTag = cms.InputTag("L1TkElectronsCrystal","EG"),
+                                      tkEGIsoBarrelInputTag = cms.InputTag("L1TkIsoElectronsCrystal","EG"),
+                                      tkEGHGCInputTag = cms.InputTag("L1TkElectronsHGC","EG"),
+                                      tkEGIsoHGCInputTag = cms.InputTag("L1TkIsoElectronsHGC","EG")
 )
 process.ana = cms.Path(process.L1TkElNtuple)
 
@@ -136,13 +163,13 @@ process.out = cms.OutputModule("PoolOutputModule",
                                                                       'keep *_TTTrack*_Level1TTTracks_*', 
                                                                       'keep *_L1EGammaClusterEmu*_L1EG*_*', 
                                                                       'keep *_l1EGammaEE*_L1EG*_*', 
+                                                                      'keep *_L1Tk*_*_*', 
 )
 )
 process.FEVToutput_step = cms.EndPath(process.out)
 
 # this generates the trigger primitives from barrel ECAL + HGCal, runs 3 versions of L1 tracking (floating-point tracklet simulation, hybrid, extended hybrid), and the analyzers
-#process.schedule = cms.Schedule(process.hgcl1tpg_step, process.EcalEBtp_step, process.pL1EG_EB, process.pL1EG_HGC, 
-#                                process.TTTracksEmulationWithTruth, process.ana)
 process.schedule = cms.Schedule(process.hgcl1tpg_step, process.EcalEBtp_step, process.pL1EG_EB, process.pL1EG_HGC,
-                                process.TTTracksExtendedEmulationWithTruth, process.ana)
+                                process.pL1TkElectronsCrystal, process.pL1TkIsoElectronsCrystal, process.pL1TkElectronsHGC, process.pL1TkIsoElectronsHGC, 
+                                process.TTTracksEmulationWithTruth, process.ana)
 

@@ -38,6 +38,12 @@
 #include "DataFormats/Phase2L1CaloTrig/interface/L1EGCrystalCluster.h"
 #include "DataFormats/L1Trigger/interface/EGamma.h"
 
+#include "DataFormats/L1Trigger/interface/L1Candidate.h"
+#include "DataFormats/L1TrackTrigger/interface/L1TkEmParticle.h"
+#include "DataFormats/L1TrackTrigger/interface/L1TkEmParticleFwd.h"
+#include "DataFormats/L1TrackTrigger/interface/L1TkElectronParticle.h"
+#include "DataFormats/L1TrackTrigger/interface/L1TkElectronParticleFwd.h"
+
 ////////////////////////////
 // DETECTOR GEOMETRY HEADERS
 #include "MagneticField/Engine/interface/MagneticField.h"
@@ -115,6 +121,11 @@ private:
   edm::EDGetTokenT< l1t::EGammaBxCollection > egCrystalToken_;
   edm::EDGetTokenT< l1t::EGammaBxCollection > egHGCToken_;
 
+  edm::EDGetTokenT<l1t::L1TkElectronParticleCollection>  tkEGToken_;
+  edm::EDGetTokenT<l1t::L1TkElectronParticleCollection>  tkEGIsoToken_;
+  edm::EDGetTokenT<l1t::L1TkElectronParticleCollection>  tkEGTokenHGC_;
+  edm::EDGetTokenT<l1t::L1TkElectronParticleCollection>  tkEGIsoTokenHGC_;
+
 
   //-----------------------------------------------------------------------------------------------
   // tree & branches for mini-ntuple
@@ -162,6 +173,24 @@ private:
   std::vector<int>*   m_elec_photonID;
   std::vector<int>*   m_elec_hgc;     //0: barrel, 1: HGC
 
+  // L1 track-electrons
+  std::vector<float>* m_tkelec_et;
+  std::vector<float>* m_tkelec_eta;
+  std::vector<float>* m_tkelec_phi;
+  std::vector<int>*   m_tkelec_hwQual;
+  std::vector<int>*   m_tkelec_looseTkID;
+  std::vector<int>*   m_tkelec_photonID;
+  std::vector<int>*   m_tkelec_hgc;     //0: barrel, 1: HGC
+
+  std::vector<float>* m_tkisoelec_et;
+  std::vector<float>* m_tkisoelec_eta;
+  std::vector<float>* m_tkisoelec_phi;
+  std::vector<int>*   m_tkisoelec_hwQual;
+  std::vector<int>*   m_tkisoelec_looseTkID;
+  std::vector<int>*   m_tkisoelec_photonID;
+  std::vector<int>*   m_tkisoelec_hgc;     //0: barrel, 1: HGC
+
+
 };
 
 
@@ -189,6 +218,11 @@ L1TrackElectronNtupler::L1TrackElectronNtupler(edm::ParameterSet const& iConfig)
   genToken_            = consumes< reco::GenParticleCollection >(GenParticleInputTag);
   egCrystalToken_  = consumes< l1t::EGammaBxCollection >(L1EGammaCrystalInputTag);
   egHGCToken_      = consumes< l1t::EGammaBxCollection >(L1EGammaHGCInputTag);
+
+  tkEGToken_       = consumes<l1t::L1TkElectronParticleCollection>(iConfig.getParameter<edm::InputTag>("tkEGBarrelInputTag"));
+  tkEGIsoToken_    = consumes<l1t::L1TkElectronParticleCollection>(iConfig.getParameter<edm::InputTag>("tkEGIsoBarrelInputTag"));
+  tkEGTokenHGC_    = consumes<l1t::L1TkElectronParticleCollection>(iConfig.getParameter<edm::InputTag>("tkEGHGCInputTag"));
+  tkEGIsoTokenHGC_ = consumes<l1t::L1TkElectronParticleCollection>(iConfig.getParameter<edm::InputTag>("tkEGIsoHGCInputTag"));
 
 }
 
@@ -258,6 +292,22 @@ void L1TrackElectronNtupler::beginJob()
   m_elec_photonID  = new std::vector<int>;
   m_elec_hgc       = new std::vector<int>;
 
+  m_tkelec_et  = new std::vector<float>;
+  m_tkelec_eta = new std::vector<float>;
+  m_tkelec_phi = new std::vector<float>;
+  m_tkelec_hwQual = new std::vector<int>;
+  m_tkelec_looseTkID = new std::vector<int>;
+  m_tkelec_photonID  = new std::vector<int>;
+  m_tkelec_hgc       = new std::vector<int>;
+
+  m_tkisoelec_et  = new std::vector<float>;
+  m_tkisoelec_eta = new std::vector<float>;
+  m_tkisoelec_phi = new std::vector<float>;
+  m_tkisoelec_hwQual = new std::vector<int>;
+  m_tkisoelec_looseTkID = new std::vector<int>;
+  m_tkisoelec_photonID  = new std::vector<int>;
+  m_tkisoelec_hgc       = new std::vector<int>;
+
 
   // ntuple
   eventTree = fs->make<TTree>("eventTree", "Event tree");
@@ -299,6 +349,22 @@ void L1TrackElectronNtupler::beginJob()
   eventTree->Branch("elec_looseTkID", &m_elec_looseTkID);
   eventTree->Branch("elec_photonID",  &m_elec_photonID);
   eventTree->Branch("elec_hgc",       &m_elec_hgc);
+
+  eventTree->Branch("tkelec_et",        &m_tkelec_et);
+  eventTree->Branch("tkelec_eta",       &m_tkelec_eta);
+  eventTree->Branch("tkelec_phi",       &m_tkelec_phi);
+  eventTree->Branch("tkelec_hwQual",    &m_tkelec_hwQual);
+  eventTree->Branch("tkelec_looseTkID", &m_tkelec_looseTkID);
+  eventTree->Branch("tkelec_photonID",  &m_tkelec_photonID);
+  eventTree->Branch("tkelec_hgc",       &m_tkelec_hgc);
+
+  eventTree->Branch("tkisoelec_et",        &m_tkisoelec_et);
+  eventTree->Branch("tkisoelec_eta",       &m_tkisoelec_eta);
+  eventTree->Branch("tkisoelec_phi",       &m_tkisoelec_phi);
+  eventTree->Branch("tkisoelec_hwQual",    &m_tkisoelec_hwQual);
+  eventTree->Branch("tkisoelec_looseTkID", &m_tkisoelec_looseTkID);
+  eventTree->Branch("tkisoelec_photonID",  &m_tkisoelec_photonID);
+  eventTree->Branch("tkisoelec_hgc",       &m_tkisoelec_hgc);
 
 }
 
@@ -352,6 +418,22 @@ void L1TrackElectronNtupler::analyze(const edm::Event& iEvent, const edm::EventS
   m_elec_photonID->clear();
   m_elec_hgc->clear();
 
+  m_tkelec_et->clear();
+  m_tkelec_eta->clear();
+  m_tkelec_phi->clear();
+  m_tkelec_hwQual->clear();
+  m_tkelec_looseTkID->clear();
+  m_tkelec_photonID->clear();
+  m_tkelec_hgc->clear();
+
+  m_tkisoelec_et->clear();
+  m_tkisoelec_eta->clear();
+  m_tkisoelec_phi->clear();
+  m_tkisoelec_hwQual->clear();
+  m_tkisoelec_looseTkID->clear();
+  m_tkisoelec_photonID->clear();
+  m_tkisoelec_hgc->clear();
+
 
 
   // -----------------------------------------------------------------------------------------------
@@ -389,6 +471,16 @@ void L1TrackElectronNtupler::analyze(const edm::Event& iEvent, const edm::EventS
 
   edm::Handle<l1t::EGammaBxCollection> egHGCHandle;
   iEvent.getByToken(egHGCToken_, egHGCHandle);
+
+  // track-matched electrons
+  edm::Handle<l1t::L1TkElectronParticleCollection> tkEG;
+  iEvent.getByToken(tkEGToken_, tkEG);
+  edm::Handle<l1t::L1TkElectronParticleCollection> tkEGIso;
+  iEvent.getByToken(tkEGIsoToken_, tkEGIso);
+  edm::Handle<l1t::L1TkElectronParticleCollection> tkEGHGC;
+  iEvent.getByToken(tkEGTokenHGC_, tkEGHGC);
+  edm::Handle<l1t::L1TkElectronParticleCollection> tkEGIsoHGC;
+  iEvent.getByToken(tkEGIsoTokenHGC_, tkEGIsoHGC);
 
 
   // ----------------------------------------------------------------------------------------------
@@ -597,6 +689,10 @@ void L1TrackElectronNtupler::analyze(const edm::Event& iEvent, const edm::EventS
     m_elec_hgc->push_back(0);
   }
 
+  // ----------------------------------------------------------------------------------------------
+  // loop over HGC egamma objects
+  // ----------------------------------------------------------------------------------------------
+
   l1t::EGammaBxCollection::const_iterator iterEgHGC;
   for ( iterEgHGC = egHGCHandle->begin(0); iterEgHGC != egHGCHandle->end(0); iterEgHGC++ ) {
     
@@ -625,6 +721,106 @@ void L1TrackElectronNtupler::analyze(const edm::Event& iEvent, const edm::EventS
     m_elec_hgc->push_back(1);
   }
 
+  // ----------------------------------------------------------------------------------------------
+  // loop over tk-matched eg
+  // ----------------------------------------------------------------------------------------------
+
+  // barrel, w/o isolation
+  l1t::L1TkElectronParticleCollection::const_iterator iterTkEG;
+  for ( iterTkEG = tkEG->begin(); iterTkEG != tkEG->end(); iterTkEG++ ) {
+
+    float tmp_elec_et = iterTkEG->et();
+    float tmp_elec_eta = iterTkEG->eta();
+    float tmp_elec_phi = iterTkEG->phi();
+    float tmp_elec_hwQual = iterTkEG->hwQual();
+
+    m_tkelec_et->push_back(tmp_elec_et);
+    m_tkelec_eta->push_back(tmp_elec_eta);
+    m_tkelec_phi->push_back(tmp_elec_phi);
+    m_tkelec_hwQual->push_back(tmp_elec_hwQual);
+
+    bool quality = ( ( iterTkEG->hwQual() >> 1 ) & 1 ) > 0;
+    if (quality) m_tkelec_looseTkID->push_back(1);
+    else m_tkelec_looseTkID->push_back(0);
+    quality = ( ( iterTkEG->hwQual() >> 2 ) & 1 ) > 0;
+    if (quality) m_tkelec_photonID->push_back(1);
+    else m_tkelec_photonID->push_back(0);
+
+    m_tkelec_hgc->push_back(0);
+  }
+
+
+  // barrel, with isolation
+  l1t::L1TkElectronParticleCollection::const_iterator iterTkIsoEG;
+  for ( iterTkIsoEG = tkEGIso->begin(); iterTkIsoEG != tkEGIso->end(); iterTkIsoEG++ ) {
+
+    float tmp_elec_et = iterTkIsoEG->et();
+    float tmp_elec_eta = iterTkIsoEG->eta();
+    float tmp_elec_phi = iterTkIsoEG->phi();
+    float tmp_elec_hwQual = iterTkIsoEG->hwQual();
+
+    m_tkisoelec_et->push_back(tmp_elec_et);
+    m_tkisoelec_eta->push_back(tmp_elec_eta);
+    m_tkisoelec_phi->push_back(tmp_elec_phi);
+    m_tkisoelec_hwQual->push_back(tmp_elec_hwQual);
+
+    bool quality = ( ( iterTkIsoEG->hwQual() >> 1 ) & 1 ) > 0;
+    if (quality) m_tkisoelec_looseTkID->push_back(1);
+    else m_tkisoelec_looseTkID->push_back(0);
+    quality = ( ( iterTkIsoEG->hwQual() >> 2 ) & 1 ) > 0;
+    if (quality) m_tkisoelec_photonID->push_back(1);
+    else m_tkisoelec_photonID->push_back(0);
+
+    m_tkisoelec_hgc->push_back(0);
+  }
+
+  // HGC, w/o isolation
+  l1t::L1TkElectronParticleCollection::const_iterator iterTkEGHGC;
+  for ( iterTkEGHGC = tkEGHGC->begin(); iterTkEGHGC != tkEGHGC->end(); iterTkEGHGC++ ) {
+
+    float tmp_elec_et = iterTkEGHGC->et();
+    float tmp_elec_eta = iterTkEGHGC->eta();
+    float tmp_elec_phi = iterTkEGHGC->phi();
+    float tmp_elec_hwQual = iterTkEGHGC->hwQual();
+
+    m_tkelec_et->push_back(tmp_elec_et);
+    m_tkelec_eta->push_back(tmp_elec_eta);
+    m_tkelec_phi->push_back(tmp_elec_phi);
+    m_tkelec_hwQual->push_back(tmp_elec_hwQual);
+
+    bool quality = ( ( iterTkEGHGC->hwQual() >> 1 ) & 1 ) > 0;
+    if (quality) m_tkelec_looseTkID->push_back(1);
+    else m_tkelec_looseTkID->push_back(0);
+    quality = ( ( iterTkEGHGC->hwQual() >> 2 ) & 1 ) > 0;
+    if (quality) m_tkelec_photonID->push_back(1);
+    else m_tkelec_photonID->push_back(0);
+
+    m_tkelec_hgc->push_back(1);
+  }
+
+  // HGC, with isolation
+  l1t::L1TkElectronParticleCollection::const_iterator iterTkEGIsoHGC;
+  for ( iterTkEGIsoHGC = tkEGIsoHGC->begin(); iterTkEGIsoHGC != tkEGIsoHGC->end(); iterTkEGIsoHGC++ ) {
+
+    float tmp_elec_et = iterTkEGIsoHGC->et();
+    float tmp_elec_eta = iterTkEGIsoHGC->eta();
+    float tmp_elec_phi = iterTkEGIsoHGC->phi();
+    float tmp_elec_hwQual = iterTkEGIsoHGC->hwQual();
+
+    m_tkisoelec_et->push_back(tmp_elec_et);
+    m_tkisoelec_eta->push_back(tmp_elec_eta);
+    m_tkisoelec_phi->push_back(tmp_elec_phi);
+    m_tkisoelec_hwQual->push_back(tmp_elec_hwQual);
+
+    bool quality = ( ( iterTkEGIsoHGC->hwQual() >> 1 ) & 1 ) > 0;
+    if (quality) m_tkisoelec_looseTkID->push_back(1);
+    else m_tkisoelec_looseTkID->push_back(0);
+    quality = ( ( iterTkEGIsoHGC->hwQual() >> 2 ) & 1 ) > 0;
+    if (quality) m_tkisoelec_photonID->push_back(1);
+    else m_tkisoelec_photonID->push_back(0);
+
+    m_tkisoelec_hgc->push_back(1);
+  }
 
   eventTree->Fill();
 
