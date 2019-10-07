@@ -708,7 +708,7 @@ void L1TrackElectronNtupler::analyze(const edm::Event& iEvent, const edm::EventS
     m_elec_hwQual->push_back(tmp_elec_hwQual);
     m_elec_etiso->push_back(tmp_elec_etiso);
 
-    bool quality = (iterEgHGC->hwQual() == 3);
+    bool quality = (iterEgHGC->hwQual() == 2);
     if (quality){
       m_elec_looseTkID->push_back(1);
       m_elec_photonID->push_back(1);
@@ -732,14 +732,14 @@ void L1TrackElectronNtupler::analyze(const edm::Event& iEvent, const edm::EventS
     float tmp_elec_et = iterTkEG->et();
     float tmp_elec_eta = iterTkEG->eta();
     float tmp_elec_phi = iterTkEG->phi();
-    float tmp_elec_hwQual = iterTkEG->hwQual();
+    float tmp_elec_hwQual = iterTkEG->getEGRef()->hwQual();
 
     m_tkelec_et->push_back(tmp_elec_et);
     m_tkelec_eta->push_back(tmp_elec_eta);
     m_tkelec_phi->push_back(tmp_elec_phi);
     m_tkelec_hwQual->push_back(tmp_elec_hwQual);
 
-    bool quality = ( ( iterTkEG->hwQual() >> 1 ) & 1 ) > 0;
+    bool quality = ( ( iterTkEG->getEGRef()->hwQual() >> 1 ) & 1 ) > 0;
     if (quality) m_tkelec_looseTkID->push_back(1);
     else m_tkelec_looseTkID->push_back(0);
     quality = ( ( iterTkEG->hwQual() >> 2 ) & 1 ) > 0;
@@ -757,14 +757,14 @@ void L1TrackElectronNtupler::analyze(const edm::Event& iEvent, const edm::EventS
     float tmp_elec_et = iterTkIsoEG->et();
     float tmp_elec_eta = iterTkIsoEG->eta();
     float tmp_elec_phi = iterTkIsoEG->phi();
-    float tmp_elec_hwQual = iterTkIsoEG->hwQual();
+    float tmp_elec_hwQual = iterTkIsoEG->getEGRef()->hwQual();
 
     m_tkisoelec_et->push_back(tmp_elec_et);
     m_tkisoelec_eta->push_back(tmp_elec_eta);
     m_tkisoelec_phi->push_back(tmp_elec_phi);
     m_tkisoelec_hwQual->push_back(tmp_elec_hwQual);
 
-    bool quality = ( ( iterTkIsoEG->hwQual() >> 1 ) & 1 ) > 0;
+    bool quality = ( ( iterTkIsoEG->getEGRef()->hwQual() >> 1 ) & 1 ) > 0;
     if (quality) m_tkisoelec_looseTkID->push_back(1);
     else m_tkisoelec_looseTkID->push_back(0);
     quality = ( ( iterTkIsoEG->hwQual() >> 2 ) & 1 ) > 0;
@@ -781,19 +781,22 @@ void L1TrackElectronNtupler::analyze(const edm::Event& iEvent, const edm::EventS
     float tmp_elec_et = iterTkEGHGC->et();
     float tmp_elec_eta = iterTkEGHGC->eta();
     float tmp_elec_phi = iterTkEGHGC->phi();
-    float tmp_elec_hwQual = iterTkEGHGC->hwQual();
+    float tmp_elec_hwQual = iterTkEGHGC->getEGRef()->hwQual();
 
     m_tkelec_et->push_back(tmp_elec_et);
     m_tkelec_eta->push_back(tmp_elec_eta);
     m_tkelec_phi->push_back(tmp_elec_phi);
     m_tkelec_hwQual->push_back(tmp_elec_hwQual);
 
-    bool quality = ( ( iterTkEGHGC->hwQual() >> 1 ) & 1 ) > 0;
-    if (quality) m_tkelec_looseTkID->push_back(1);
-    else m_tkelec_looseTkID->push_back(0);
-    quality = ( ( iterTkEGHGC->hwQual() >> 2 ) & 1 ) > 0;
-    if (quality) m_tkelec_photonID->push_back(1);
-    else m_tkelec_photonID->push_back(0);
+    bool quality = (iterTkEGHGC->getEGRef()->hwQual() == 2);
+    if (quality){
+      m_tkelec_looseTkID->push_back(1);
+      m_tkelec_photonID->push_back(1);
+    }
+    else {
+      m_tkelec_looseTkID->push_back(0);
+      m_tkelec_photonID->push_back(0);
+    }
 
     m_tkelec_hgc->push_back(1);
   }
@@ -805,19 +808,22 @@ void L1TrackElectronNtupler::analyze(const edm::Event& iEvent, const edm::EventS
     float tmp_elec_et = iterTkEGIsoHGC->et();
     float tmp_elec_eta = iterTkEGIsoHGC->eta();
     float tmp_elec_phi = iterTkEGIsoHGC->phi();
-    float tmp_elec_hwQual = iterTkEGIsoHGC->hwQual();
+    float tmp_elec_hwQual = iterTkEGIsoHGC->getEGRef()->hwQual();
 
     m_tkisoelec_et->push_back(tmp_elec_et);
     m_tkisoelec_eta->push_back(tmp_elec_eta);
     m_tkisoelec_phi->push_back(tmp_elec_phi);
     m_tkisoelec_hwQual->push_back(tmp_elec_hwQual);
 
-    bool quality = ( ( iterTkEGIsoHGC->hwQual() >> 1 ) & 1 ) > 0;
-    if (quality) m_tkisoelec_looseTkID->push_back(1);
-    else m_tkisoelec_looseTkID->push_back(0);
-    quality = ( ( iterTkEGIsoHGC->hwQual() >> 2 ) & 1 ) > 0;
-    if (quality) m_tkisoelec_photonID->push_back(1);
-    else m_tkisoelec_photonID->push_back(0);
+    bool quality = (iterTkEGIsoHGC->getEGRef()->hwQual() == 2);
+    if (quality){
+      m_tkisoelec_looseTkID->push_back(1);
+      m_tkisoelec_photonID->push_back(1);
+    }
+    else {
+      m_tkisoelec_looseTkID->push_back(0);
+      m_tkisoelec_photonID->push_back(0);
+    }
 
     m_tkisoelec_hgc->push_back(1);
   }
