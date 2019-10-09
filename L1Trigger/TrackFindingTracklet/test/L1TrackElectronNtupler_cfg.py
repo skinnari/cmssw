@@ -115,6 +115,7 @@ process.pL1EG_HGC = cms.Path( process.l1EGammaEEProducer )
 ############################################################
 # add standard L1TkElectron producers
 ############################################################
+process.load('L1Trigger.L1TTrackMatch.L1TkElectronTrackProducer_cfi')
 
 from L1Trigger.L1TTrackMatch.L1TkElectronTrackProducer_cfi import L1TkElectronsCrystal
 L1TkElectronsCrystal.L1TrackInputTag = cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks")
@@ -131,6 +132,24 @@ process.pL1TkElectronsHGC = cms.Path( L1TkElectronsHGC )
 from L1Trigger.L1TTrackMatch.L1TkElectronTrackProducer_cfi import L1TkIsoElectronsHGC
 L1TkIsoElectronsHGC.L1TrackInputTag = cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks")
 process.pL1TkIsoElectronsHGC = cms.Path( L1TkIsoElectronsHGC )
+
+
+# Elliptical Matching
+from L1Trigger.L1TTrackMatch.L1TkElectronTrackProducer_cfi import L1TkElectronsCrystalEllipse
+L1TkElectronsCrystalEllipse.L1TrackInputTag = cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks")
+process.pL1TkElectronsCrystalEllipse = cms.Path( L1TkElectronsCrystalEllipse )
+
+from L1Trigger.L1TTrackMatch.L1TkElectronTrackProducer_cfi import L1TkIsoElectronsCrystalEllipse
+L1TkIsoElectronsCrystalEllipse.L1TrackInputTag = cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks")
+process.pL1TkIsoElectronsCrystalEllipse = cms.Path( L1TkIsoElectronsCrystalEllipse )
+
+from L1Trigger.L1TTrackMatch.L1TkElectronTrackProducer_cfi import L1TkElectronsHGCEllipse
+L1TkElectronsHGCEllipse.L1TrackInputTag = cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks")
+process.pL1TkElectronsHGCEllipse = cms.Path( L1TkElectronsHGCEllipse )
+
+from L1Trigger.L1TTrackMatch.L1TkElectronTrackProducer_cfi import L1TkIsoElectronsHGCEllipse
+L1TkIsoElectronsHGCEllipse.L1TrackInputTag = cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks")
+process.pL1TkIsoElectronsHGCEllipse = cms.Path( L1TkIsoElectronsHGCEllipse )
 
 
              
@@ -150,7 +169,11 @@ process.L1TkElNtuple = cms.EDAnalyzer('L1TrackElectronNtupler',
                                       tkEGBarrelInputTag = cms.InputTag("L1TkElectronsCrystal","EG"),
                                       tkEGIsoBarrelInputTag = cms.InputTag("L1TkIsoElectronsCrystal","EG"),
                                       tkEGHGCInputTag = cms.InputTag("L1TkElectronsHGC","EG"),
-                                      tkEGIsoHGCInputTag = cms.InputTag("L1TkIsoElectronsHGC","EG")
+                                      tkEGIsoHGCInputTag = cms.InputTag("L1TkIsoElectronsHGC","EG"),
+                                      tkEGBarrelEllipseInputTag = cms.InputTag("L1TkElectronsCrystalEllipse","EG"),
+                                      tkEGIsoBarrelEllipseInputTag = cms.InputTag("L1TkIsoElectronsCrystalEllipse","EG"),
+                                      tkEGHGCEllipseInputTag = cms.InputTag("L1TkElectronsHGCEllipse","EG"),
+                                      tkEGIsoHGCEllipseInputTag = cms.InputTag("L1TkIsoElectronsHGCEllipse","EG")
 )
 process.ana = cms.Path(process.L1TkElNtuple)
 
@@ -170,6 +193,10 @@ process.FEVToutput_step = cms.EndPath(process.out)
 
 # this generates the trigger primitives from barrel ECAL + HGCal, runs 3 versions of L1 tracking (floating-point tracklet simulation, hybrid, extended hybrid), and the analyzers
 process.schedule = cms.Schedule(process.hgcl1tpg_step, process.EcalEBtp_step, process.pL1EG_EB, process.pL1EG_HGC,
-                                process.pL1TkElectronsCrystal, process.pL1TkIsoElectronsCrystal, process.pL1TkElectronsHGC, process.pL1TkIsoElectronsHGC, 
+                                process.pL1TkElectronsCrystal, process.pL1TkIsoElectronsCrystal, process.pL1TkElectronsHGC,
+                                process.pL1TkIsoElectronsHGC, process.pL1TkElectronsCrystalEllipse,
+                                process.pL1TkIsoElectronsCrystalEllipse,
+                                process.pL1TkElectronsHGCEllipse, process.pL1TkIsoElectronsHGCEllipse,
                                 process.TTTracksEmulationWithTruth, process.ana)
+
 
