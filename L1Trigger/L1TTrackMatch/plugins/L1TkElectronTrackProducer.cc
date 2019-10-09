@@ -86,6 +86,8 @@ class L1TkElectronTrackProducer : public edm::EDProducer {
 
       float isolation(const edm::Handle<L1TTTrackCollectionType> & trkHandle, int match_index);
       double getPtScaledCut(double pt, std::vector<double>& parameters);
+      double getPtDependentCut(double pt, std::vector<double>& parameters);
+      double getEtaDependentCut(double eta, std::vector<double>& parameters);
 
       // ----------member data ---------------------------
 	std::string label;
@@ -103,12 +105,15 @@ class L1TkElectronTrackProducer : public edm::EDProducer {
 				// Used only when PrimaryVtxConstrain = True.
 	float IsoCut;
 	bool RelativeIsolation;
+    bool EllipticalMatching;
 
         float trkQualityChi2;
 	bool useTwoStubsPT;
         float trkQualityPtMin;
         std::vector<double> dPhiCutoff;
         std::vector<double> dRCutoff;
+        std::vector<double> dPhimax;
+        std::vector<double> dEtamax;
         float dEtaCutoff;
 
         const edm::EDGetTokenT< EGammaBxCollection > egToken;
@@ -143,6 +148,7 @@ L1TkElectronTrackProducer::L1TkElectronTrackProducer(const edm::ParameterSet& iC
    // cut applied on the isolation (if this number is <= 0, no cut is applied)
    IsoCut = (float)iConfig.getParameter<double>("IsoCut");
    RelativeIsolation = iConfig.getParameter<bool>("RelativeIsolation");
+   EllipticalMatching = iConfig.getParameter<bool>("EllipticalMatching");
 
    // parameters to select tracks to match with L1EG
    trkQualityChi2  = (float)iConfig.getParameter<double>("TrackChi2");
@@ -151,6 +157,8 @@ L1TkElectronTrackProducer::L1TkElectronTrackProducer(const edm::ParameterSet& iC
    dPhiCutoff      = iConfig.getParameter< std::vector<double> >("TrackEGammaDeltaPhi");
    dRCutoff        = iConfig.getParameter< std::vector<double> >("TrackEGammaDeltaR");
    dEtaCutoff      = (float)iConfig.getParameter<double>("TrackEGammaDeltaEta");
+   dPhimax      = iConfig.getParameter< std::vector<double> >("TrackEGammaDeltaPhimax");
+   dEtamax        = iConfig.getParameter< std::vector<double> >("TrackEGammaDeltaEtamax");
 
    produces<L1TkElectronParticleCollection>(label);
 }
@@ -219,10 +227,26 @@ L1TkElectronTrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iS
   	     double dPhi = 99.;
   	     double dR = 99.;
   	     double dEta = 99.;
+         double dPhim = 0.001 ;
+         double dEtam = 0.001 ;
+         double dPhidEta = 99.;
+         double trkPtmax = 0.;
+          if(!EllipticalMatching){// Standard Matching
   	     L1TkElectronTrackMatchAlgo::doMatch(egIter, L1TrackPtr, dPhi, dR, dEta);
          if (fabs(dPhi) < getPtScaledCut(trkPt, dPhiCutoff) && dR < getPtScaledCut(trkPt, dRCutoff) && dR < drmin) {
         	  drmin = dR;
         	  itrack = itr;
+           }
+          }
+          else{// Elliptical Matching
+          L1TkElectronTrackMatchAlgo::doMatch(egIter, L1TrackPtr, dPhi, dEta);
+          dPhim=getPtDependentCut(et_ele,dPhimax);
+          dEtam=getEtaDependentCut(eta_ele,dEtamax);
+          dPhidEta=dPhi*dPhi/(dPhim*dPhim)+dEta*dEta/(dEtam*dEtam);
+          if (dPhidEta<1&&trkPt>trkPtmax){
+              trkPtmax=trkPt;
+              itrack = itr;
+              }
           }
         }
       itr++;
@@ -350,6 +374,22 @@ L1TkElectronTrackProducer::isolation(const edm::Handle<L1TTTrackCollectionType> 
 double
 L1TkElectronTrackProducer::getPtScaledCut(double pt, std::vector<double>& parameters){
   return (parameters[0] + parameters[1] * exp(parameters[2] * pt));
+}
+double
+L1TkElectronTrackProducer::getPtDependentCut(double pt, std::vector<double>& parameters){
+    return (parameters[0] + parameters[1] * pt);
+}
+double
+L1TkElectronTrackProducer::getEtaDependentCut(double eta, std::vector<double>& parameters){
+    double detacut=0;
+    detacut=parameters[0];
+    if (fabs(eta)<0.6&&fabs(eta)>0.45){
+        detacut=parameters[0]*parameters[1];
+    }
+    if (fabs(eta)<0.85&&fabs(eta)>0.8){
+        detacut=parameters[0]*parameters[1];
+    }
+    return detacut;
 }
 //define this as a plug-in
 DEFINE_FWK_MODULE(L1TkElectronTrackProducer);

@@ -38,6 +38,13 @@ namespace L1TkElectronTrackMatchAlgo {
     dr   = L1TkElectronTrackMatchAlgo::deltaR(epos, pTrk);
     deta = L1TkElectronTrackMatchAlgo::deltaEta(epos, pTrk);
   }
+  //------------- Elliptical Matching
+  void doMatch(l1t::EGammaBxCollection::const_iterator egIter, const edm::Ptr< L1TTTrackType > & pTrk, double& dph, double& deta) {
+      GlobalPoint egPos = L1TkElectronTrackMatchAlgo::calorimeterPosition(egIter->phi(), egIter->eta(), egIter->energy());
+      dph  = L1TkElectronTrackMatchAlgo::deltaPhi(egPos, pTrk);//Use Track pT
+      //dph  = L1TkElectronTrackMatchAlgo::deltaPhi(egIter, pTrk);//Use Cluster pT
+      deta = L1TkElectronTrackMatchAlgo::deltaEta(egPos, pTrk);
+  }
   // --------------- calculate deltaR between Track and EGamma object
   double deltaPhi(const GlobalPoint& epos, const edm::Ptr< L1TTTrackType > & pTrk){
     double er = epos.perp();
@@ -48,6 +55,20 @@ namespace L1TkElectronTrackMatchAlgo {
 
     double dphi = reco::deltaPhi(trk_phi_ecal,epos.phi());
     return dphi;
+  }
+  // --------------- Using Ecal pT
+  double deltaPhi(l1t::EGammaBxCollection::const_iterator egIter, const edm::Ptr< L1TTTrackType > & pTrk){
+      GlobalPoint epos = L1TkElectronTrackMatchAlgo::calorimeterPosition(egIter->phi(), egIter->eta(), egIter->energy());
+      double er = epos.perp();
+      double curv = pTrk->getRInv();
+      int charge = curv>0?1:-1;
+      double et = egIter->et();
+        
+      double dphi_curv= (asin(er*charge/(2.0*et)));
+      double trk_phi_ecal = reco::deltaPhi(pTrk->getMomentum().phi(),dphi_curv);
+        
+      double dphi = reco::deltaPhi(trk_phi_ecal,epos.phi());
+      return dphi;
   }
 // --------------- calculate deltaPhi between Track and EGamma object                 
   double deltaR(const GlobalPoint& epos, const edm::Ptr< L1TTTrackType > & pTrk){

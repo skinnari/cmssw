@@ -10,9 +10,11 @@ namespace L1TkElectronTrackMatchAlgo {
   typedef std::vector< L1TTTrackType > L1TTTrackCollection;
   void doMatch(BXVector<l1t::EGamma>::const_iterator egIter, const edm::Ptr< L1TTTrackType >& pTrk, double&  dph, double&  dr, double& deta);
   void doMatch(const GlobalPoint& epos, const edm::Ptr< L1TTTrackType >& pTrk, double& dph, double&  dr, double& deta);
+  void doMatch(BXVector<l1t::EGamma>::const_iterator egIter, const edm::Ptr< L1TTTrackType >& pTrk, double&  dph, double& deta);// Elliptical Matching.
 
   double deltaR(const GlobalPoint& epos, const edm::Ptr< L1TTTrackType >& pTrk);
   double deltaPhi(const GlobalPoint& epos, const edm::Ptr< L1TTTrackType >& pTrk);
+  double deltaPhi(BXVector<l1t::EGamma>::const_iterator egIter, const edm::Ptr< L1TTTrackType >& pTrk);
   double deltaEta(const GlobalPoint& epos, const edm::Ptr< L1TTTrackType >& pTrk);
   GlobalPoint calorimeterPosition(double phi, double eta, double e);
 
