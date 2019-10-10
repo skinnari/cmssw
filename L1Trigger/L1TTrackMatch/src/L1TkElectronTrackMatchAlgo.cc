@@ -61,10 +61,10 @@ namespace L1TkElectronTrackMatchAlgo {
       GlobalPoint epos = L1TkElectronTrackMatchAlgo::calorimeterPosition(egIter->phi(), egIter->eta(), egIter->energy());
       double er = epos.perp();
       double curv = pTrk->getRInv();
-      double B = 3.8;
-      int charge = curv>0?1:-1;
+      double pt = pTrk->getMomentum().perp();
       double et = egIter->et();
-      double dphi_curv= (asin(0.01*0.03*B*er*charge/(2.0*et)));
+      
+      double dphi_curv= (asin(pt*er*curv/(2.0*et)));
       double trk_phi_ecal = reco::deltaPhi(pTrk->getMomentum().phi(),dphi_curv);
         
       double dphi = reco::deltaPhi(trk_phi_ecal,epos.phi());
