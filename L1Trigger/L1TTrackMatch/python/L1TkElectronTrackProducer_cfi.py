@@ -20,6 +20,7 @@ L1TkElectrons = cms.EDProducer("L1TkElectronTrackProducer",
 	    RelativeIsolation = cms.bool( True ),	# default = True. The isolation variable is relative if True,
 						# else absolute.
         EllipticalMatching = cms.bool( False ), #Elliptical Matching
+        ClusterpT = cms.bool( False ), #Use Track pT or Cluster pT to calculate corrections
         IsoCut = cms.double( -0.10 ), 		# Cut on the (Trk-based) isolation: only the L1TkEmParticle for which
                                                 # the isolation is below RelIsoCut are written into
                                                 # the output collection. When RelIsoCut < 0, no cut is applied.
@@ -51,9 +52,10 @@ L1TkElectronsCrystal.IsoCut = cms.double(-0.1)
 
 L1TkElectronsCrystalEllipse = L1TkElectronsCrystal.clone()
 L1TkElectronsCrystalEllipse.EllipticalMatching = cms.bool(True)
-L1TkElectronsCrystalEllipse.TrackEGammaDeltaPhimax = cms.vdouble(0.07, -0.0001)
+L1TkElectronsCrystalEllipse.ClusterpT = cms.bool(True)
+L1TkElectronsCrystalEllipse.TrackEGammaDeltaPhimax = cms.vdouble(0.042, -0.0002)
 L1TkElectronsCrystalEllipse.TrackEGammaDeltaEtamax = cms.vdouble(0.015, 1.6667)
-L1TkElectronsCrystalEllipse.TrackMinPt = cms.double( 10.0 )# Use 10 GeV cut or 5 GeV cut
+L1TkElectronsCrystalEllipse.TrackMinPt = cms.double( 5.0 )# Use 10 GeV cut or 5 GeV cut
 
 L1TkIsoElectronsCrystal = L1TkElectronsCrystal.clone()
 L1TkIsoElectronsCrystal.IsoCut = cms.double(0.12)
@@ -74,9 +76,10 @@ L1TkElectronsHGC.IsoCut = cms.double(-0.1)
 
 L1TkElectronsHGCEllipse=L1TkElectronsHGC.clone()
 L1TkElectronsHGCEllipse.EllipticalMatching = cms.bool(True)
-L1TkElectronsHGCEllipse.TrackEGammaDeltaPhimax = cms.vdouble(0.07, -0.0001)
+L1TkElectronsHGCEllipse.ClusterpT = cms.bool(True)
+L1TkElectronsHGCEllipse.TrackEGammaDeltaPhimax = cms.vdouble(0.02, 0)
 L1TkElectronsHGCEllipse.TrackEGammaDeltaEtamax = cms.vdouble(0.0075, 1)
-L1TkElectronsHGCEllipse.TrackMinPt = cms.double( 10.0 )
+L1TkElectronsHGCEllipse.TrackMinPt = cms.double( 5.0 )
 
 L1TkIsoElectronsHGC=L1TkElectronsHGC.clone()
 L1TkIsoElectronsHGC.DRmax = cms.double(0.4)

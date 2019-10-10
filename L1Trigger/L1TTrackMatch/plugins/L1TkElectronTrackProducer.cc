@@ -106,6 +106,7 @@ class L1TkElectronTrackProducer : public edm::EDProducer {
 	float IsoCut;
 	bool RelativeIsolation;
     bool EllipticalMatching;
+    bool ClusterpT;
 
         float trkQualityChi2;
 	bool useTwoStubsPT;
@@ -149,6 +150,7 @@ L1TkElectronTrackProducer::L1TkElectronTrackProducer(const edm::ParameterSet& iC
    IsoCut = (float)iConfig.getParameter<double>("IsoCut");
    RelativeIsolation = iConfig.getParameter<bool>("RelativeIsolation");
    EllipticalMatching = iConfig.getParameter<bool>("EllipticalMatching");
+   ClusterpT = iConfig.getParameter<bool>("ClusterpT");
 
    // parameters to select tracks to match with L1EG
    trkQualityChi2  = (float)iConfig.getParameter<double>("TrackChi2");
@@ -239,7 +241,12 @@ L1TkElectronTrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iS
            }
           }
           else{// Elliptical Matching
+          if(!ClusterpT){
+          L1TkElectronTrackMatchAlgo::doMatch(egIter, L1TrackPtr, dPhi, dR, dEta);
+          }
+          else{
           L1TkElectronTrackMatchAlgo::doMatch(egIter, L1TrackPtr, dPhi, dEta);
+          }
           dPhim=getPtDependentCut(et_ele,dPhimax);
           dEtam=getEtaDependentCut(eta_ele,dEtamax);
           dPhidEta=dPhi*dPhi/(dPhim*dPhim)+dEta*dEta/(dEtam*dEtam);
