@@ -239,7 +239,6 @@ L1TkElectronTrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iS
          double trkPtmax = 0.;
          phioffset = eta_ele>0?phioffset:-phioffset;
          etaoffset = eta_ele>0?etaoffset:-etaoffset;
-         cout<<phioffset<<endl;
           
           if(!EllipticalMatching){// Standard Matching
   	     L1TkElectronTrackMatchAlgo::doMatch(egIter, L1TrackPtr, dPhi, dR, dEta);
