@@ -206,12 +206,7 @@ L1TkElectronTrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iS
       << std::endl;
     return;
   }
-//    if (EllipticalMatching){
-//        cout<<"new matching"<<endl;
-//    }
-//    else{
-//        cout<<"old matching"<<endl;
-//    }
+
   int ieg = 0;
   for (egIter = eGammaCollection.begin(0); egIter != eGammaCollection.end(0);  ++egIter){ // considering BX = only
     edm::Ref< EGammaBxCollection > EGammaRef( eGammaHandle, ieg );
