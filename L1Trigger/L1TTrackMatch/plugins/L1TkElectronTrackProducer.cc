@@ -115,6 +115,8 @@ class L1TkElectronTrackProducer : public edm::EDProducer {
         std::vector<double> dRCutoff;
         std::vector<double> dPhimax;
         std::vector<double> dEtamax;
+        float phioffset;
+        float etaoffset;
         float dEtaCutoff;
 
         const edm::EDGetTokenT< EGammaBxCollection > egToken;
@@ -159,8 +161,10 @@ L1TkElectronTrackProducer::L1TkElectronTrackProducer(const edm::ParameterSet& iC
    dPhiCutoff      = iConfig.getParameter< std::vector<double> >("TrackEGammaDeltaPhi");
    dRCutoff        = iConfig.getParameter< std::vector<double> >("TrackEGammaDeltaR");
    dEtaCutoff      = (float)iConfig.getParameter<double>("TrackEGammaDeltaEta");
-   dPhimax      = iConfig.getParameter< std::vector<double> >("TrackEGammaDeltaPhimax");
-   dEtamax        = iConfig.getParameter< std::vector<double> >("TrackEGammaDeltaEtamax");
+   dPhimax         = iConfig.getParameter< std::vector<double> >("TrackEGammaDeltaPhimax");
+   dEtamax         = iConfig.getParameter< std::vector<double> >("TrackEGammaDeltaEtamax");
+   phioffset       = iConfig.getParameter<double>("TrackEGammaPhiOffset");
+   etaoffset       = iConfig.getParameter<double>("TrackEGammaEtaOffset");
 
    produces<L1TkElectronParticleCollection>(label);
 }
@@ -202,7 +206,12 @@ L1TkElectronTrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iS
       << std::endl;
     return;
   }
-
+//    if (EllipticalMatching){
+//        cout<<"new matching"<<endl;
+//    }
+//    else{
+//        cout<<"old matching"<<endl;
+//    }
   int ieg = 0;
   for (egIter = eGammaCollection.begin(0); egIter != eGammaCollection.end(0);  ++egIter){ // considering BX = only
     edm::Ref< EGammaBxCollection > EGammaRef( eGammaHandle, ieg );
@@ -233,6 +242,10 @@ L1TkElectronTrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iS
          double dEtam = 0.001 ;
          double dPhidEta = 99.;
          double trkPtmax = 0.;
+         phioffset = eta_ele>0?phioffset:-phioffset;
+         etaoffset = eta_ele>0?etaoffset:-etaoffset;
+         cout<<phioffset<<endl;
+          
           if(!EllipticalMatching){// Standard Matching
   	     L1TkElectronTrackMatchAlgo::doMatch(egIter, L1TrackPtr, dPhi, dR, dEta);
          if (fabs(dPhi) < getPtScaledCut(trkPt, dPhiCutoff) && dR < getPtScaledCut(trkPt, dRCutoff) && dR < drmin) {
@@ -247,6 +260,8 @@ L1TkElectronTrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iS
           else{
           L1TkElectronTrackMatchAlgo::doMatch(egIter, L1TrackPtr, dPhi, dEta);
           }
+          dPhi=dPhi-phioffset;
+          dEta=dEta+etaoffset;
           dPhim=getPtDependentCut(et_ele,dPhimax);
           dEtam=getEtaDependentCut(eta_ele,dEtamax);
           dPhidEta=dPhi*dPhi/(dPhim*dPhim)+dEta*dEta/(dEtam*dEtam);
@@ -395,6 +410,9 @@ L1TkElectronTrackProducer::getEtaDependentCut(double eta, std::vector<double>& p
     }
     if (fabs(eta)<0.85&&fabs(eta)>0.8){
         detacut=parameters[0]*parameters[1];
+    }
+    if (fabs(eta)<0.05){
+        detacut=3*parameters[0]*parameters[1];
     }
     return detacut;
 }
