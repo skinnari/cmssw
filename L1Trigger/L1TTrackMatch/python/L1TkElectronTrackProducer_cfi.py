@@ -7,6 +7,7 @@ L1TkElectrons = cms.EDProducer("L1TkElectronTrackProducer",
         ETmin = cms.double( -1.0 ),             # Only the L1EG objects that have ET > ETmin in GeV
                                                 # are considered. ETmin < 0 means that no cut is applied.
      	L1TrackInputTag = cms.InputTag("TTTracksFromTracklet", "Level1TTTracks"),
+        L1Tk_nPar = cms.int32(4), # 4 para or 5 para fit?
         # Quality cuts on Track and Track L1EG matching criteria                                
         TrackChi2           = cms.double(1e10), # minimum Chi2 to select tracks
         TrackMinPt          = cms.double(10.0), # minimum Pt to select tracks                                     
@@ -33,7 +34,8 @@ L1TkElectrons = cms.EDProducer("L1TkElectronTrackProducer",
 	    DRmax = cms.double( 0.2 ),
         maxChi2IsoTracks = cms.double(1e10), # max chi2 cut for a track to be considered for isolation computation
         minNStubsIsoTracks = cms.int32(0), # min cut on # of stubs for a track to be considered for isolation computation
-	    DeltaZ = cms.double( 0.6 )    # in cm. Used for tracks to be used isolation calculation
+	    DeltaZ = cms.double( 0.6 ),    # in cm. Used for tracks to be used isolation calculation
+        DeltaD0 = cms.double( 0.2 ),     # for extended tracks only
 )
 L1TkIsoElectrons = L1TkElectrons.clone()
 L1TkIsoElectrons.IsoCut = cms.double( 0.10 )
@@ -81,7 +83,7 @@ L1TkElectronsHGC.IsoCut = cms.double(-0.1)
 L1TkElectronsHGCEllipse=L1TkElectronsHGC.clone()
 L1TkElectronsHGCEllipse.EllipticalMatching = cms.bool(True)
 L1TkElectronsHGCEllipse.ClusterpT = cms.bool(True)
-L1TkElectronsHGCEllipse.TrackEGammaDeltaPhimax = cms.vdouble(0.025, 0)
+L1TkElectronsHGCEllipse.TrackEGammaDeltaPhimax = cms.vdouble(0.05, 0)
 L1TkElectronsHGCEllipse.TrackEGammaDeltaEtamax = cms.vdouble(0.01, 1)
 L1TkElectronsHGCEllipse.TrackEGammaPhiOffset = cms.double(0)
 L1TkElectronsHGCEllipse.TrackEGammaEtaOffset = cms.double(0)
