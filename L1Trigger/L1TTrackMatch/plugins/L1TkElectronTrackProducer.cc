@@ -103,6 +103,7 @@ class L1TkElectronTrackProducer : public edm::EDProducer {
 	bool PrimaryVtxConstrain;	// use the primary vertex (default = false)
 	float DeltaZ;      	// | z_track - z_ref_track | < DeltaZ in cm.
 				// Used only when PrimaryVtxConstrain = True.
+    float DeltaD0;
 	float IsoCut;
 	bool RelativeIsolation;
     bool EllipticalMatching;
@@ -118,6 +119,7 @@ class L1TkElectronTrackProducer : public edm::EDProducer {
         float phioffset;
         float etaoffset;
         float dEtaCutoff;
+        int L1Tk_nPar;
 
         const edm::EDGetTokenT< EGammaBxCollection > egToken;
         const edm::EDGetTokenT< std::vector< TTTrack< Ref_Phase2TrackerDigi_ > > > trackToken;
@@ -146,6 +148,7 @@ L1TkElectronTrackProducer::L1TkElectronTrackProducer(const edm::ParameterSet& iC
    DRmin = (float)iConfig.getParameter<double>("DRmin");
    DRmax = (float)iConfig.getParameter<double>("DRmax");
    DeltaZ = (float)iConfig.getParameter<double>("DeltaZ");
+   DeltaD0 = (float)iConfig.getParameter<double>("DeltaD0");
    maxChi2IsoTracks = iConfig.getParameter<double>("maxChi2IsoTracks");
    minNStubsIsoTracks = iConfig.getParameter<int>("minNStubsIsoTracks");
    // cut applied on the isolation (if this number is <= 0, no cut is applied)
@@ -165,6 +168,7 @@ L1TkElectronTrackProducer::L1TkElectronTrackProducer(const edm::ParameterSet& iC
    dEtamax         = iConfig.getParameter< std::vector<double> >("TrackEGammaDeltaEtamax");
    phioffset       = iConfig.getParameter<double>("TrackEGammaPhiOffset");
    etaoffset       = iConfig.getParameter<double>("TrackEGammaEtaOffset");
+   L1Tk_nPar       = iConfig.getParameter<int>("L1Tk_nPar");
 
    produces<L1TkElectronParticleCollection>(label);
 }
@@ -378,8 +382,23 @@ L1TkElectronTrackProducer::isolation(const edm::Handle<L1TTTrackCollectionType> 
       float dPhi = reco::deltaPhi(phi1, phi2);
       float dEta = (trackIter->getMomentum().eta() - matchedTrkPtr->getMomentum().eta());
       float dR =  sqrt(dPhi*dPhi + dEta*dEta);
-
-      if (dR > DRmin && dR < DRmax && dZ < DeltaZ && trackIter->getMomentum().perp() > PTMINTRA) {
+      float tmp_trk_d01 = 0;
+      float tmp_trk_d02 = 0;
+        
+      if (L1Tk_nPar == 5) {
+            float tmp_trk_x01   = trackIter->getPOCA(L1Tk_nPar).x();
+            float tmp_trk_y01   = trackIter->getPOCA(L1Tk_nPar).y();
+            tmp_trk_d01 = -tmp_trk_x01*sin(phi1) + tmp_trk_y01*cos(phi1);
+          
+          
+            float tmp_trk_x02   = matchedTrkPtr->getPOCA(L1Tk_nPar).x();
+            float tmp_trk_y02   = matchedTrkPtr->getPOCA(L1Tk_nPar).y();
+            tmp_trk_d02 = -tmp_trk_x02*sin(phi2) + tmp_trk_y02*cos(phi2);
+      }
+        
+      float dD0 = fabs(tmp_trk_d01-tmp_trk_d02);
+        
+      if (dR > DRmin && dR < DRmax && dZ < DeltaZ && trackIter->getMomentum().perp() > PTMINTRA && dD0 < DeltaD0) {
 	       sumPt += trackIter->getMomentum().perp();
       }
     }
