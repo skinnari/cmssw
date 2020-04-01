@@ -70,7 +70,7 @@ public:
     }
 
     if (writeVMTables) {
-      writeVMTable("VMTableInnerL"+std::to_string(layer1_)+"D"+std::to_string(disk2_)+".txt");
+      writeVMTable("VMTableInnerL"+std::to_string(layer1_)+"D"+std::to_string(disk2_)+".tab");
     }
     
   }

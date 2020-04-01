@@ -79,7 +79,9 @@ public:
     int diskcode=DiskMem_[diskmask];
 
     if (diskcode<0||layercode<0) {
-      cout << "layermask diskmask : "<<layermask<<" "<<diskmask<<endl;
+      if (warnNoDer) {
+	cout << "layermask diskmask : "<<layermask<<" "<<diskmask<<endl;
+      }
       return -1;
     }
 
@@ -96,7 +98,9 @@ public:
     int address=LayerDiskMem_[layerdiskaddress];
 
     if (address<0) {
-      cout << "layermask diskmask : "<<layermask<<" "<<diskmask<<endl;
+      if (warnNoDer) {
+	cout << "layermask diskmask : "<<layermask<<" "<<diskmask<<endl;
+      }
       return -1;
     }
 

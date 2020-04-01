@@ -57,6 +57,58 @@ public:
     if ( overlap_ and extended_ and disk_==1)  isinner_ = false;
     
   }
+
+  bool addVMStub(VMStubTE vmstub, int bin) {
+    
+    //FPGAWord binlookup=vmstub.vmbits();
+    
+    //assert(binlookup.value()>=0);
+    
+    //If the pt of the stub is consistent with the allowed pt of tracklets
+    //in that can be formed in this VM and the other VM used in the TE.
+    bool pass=passbend(vmstub.bend().value());
+
+    if (!pass) {
+      if (debug1) cout << getName() << " Stub failed bend cut. bend = "<<Stub::benddecode(vmstub.bend().value(),vmstub.isPSmodule())<<endl;
+      return false;
+    }
+    
+    bool negdisk=vmstub.stub().first->disk().value()<0.0;
+
+    if (overlap_) {
+      if (disk_==1) {
+	//bool negdisk=vmstub.stub().first->disk().value()<0.0;
+	assert(bin<4);
+	if (negdisk) bin+=4;
+	stubsbinnedvm_[bin].push_back(vmstub);
+	if (debug1) cout << getName()<<" Stub in disk = "<<disk_<<"  in bin = "<<bin<<endl;
+      } else if (layer_==2) {
+	stubsbinnedvm_[bin].push_back(vmstub);
+      }
+    } else {
+      if (vmstub.stub().first->isBarrel()){
+	if (!isinner_) {
+	  stubsbinnedvm_[bin].push_back(vmstub);
+	}
+	
+      } else {
+	
+	//bool negdisk=vmstub.stub().first->disk().value()<0.0;
+	
+	if (disk_%2==0) {
+	  assert(bin<4);
+	  if (negdisk) bin+=4;
+	  stubsbinnedvm_[bin].push_back(vmstub);
+	}
+	
+      }
+    }
+    if (debug1) cout << "Adding stubs to "<<getName()<<endl;
+    stubsvm_.push_back(vmstub);
+    return true;
+    
+  }
+
   
   bool addVMStub(VMStubTE vmstub) {
 
@@ -155,9 +207,8 @@ public:
 
   void writeStubs(bool first) {
 
-
     openFile(first,"../data/MemPrints/VMStubsTE/VMStubs_");
-    
+
     if (isinner_) { // inner VM for TE purpose
       for (unsigned int j=0;j<stubsvm_.size();j++){
 	out_<<"0x";
@@ -241,7 +292,7 @@ public:
   void writeVMBendTable() {
     
     ofstream outvmbendcut;
-    outvmbendcut.open(getName()+"_vmbendcut.txt");
+    outvmbendcut.open(getName()+"_vmbendcut.tab");
     unsigned int vmbendtableSize = vmbendtable_.size();
     assert(vmbendtableSize==16||vmbendtableSize==8);
     for (unsigned int i=0;i<vmbendtableSize;i++){

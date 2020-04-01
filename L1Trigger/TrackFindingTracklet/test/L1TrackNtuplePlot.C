@@ -969,7 +969,7 @@ void L1TrackNtuplePlot(TString type, TString type_dir="", TString treeName="", i
         }
       }
 
-      for (int layer = 0; layer < layers.size(); layer++) {
+      for (unsigned int layer = 0; layer < layers.size(); layer++) {
         if (layers.at(layer)) { // if there was a hit at this layer...
           h_trk_tracklet_hits->Fill(fabs(trk_eta->at(it)), layer); // ...fill this bin with the layer of the track.
         }
@@ -3322,7 +3322,7 @@ void mySmallText(Double_t x,Double_t y,Color_t color,char *text) {
   l.DrawLatex(x,y,text);
 }
 
-double getIntervalContainingFractionOfEntries( TH1* absResidualHistogram, double quantileToCalculate, int minEntries=5 ) {
+double getIntervalContainingFractionOfEntries( TH1* absResidualHistogram, double quantileToCalculate, int minEntries ) {
   
   double totalIntegral = absResidualHistogram->Integral( 0, absResidualHistogram->GetNbinsX() + 1 );
   double numEntries = absResidualHistogram->GetEntries();

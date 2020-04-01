@@ -1068,11 +1068,11 @@ public:
     double phicrit=phi0approx-asin(0.5*rcrit*rinvapprox);
     int phicritapprox=iphi0-2*irinv;
     bool keep=(phicrit>phicritminmc)&&(phicrit<phicritmaxmc),
-         keepapprox=(phicritapprox>phicritapproxminmc)&&(phicritapprox<phicritapproxmaxmc);
+         keepapprox=(phicritapprox>iphicritminmc)&&(phicritapprox<iphicritmaxmc);
     if (debug1)
       if (keep && !keepapprox)
         cout << "TrackletCalculatorDisplaced::LLLSeeding tracklet kept with exact phicrit cut but not approximate, phicritapprox: " << phicritapprox << endl;
-    if (!usephicritapprox) {
+    if (usephicritapprox) {
       if (!keep) return false;
     }
     else {
@@ -1350,11 +1350,11 @@ public:
     double phicrit=phi0approx-asin(0.5*rcrit*rinvapprox);
     int phicritapprox=iphi0-2*irinv;
     bool keep=(phicrit>phicritminmc)&&(phicrit<phicritmaxmc),
-         keepapprox=(phicritapprox>phicritapproxminmc)&&(phicritapprox<phicritapproxmaxmc);
+         keepapprox=(phicritapprox>iphicritminmc)&&(phicritapprox<iphicritmaxmc);
     if (debug1)
       if (keep && !keepapprox)
         cout << "TrackletCalculatorDisplaced::DDLSeeding tracklet kept with exact phicrit cut but not approximate, phicritapprox: " << phicritapprox << endl;
-    if (!usephicritapprox) {
+    if (usephicritapprox) {
       if (!keep) return false;
     }
     else {
@@ -1620,11 +1620,11 @@ public:
     double phicrit=phi0approx-asin(0.5*rcrit*rinvapprox);
     int phicritapprox=iphi0-2*irinv;
     bool keep=(phicrit>phicritminmc)&&(phicrit<phicritmaxmc),
-         keepapprox=(phicritapprox>phicritapproxminmc)&&(phicritapprox<phicritapproxmaxmc);
+         keepapprox=(phicritapprox>iphicritminmc)&&(phicritapprox<iphicritmaxmc);
     if (debug1)
       if (keep && !keepapprox)
         cout << "TrackletCalculatorDisplaced::LLDSeeding tracklet kept with exact phicrit cut but not approximate, phicritapprox: " << phicritapprox << endl;
-    if (!usephicritapprox) {
+    if (usephicritapprox) {
       if (!keep) return false;
     }
     else {

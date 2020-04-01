@@ -111,6 +111,8 @@ public:
 
   void execute() {
 
+    //if (hourglassExtended) return; //only do triplet seeding
+    
     if (!((doL1L2&&(layer1_==1)&&(layer2_==2))||
 	  (doL2L3&&(layer1_==2)&&(layer2_==3))||
 	  (doL3L4&&(layer1_==3)&&(layer2_==4))||
@@ -123,7 +125,7 @@ public:
 	  (doL2D1&&(disk2_==1)&&(layer1_==2)))) return;
 
 
-    bool print=getName()=="TE_L1PHIE18_L2PHIC17" && iSector_==3;
+    bool print=getName()=="TE_L1PHIE17_L2PHIB16" && iSector_==3;
     print=false;
     
     unsigned int countall=0;
@@ -178,7 +180,8 @@ public:
 	    unsigned int index = (((iphiinnerbin.value()<<outerphibits_)+iphiouterbin.value())<<5)+ir;
 	    
 	    assert(index<phitable_.size());
-	      
+
+	    
 	    if (!phitable_[index]) {
 	      if (debug1) {
 		cout << "Stub pair rejected because of tracklet pt cut"<<endl;
@@ -240,9 +243,9 @@ public:
 	  int start=(bin>>1);
 	  int last=start+(bin&1);
 
-	  if (print) {
-	    cout << "start last : "<<start<<" "<<last<<endl;
-	  }
+	  //if (print) {
+	  //  cout << "start last : "<<start<<" "<<last<<endl;
+	  //}
 	  
 	  if (debug1) {
 	    cout << "Will look in zbins "<<start<<" to "<<last<<endl;
@@ -257,6 +260,11 @@ public:
 	      countall++;
 
 	      VMStubTE outervmstub=outervmstubs_->getVMStubTEBinned(ibin,j);
+
+	      if (print) {
+		cout << "Allstub index : "<<innervmstub.stubindex().value()<<" "
+		     <<outervmstub.stubindex().value()<<endl;
+	      }
 	      
 	      int zbin=(outervmstub.vmbits().value()&7);
 	      if (start!=ibin) zbin+=8;
@@ -268,9 +276,9 @@ public:
 		continue;
 	      }
 
-	      if (print) {
-		cout << "ibin j "<<ibin<<" "<<j<<endl;
-	      }
+	      //	      if (print) {
+	      //cout << "ibin j "<<ibin<<" "<<j<<endl;
+	      //}
 	      
 	      //For debugging
 	      //double trinv=rinv(innerstub.second->phi(), outerstub.second->phi(),
@@ -283,6 +291,14 @@ public:
 	      FPGAWord iphiouterbin=outervmstub.finephi();
 	      
 	      int index = (iphiinnerbin.value()<<outerphibits_)+iphiouterbin.value();
+	      
+	      if (print) {
+		cout << "innerphibits_ outerphibits_ : "
+		     <<innerphibits_<<" "<<outerphibits_<<endl;
+		cout << "phitable_.size():"<<phitable_.size()<<endl;
+		cout << "phitable index: "<<phitable_[index]<<" "<<index
+		     <<" "<<iphiinnerbin.value()<<" "<<iphiouterbin.value()<<endl;
+	      }
 
 
 	      assert(index<(int)phitable_.size());		
@@ -300,7 +316,13 @@ public:
 	      
               int ptinnerindex=(index<<innerbend.nbits())+innerbend.value();
               int ptouterindex=(index<<outerbend.nbits())+outerbend.value();
+	      
+	      if (print) {
+		cout << "bendbits:"<<innerbend.nbits()<<" "<<outerbend.nbits()<<endl;
+		cout << "pt index: "<<ptinnerindex<<" "<<ptouterindex<<endl;
+	      }
 
+	      
 	      //cout <<"bendinner "<<bend(rmean[layer1_-1],trinv)<<" "<<0.5*(innerbend.value()-15.0)
 	      //	   <<" "<<pttableinner_[ptinnerindex]
 	      //   <<"     bendouter "<<bend(rmean[layer1_],trinv)<<" "<<0.5*(outerbend.value()-15.0)
@@ -354,14 +376,14 @@ public:
 	      countall++;
 	      VMStubTE outervmstub=outervmstubs_->getVMStubTEBinned(ibin,j);
 	      int rbin=(outervmstub.vmbits().value()&7);
+
+	      //Get r-position of outer stub with less precission for LUT
+	      unsigned int irouterbin=2*(ibin&3)+(rbin>>2);
+
 	      if (start!=ibin) rbin+=8;
 	      if (rbin<rbinfirst) continue;
 	      if (rbin-rbinfirst>rdiffmax) continue;
-
-	      
-	      unsigned int irouterbin=outervmstub.vmbits().value()>>2;
-
-
+	     
 	      FPGAWord iphiinnerbin=innervmstub.finephi();
 	      FPGAWord iphiouterbin=outervmstub.finephi();
 	      
@@ -784,7 +806,7 @@ public:
   void writeTETable() {
 
     ofstream outptcut;
-    outptcut.open(getName()+"_ptcut.txt");
+    outptcut.open(getName()+"_ptcut.tab");
     outptcut << "{"<<endl;
     for(unsigned int i=0;i<phitable_.size();i++){
       if (i!=0) outptcut<<","<<endl;
@@ -794,7 +816,7 @@ public:
     outptcut.close();
 
     ofstream outstubptinnercut;
-    outstubptinnercut.open(getName()+"_stubptinnercut.txt");
+    outstubptinnercut.open(getName()+"_stubptinnercut.tab");
     outstubptinnercut << "{"<<endl;
     for(unsigned int i=0;i<pttableinner_.size();i++){
       if (i!=0) outstubptinnercut<<","<<endl;
@@ -804,7 +826,7 @@ public:
     outstubptinnercut.close();
     
     ofstream outstubptoutercut;
-    outstubptoutercut.open(getName()+"_stubptoutercut.txt");
+    outstubptoutercut.open(getName()+"_stubptoutercut.tab");
     outstubptoutercut << "{"<<endl;
     for(unsigned int i=0;i<pttableouter_.size();i++){
       if (i!=0) outstubptoutercut<<","<<endl;

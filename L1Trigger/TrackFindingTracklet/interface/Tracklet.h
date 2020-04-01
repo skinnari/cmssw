@@ -281,6 +281,11 @@ public:
     // top 5 bits of rinv and shifted to be positive
     int irinvvm = 16+(tmp_irinv>>(nbits_irinv-5));
 
+    if (hourglassExtended&&(irinvvm>31)) { //FIXME - shoud not need this
+      cout << "Warning irinvvm too large:"<<irinvvm<<endl;
+      irinvvm=31;
+    }
+    
     assert(irinvvm>=0);
     assert(irinvvm<32);
     FPGAWord tmp;
@@ -323,8 +328,13 @@ public:
     }
     tmp.set(trackletIndex_,7,true,__LINE__,__FILE__);
     FPGAWord tcid;
-    tcid.set(TCIndex_,7,true,__LINE__,__FILE__);
-
+    if (hourglassExtended) {
+      tcid.set(TCIndex_,8,true,__LINE__,__FILE__);
+    } else {
+      tcid.set(TCIndex_,7,true,__LINE__,__FILE__);
+    }
+    
+      
     oss << tcid.str()<<"|"
 	<< tmp.str()<<"|"
         << layerproj_[layer-1].fpgaphiproj().str()<<"|"
@@ -345,7 +355,11 @@ public:
     }
     tmp.set(trackletIndex_,7,true,__LINE__,__FILE__);
     FPGAWord tcid;
-    tcid.set(TCIndex_,7,true,__LINE__,__FILE__);
+    if (hourglassExtended) {
+      tcid.set(TCIndex_,8,true,__LINE__,__FILE__);
+    } else {
+      tcid.set(TCIndex_,7,true,__LINE__,__FILE__);
+    }
     oss << tcid.str()<<"|" 
         << tmp.str()<<"|"
 	<< diskproj_[abs(disk)-1].fpgaphiproj().str()<<"|"
@@ -702,7 +716,11 @@ public:
     }
     tmp.set(trackletIndex_,7,true,__LINE__,__FILE__);
     FPGAWord tcid;
-    tcid.set(TCIndex_,7,true,__LINE__,__FILE__);
+    if (hourglassExtended) {
+      tcid.set(TCIndex_,8,true,__LINE__,__FILE__);
+    } else {
+      tcid.set(TCIndex_,7,true,__LINE__,__FILE__);
+    }
     oss << tcid.str()<<"|"
         << tmp.str()<<"|"
 	<< layerresid_[layer-1].fpgastubid().str()<<"|"
@@ -724,7 +742,11 @@ public:
     }
     tmp.set(trackletIndex_,7,true,__LINE__,__FILE__);
     FPGAWord tcid;
-    tcid.set(TCIndex_,7,true,__LINE__,__FILE__);
+    if (hourglassExtended) {
+      tcid.set(TCIndex_,8,true,__LINE__,__FILE__);
+    } else {
+      tcid.set(TCIndex_,7,true,__LINE__,__FILE__);
+    }
     oss << tcid.str()<<"|"
         << tmp.str()<<"|"
 	<< diskresid_[disk-1].fpgastubid().str()<<"|"
@@ -1322,7 +1344,7 @@ public:
   }
   
   unsigned int PSseed() {
-    return ((layer()==1)||(disk()!=0))?1:0;
+    return ((layer()==1)||(layer()==2)||(disk()!=0))?1:0;
   }
 
   unsigned int seedIndex() const {
@@ -1357,13 +1379,13 @@ public:
     int seeddisk=disk();
     
     if (seedlayer==1&&seeddisk==0) seedindex=0;  //L1L2
-    if (seedlayer==3&&seeddisk==0) seedindex=1;  //L3L4
-    if (seedlayer==5&&seeddisk==0) seedindex=2;  //L5L6
-    if (seedlayer==0&&abs(seeddisk)==1) seedindex=3;  //D1D2
-    if (seedlayer==0&&abs(seeddisk)==3) seedindex=4;  //D3D4
-    if (seedlayer==1&&abs(seeddisk)==1) seedindex=5;  //L1D1
-    if (seedlayer==2&&abs(seeddisk)==1) seedindex=6;  //L2D1
-    if (seedlayer==2&&abs(seeddisk)==0) seedindex=7;  //L2L3
+    if (seedlayer==3&&seeddisk==0) seedindex=2;  //L3L4
+    if (seedlayer==5&&seeddisk==0) seedindex=3;  //L5L6
+    if (seedlayer==0&&abs(seeddisk)==1) seedindex=4;  //D1D2
+    if (seedlayer==0&&abs(seeddisk)==3) seedindex=5;  //D3D4
+    if (seedlayer==1&&abs(seeddisk)==1) seedindex=6;  //L1D1
+    if (seedlayer==2&&abs(seeddisk)==1) seedindex=7;  //L2D1
+    if (seedlayer==2&&abs(seeddisk)==0) seedindex=1;  //L2L3
     if (middleFPGAStub_&&seedlayer==2&&seeddisk==0) seedindex = 8; // L3L4L2
     if (middleFPGAStub_&&seedlayer==4&&seeddisk==0) seedindex = 9; // L5L6L4
     assert(innerFPGAStub_!=0);

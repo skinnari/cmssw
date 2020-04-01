@@ -12,6 +12,12 @@ d0max=3.0;
 tdisk=2.4
 tLLD =1.7
 
+#If False don't do disks
+doDisk=True
+
+#If true only L1L2 seeding
+doOnlyL1L2=False
+
 #If true it will use a TrackletProcessor to replace TEs, TCs
 combinedTP=False
 
@@ -38,11 +44,18 @@ nallstubslayers = [ 8, 4, 4, 4, 4, 4 ]
 
 nvmtelayers = [4, 8, 4, 8, 4, 8 ]
 
+    
 nvmteextralayers = [-1, 4, 4, -1, -1, -1 ] #only L2&L3 used
 
 nallprojlayers = [ 8, 4, 4, 4, 4, 4 ]
 
 nvmmelayers = [4, 8, 8, 8, 8, 8 ]
+
+if doOnlyL1L2 :
+    nallstubslayers = [ 4, 2, 2, 2, 2, 2 ]
+    nallprojlayers = [ 4, 2, 2, 2, 2, 2 ]
+    nvmtelayers = [4, 4, 4, 8, 4, 8 ]
+    nvmmelayers = [4, 8, 2, 2, 2, 2 ]
 
 nallstubsdisks = [4, 4, 4, 4, 4 ]
 
@@ -1211,6 +1224,18 @@ def readUnusedProj() :
 
     return unusedproj
 
+def readEmptySP() :
+    fi = open("emptysp.txt","r")
+
+    emptysp=[]
+
+    return emptysp
+    
+    for line in fi:
+        emptysp.append(line.split('\n')[0])
+
+    return emptysp
+
 def findInputLinks(dtcphirange) :
 
     fi = open(dtcphirange,"r")
@@ -1275,6 +1300,8 @@ print "Inputlinks :",len(inputlinks),inputlinks
 
 unusedproj=readUnusedProj()
 
+emptysp=readEmptySP()
+
 print "Unusedproj :",unusedproj
 
 
@@ -1305,10 +1332,14 @@ for ilayer in range(1,7) :
         fp.write("> VMR_L"+str(ilayer)+"PHI"+letter(iallstubmem)+" > ")
         fp.write("AS_L"+str(ilayer)+"PHI"+letter(iallstubmem))
         for ivm in range(1,nvmmelayers[ilayer-1]+1) :
+            if doOnlyL1L2 and ilayer<=2 :
+                continue
             fp.write(" VMSME_L"+str(ilayer)+"PHI"+letter(iallstubmem)+str((iallstubmem-1)*nvmmelayers[ilayer-1]+ivm))
         for ivm in range(1,nvmtelayers[ilayer-1]+1) :
+            if doOnlyL1L2 and ilayer>=3 :
+                continue
             fp.write(" VMSTE_L"+str(ilayer)+"PHI"+letter(iallstubmem)+str((iallstubmem-1)*nvmtelayers[ilayer-1]+ivm))
-        if extraseeding :
+        if extraseeding and not doOnlyL1L2:
             if (nvmteextralayers[ilayer-1]>0) :
                 for ivm in range(1,nvmteextralayers[ilayer-1]+1) :
                     fp.write(" VMSTE_L"+str(ilayer)+"PHI"+letterextra(iallstubmem)+str((iallstubmem-1)*nvmteextralayers[ilayer-1]+ivm))
@@ -1331,30 +1362,13 @@ for ilayer in range(1,7) :
 # Do the VM routers for the TE in the overlap layers
 #
 
-#for ilayer in range(1,3) :
-#    print "layer =",ilayer,"allstub memories",nallstubslayers[ilayer-1]
-#    fp.write("\n")
-#    fp.write("#\n")
-#    fp.write("# VMRouters for the TEs in overlap layer "+str(ilayer)+" \n")
-#    fp.write("#\n")
-#    for iallstubmem in range(1,nallstubsoverlaplayers[ilayer-1]+1) :
-#        allstubsmemname="L"+str(ilayer)+"PHI"+letter(iallstubmem)
-#        for il in inputlinks :
-#            if allstubsmemname in il :
-#                fp.write(il+" ")
-#        fp.write("> VMRTE_L"+str(ilayer)+"PHI"+letteroverlap(iallstubmem)+" > "#)
-#        fp.write("AS_L"+str(ilayer)+"PHI"+letteroverlap(iallstubmem))
-#        for ivm in range(1,nvmteoverlaplayers[ilayer-1]+1) :
-#            fp.write(" VMSTE_L"+str(ilayer)+"PHI"+letteroverlap(iallstubmem)+str((iallstubmem-1)*nvmteoverlaplayers[ilayer-1]+ivm))
-#        fp.write("\n\n")
-
-
-
 #
 # Do the VM routers for the TE in the disks
 #
 
 for idisk in range(1,6) :
+    if not doDisk :
+        continue
     print "disk =",idisk,"allstub memories",nallstubsdisks[idisk-1]
     fp.write("\n")
     fp.write("#\n")
@@ -1583,6 +1597,8 @@ if combinedTP :
                     
         sp_layer=[]
         for sp_name in SP_list :
+            if sp_name in emptysp:
+                continue
             if "_L"+str(ilayer) in sp_name and "_L"+str(ilayer+1) in sp_name :
                 #print ilayer,sp_name
                 sp_layer.append(sp_name)
@@ -1668,6 +1684,8 @@ if combinedTP :
         
         sp_disk=[]
         for sp_name in SP_list :
+            if sp_name in emptysp:
+                continue
             if "_D"+str(idisk) in sp_name and "_D"+str(idisk+1) in sp_name :
                 #print idisk,sp_name
                 sp_disk.append(sp_name)
@@ -1694,6 +1712,8 @@ if combinedTP :
             fp.write(" > TP_D"+str(idisk)+"D"+str(idisk+1)+letter(tc_count)+" > "+tpar_name)
             TPAR_list.append(tpar_name)
             for projdisk in range(1,6) :
+                if not doDisk :
+                    continue
                 if projdisk!=idisk and projdisk!=idisk+1 :
                     #print "idisk, projdisk, sps:",idisk, projdisk,sps
                     projrange=phiprojrangedisk(idisk,projdisk,sps)
@@ -1749,6 +1769,8 @@ if combinedTP :
 
         sp_layer=[]
         for sp_name in SP_list :
+            if sp_name in emptysp:
+                continue
             if "_L"+str(ilayer) in sp_name and "_D1" in sp_name :
                 #print ilayer,sp_name
                 sp_layer.append(sp_name)
@@ -1808,6 +1830,8 @@ else :
     #
 
     for ilayer in (1,3,5) :
+        if doOnlyL1L2 and ilayer>=2 :
+            continue
         fp.write("\n")
         fp.write("#\n")
         fp.write("# Tracklet Engines for seeding layer "+str(ilayer)+" \n")
@@ -1827,6 +1851,8 @@ else :
 
 
     for ilayer in [2] :
+        if doOnlyL1L2 :
+            continue
         if not extraseeding :
             continue
         fp.write("\n")
@@ -1854,6 +1880,8 @@ else :
     #
 
     for idisk in (1,3) :
+        if not doDisk :
+            continue
         fp.write("\n")
         fp.write("#\n")
         fp.write("# Tracklet Engines for seeding disk "+str(idisk)+" \n")
@@ -1878,6 +1906,9 @@ else :
     #
 
     for ilayer in (1,2) :
+        if doOnlyL1L2 :
+            continue
+
         fp.write("\n")
         fp.write("#\n")
         fp.write("# Tracklet Engines for overlap seeding layer "+str(ilayer)+" \n")
@@ -1903,6 +1934,9 @@ else :
     #
 
     for ilayer in (1,2,3,5) :
+        if doOnlyL1L2 and ilayer>=2 :
+            continue
+
         if ilayer==2 and not extraseeding :
             continue
         fp.write("\n")
@@ -1912,6 +1946,8 @@ else :
 
         sp_layer=[]
         for sp_name in SP_list :
+            if sp_name in emptysp:
+                continue
             if "_L"+str(ilayer) in sp_name and "_L"+str(ilayer+1) in sp_name :
                 #print ilayer,sp_name
                 sp_layer.append(sp_name)
@@ -1922,6 +1958,9 @@ else :
         if ilayer==3 :
             tcs=8
         if ilayer==5 :
+            tcs=4
+
+        if doOnlyL1L2 :
             tcs=4
 
         sp_per_tc=split(sp_layer,tcs)
@@ -1981,6 +2020,9 @@ else :
 
                 
     for idisk in (1,3) :
+        if not doDisk :
+            continue
+
         fp.write("\n")
         fp.write("#\n")
         fp.write("# Tracklet Calculators for seeding diks "+str(idisk)+" \n")
@@ -1988,6 +2030,8 @@ else :
 
         sp_disk=[]
         for sp_name in SP_list :
+            if sp_name in emptysp:
+                continue
             if "_D"+str(idisk) in sp_name and "_D"+str(idisk+1) in sp_name :
                 #print idisk,sp_name
                 sp_disk.append(sp_name)
@@ -2011,6 +2055,8 @@ else :
             fp.write(" > TC_D"+str(idisk)+"D"+str(idisk+1)+letter(tc_count)+" > "+tpar_name)
             TPAR_list.append(tpar_name)
             for projdisk in range(1,6) :
+                if not doDisk :
+                    continue
                 if projdisk!=idisk and projdisk!=idisk+1 :
                     projrange=phiprojrangedisk(idisk,projdisk,sps)
                     for iallproj in range(1,nallprojdisks[projdisk-1]+1) :
@@ -2044,6 +2090,9 @@ else :
     #
                 
     for ilayer in (1,2) :
+        if doOnlyL1L2 :
+            continue
+        
         fp.write("\n")
         fp.write("#\n")
         fp.write("# Tracklet Calculators for seeding in overlap layer "+str(ilayer)+" \n")
@@ -2051,6 +2100,8 @@ else :
 
         sp_layer=[]
         for sp_name in SP_list :
+            if sp_name in emptysp:
+                continue
             if "_L"+str(ilayer) in sp_name and "_D1" in sp_name :
                 #print ilayer,sp_name
                 sp_layer.append(sp_name)
@@ -2445,6 +2496,8 @@ if combinedMP :
             fp.write("\n\n")
 
     for idisk in range(1,6) :
+        if not doDisk :
+            continue
         print "disk =",idisk,"allstub memories",nallprojdisks[idisk-1]
         fp.write("\n")
         fp.write("#\n")
@@ -2502,6 +2555,9 @@ else :
     #
 
     for ilayer in range(1,7) :
+        if doOnlyL1L2 and ilayer<=2 :
+            continue
+
         print "layer =",ilayer,"allstub memories",nallprojlayers[ilayer-1]
         fp.write("\n")
         fp.write("#\n")
@@ -2523,6 +2579,8 @@ else :
     #
 
     for idisk in range(1,6) :
+        if not doDisk :
+            continue
         print "disk =",idisk,"allstub memories",nallprojdisks[idisk-1]
         fp.write("\n")
         fp.write("#\n")
@@ -2546,6 +2604,9 @@ else :
     CM_list=[]
 
     for ilayer in range(1,7) :
+        if doOnlyL1L2 and ilayer<=2 :
+            continue
+
         fp.write("\n")
         fp.write("#\n")
         fp.write("# Match Engines for layer "+str(ilayer)+" \n")
@@ -2566,6 +2627,8 @@ else :
     #
 
     for idisk in range(1,6) :
+        if not doDisk :
+            continue
         fp.write("\n")
         fp.write("#\n")
         fp.write("# Match Engines for disk "+str(idisk)+" \n")
@@ -2587,6 +2650,9 @@ else :
     #
 
     for ilayer in range(1,7) :
+        if doOnlyL1L2 and ilayer<=2 :
+            continue
+
         fp.write("\n")
         fp.write("#\n")
         fp.write("# Match Calculator for layer "+str(ilayer)+" \n")
@@ -2653,6 +2719,8 @@ else :
     #
 
     for idisk in range(1,6) :
+        if not doDisk :
+            continue
         fp.write("\n")
         fp.write("#\n")
         fp.write("# Match Calculator for disk "+str(idisk)+" \n")
@@ -2727,6 +2795,8 @@ if displacedseeding :
 
 
 for fitname in fits:
+    if doOnlyL1L2 and "L1L2" not in fitname :
+        continue;
     fp.write("\n")
     fp.write("#\n")
     fp.write("# Tracklet Fit for seeding "+fitname+" \n")
@@ -2750,9 +2820,13 @@ fp.write("#\n")
 fp.write("# Purge Duplicates\n")
 fp.write("#\n")
 for fitname in fits:
+    if doOnlyL1L2 and "L1L2" not in fitname :
+        continue;
     fp.write("TF_"+fitname+" ")
 fp.write("> PD > ")
 for fitname in fits:
+    if doOnlyL1L2 and "L1L2" not in fitname :
+        continue;
     fp.write("CT_"+fitname+" ")
    
 

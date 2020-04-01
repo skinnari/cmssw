@@ -52,7 +52,7 @@ public:
       }
     }
     if (writeVMTables) {
-      writeVMTable("VMTableOuterD"+std::to_string(disk_)+".txt");
+      writeVMTable("VMTableOuterD"+std::to_string(disk_)+".tab");
     }
   }
 

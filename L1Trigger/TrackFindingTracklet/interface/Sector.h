@@ -430,6 +430,14 @@ public:
     for (unsigned int i=0;i<TC_.size();i++){
       TC_[i]->execute();
     }
+
+    if (writeTrackProjOcc) {
+      static ofstream out("trackprojocc.txt");
+      for (unsigned int i=0; i<TPROJ_.size();i++){
+        out << TPROJ_[i]->getName()<<" "<<TPROJ_[i]->nTracklets()<<endl;
+      }
+    }
+    
   }
 
   void executeTCD(){

@@ -78,7 +78,7 @@ public:
       }
     }
     
-    cout << "Did not find output : "<<output<<endl;
+    cout << getName()<<" Did not find output : "<<output<<endl;
     assert(0);
   }
 
@@ -87,7 +87,7 @@ public:
       cout << "In "<<name_<<" adding input from "<<memory->getName()
 	   << " to input "<<input<<endl;
     }
-    if (input=="proj1in"||input=="proj2in"||
+    if (input=="projin"||input=="proj1in"||input=="proj2in"||
 	input=="proj3in"||input=="proj4in"||
 	input=="proj5in"||input=="proj6in"||
 	input=="proj7in"||input=="proj8in"||
@@ -297,7 +297,7 @@ public:
 	      iphider=iphider<<(nbitsphiprojderL123-nphiderbits_);
 	      
 	      double rproj=ir*krprojshiftdisk;
-	      double phider=iphider*TrackletCalculator::ITC_L1L2.der_phiD_final.get_K();
+	      double phider=iphider*TrackletCalculatorBase::ITC_L1L2.der_phiD_final.get_K();
 	      double t=zmean[idisk]/rproj;
 	      
 	      if (isignbin) t=-t;

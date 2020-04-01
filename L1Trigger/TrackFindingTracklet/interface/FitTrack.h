@@ -41,7 +41,8 @@ class FitTrack:public ProcessBase{
     cout << "In "<<name_<<" adding input from "<<memory->getName()
      << " to input "<<input<<endl;
    }
-   if (input=="tpar1in"||
+   if (input=="tparin"||
+       input=="tpar1in"||
      input=="tpar2in"||
      input=="tpar3in"||
      input=="tpar4in"||
@@ -529,12 +530,14 @@ class FitTrack:public ProcessBase{
    TrackDer* derivatives=derTable.getDerivatives(layermask, diskmask,alphaindex,rinvindex);
 
    if (derivatives==0) {
-    FPGAWord tmpl,tmpd;
-    tmpl.set(layermask,6);
-    tmpd.set(diskmask,10);
-    cout << "No derivative for layermask, diskmask : "
-     <<layermask<<" "<<tmpl.str()<<" "<<diskmask<<" "<<tmpd.str()<<" eta = "<<asinh(t)<<endl;
-    return;
+     if (warnNoDer) { 
+       FPGAWord tmpl,tmpd;
+       tmpl.set(layermask,6);
+       tmpd.set(diskmask,10);
+       cout << "No derivative for layermask, diskmask : "
+	    <<layermask<<" "<<tmpl.str()<<" "<<diskmask<<" "<<tmpd.str()<<" eta = "<<asinh(t)<<endl;
+     }
+     return;
    }
 
    double ttabi=TrackDerTable::gett(diskmask, layermask);
@@ -998,16 +1001,14 @@ class FitTrack:public ProcessBase{
    // This is also true for the call to setFitPars in trackFitFake.
    tracklet->setFitPars(rinvfit,phi0fit,0.0,tfit,z0fit,chisqfit,0.0,
 			rinvfitexact,phi0fitexact,0.0,tfitexact,z0fitexact,chisqfitexact,0.0,
-			irinvfit,iphi0fit,0,itfit,iz0fit,ichisqfit,0,
-			0);
-
+			irinvfit,iphi0fit,0,itfit,iz0fit,ichisqfit,0,0);
   }
 
-  void trackFitFake(Tracklet* tracklet) {
-    // to be replaced with a five-parameter fit; for now, copy tracklet parameters
+  void trackFitFake(Tracklet* tracklet, std::vector<std::pair<Stub*,L1TStub*>> &, std::vector<std::pair<int,int>> &){    
     tracklet->setFitPars(tracklet->rinvapprox(),tracklet->phi0approx(),tracklet->d0approx(),tracklet->tapprox(),tracklet->z0approx(),0.0,0.0,
 			 tracklet->rinv(),tracklet->phi0(),tracklet->d0(),tracklet->t(),tracklet->z0(),0.0,0.0,
 			 tracklet->fpgarinv().value(),tracklet->fpgaphi0().value(),tracklet->fpgad0().value(),tracklet->fpgat().value(),tracklet->fpgaz0().value(),0,0,0);
+      return;
   }
 
   std::vector<Tracklet*> orderedMatches(vector<FullMatchMemory*>& fullmatch) {

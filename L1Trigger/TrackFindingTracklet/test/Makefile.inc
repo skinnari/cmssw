@@ -1,7 +1,7 @@
 #common definitions go in here
 CXX           = g++
 CXXFLAGS      = -O -Wall  -fPIC -g -ansi -Wextra -Wno-deprecated -std=c++11
-LD            = g++ 
+LD            = g++
 LDFLAGS       = -O
 LIBDIR       = $(WORKDIR)
 AR            = ar
