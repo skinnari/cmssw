@@ -464,69 +464,73 @@ int main(const int argc, const char** argv)
         //cout << "Simtrack id : "<<simtrackid<<" "<<nlayers<<" "<<ndisks<<endl;                                                
         if (nlayers+ndisks<4) continue;
 	nsim++;
-        bool eff=false;
-        bool effloose=false;
-	//int layerdisk=0;
-	int itrackmatch=-1;
-        for(unsigned int itrack=0;itrack<tracks.size();itrack++) {
-          if (tracks[itrack]->duplicate()) continue;
-          std::vector<L1TStub*> stubs=tracks[itrack]->stubs();
-          //cout << "Track "<<itrack<<" with stubs with simtrackids :";
-
-          unsigned int nmatch=0;
-	  //layerdisk=0;
-          for(unsigned int istub=0;istub<stubs.size();istub++){
-            if (stubs[istub]->tpmatch(simtrackid)) {
-              nmatch++;
-            } else {
-	      if (stubs[istub]->layer()<999) {
-		//layerdisk=stubs[istub]->layer()+1;
+	for (int seed=-1;seed<8;seed++){
+	  bool eff=false;
+	  bool effloose=false;
+	  //int layerdisk=0;
+	  int itrackmatch=-1;
+	  for (unsigned int itrack=0;itrack<tracks.size();itrack++) {
+	    std::vector<L1TStub*> stubs=tracks[itrack]->stubs();
+	    if (seed==-1) {
+	      if (tracks[itrack]->duplicate()) continue;
+	    } else {
+	      if (seed!=tracks[itrack]->seed()) continue;
+	    }
+	  
+	    unsigned int nmatch=0;
+	    //layerdisk=0;
+	    for(unsigned int istub=0;istub<stubs.size();istub++){
+	      if (stubs[istub]->tpmatch(simtrackid)) {
+		nmatch++;
 	      } else {
-		//layerdisk=-abs(stubs[istub]->disk());
+		if (stubs[istub]->layer()<999) {
+		  //layerdisk=stubs[istub]->layer()+1;
+		} else {
+		  //layerdisk=-abs(stubs[istub]->disk());
+		}
 	      }
 	    }
-          }
 
-          if (nmatch==stubs.size()) {
-	    eff=true;
-	    itrackmatch=itrack;
+	    if (nmatch==stubs.size()) {
+	      eff=true;
+	      itrackmatch=itrack;
+	    }
+	    if (nmatch>=stubs.size()-1) {
+	      effloose=true;
+	      if (!eff) itrackmatch=itrack;
+	    }
+
 	  }
-          if (nmatch>=stubs.size()-1) {
-	    effloose=true;
-	    if (!eff) itrackmatch=itrack;
+	  double dpt=-999;
+	  double dphi=-999;
+	  double deta=-999;
+	  double dz0=-999;
+	  int q=1;
+	  if (simtrack.type()==11||simtrack.type()==13||
+	      simtrack.type()==-211||simtrack.type()==-321||simtrack.type()==-2212){
+	    q=-1;
 	  }
 
-        }
-	double dpt=-999;
-	double dphi=-999;
-	double deta=-999;
-	double dz0=-999;
-	int q=1;
-	if (simtrack.type()==11||simtrack.type()==13||
-	    simtrack.type()==-211||simtrack.type()==-321||simtrack.type()==-2212){
-	  q=-1;
-	}
+	  if (itrackmatch>=0) {
+	    dpt=tracks[itrackmatch]->pt()-q*simtrack.pt();
+	    dphi=tracks[itrackmatch]->phi0()-simtrack.phi();
+	    if (dphi>0.5*two_pi) dphi-=two_pi;
+	    if (dphi<-0.5*two_pi) dphi+=two_pi;
+	    deta=tracks[itrackmatch]->eta()-simtrack.eta();
+	    dz0=tracks[itrackmatch]->z0()-simtrack.vz();
+	    //cout <<" z0 "<<tracks[itrackmatch]->z0()<<" "<<simtrack.vz()<<endl;
+	  }
 
-	if (itrackmatch>=0) {
-	  dpt=tracks[itrackmatch]->pt()-q*simtrack.pt();
-	  dphi=tracks[itrackmatch]->phi0()-simtrack.phi();
-	  if (dphi>0.5*two_pi) dphi-=two_pi;
-	  if (dphi<-0.5*two_pi) dphi+=two_pi;
-	  deta=tracks[itrackmatch]->eta()-simtrack.eta();
-	  dz0=tracks[itrackmatch]->z0()-simtrack.vz();
-	  //cout <<" z0 "<<tracks[itrackmatch]->z0()<<" "<<simtrack.vz()<<endl;
-	}
-
-	//cout << "dpt dphi deta dz0 "<<dpt<<" "<<dphi<<" "<<deta<<" "<<dz0<<endl;
+	  //cout << "dpt dphi deta dz0 "<<dpt<<" "<<dphi<<" "<<deta<<" "<<dz0<<endl;
 	
-        out <<eventnum<<" "<<simeventid<<" "<<simtrackid<<" "<<simtrack.type()<<" "
-            <<simtrack.pt()<<" "<<simtrack.eta()<<" "<<simtrack.phi()<<" "
-            <<simtrack.vx()<<" "<<simtrack.vy()<<" "<<simtrack.vz()<<" "
-	    <<eff<<" "<<effloose<<" "
-	    <<dpt<<" "<<dphi<<" "<<deta<<" "<<dz0
-	    <<endl;
+	  out <<eventnum<<" "<<simeventid<<" "<<seed<<" "<<simtrackid<<" "<<simtrack.type()<<" "
+	      <<simtrack.pt()<<" "<<simtrack.eta()<<" "<<simtrack.phi()<<" "
+	      <<simtrack.vx()<<" "<<simtrack.vy()<<" "<<simtrack.vz()<<" "
+	      <<eff<<" "<<effloose<<" "
+	      <<dpt<<" "<<dphi<<" "<<deta<<" "<<dz0
+	      <<endl;
+	}
       }
-      //cout << "nsim : "<<nsim<<endl;
     }
 
     

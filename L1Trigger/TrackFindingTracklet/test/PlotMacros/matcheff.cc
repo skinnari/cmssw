@@ -2,6 +2,7 @@
 #include "TRint.h"
 #include "TROOT.h"
 #include "TStyle.h"
+#include "TLegend.h"
 #include "TLorentzVector.h"
 #include "TCanvas.h"
 #include "TH1.h"
@@ -27,7 +28,7 @@ void matcheff(){
 
   gStyle->SetCanvasBorderMode(0);     // turn off canvas borders
   gStyle->SetPadBorderMode(0);
-  //gStyle->SetOptStat(0);
+  gStyle->SetOptStat(0);
 
 
   // For publishing:
@@ -50,6 +51,10 @@ void matcheff(){
   TCanvas* c2 = new TCanvas("c2","Track performance",200,10,1000,1100);
   c2->Divide(2,2);
   c2->SetFillColor(0);
+
+  TCanvas* c3 = new TCanvas("c3","Track performance",200,10,1100,600);
+  c3->Divide(1,1);
+  c3->SetFillColor(0);
   
   //c1_4->SetGridy(10);
   //c1_3->SetGridy(10);
@@ -106,6 +111,17 @@ void matcheff(){
   TH1 *hist24 = new TH1F("h24","z0 Res",50,-2.0,2.0);
   hist24->GetXaxis()->SetTitle("#sigma(z_{0}) [cm]");
 
+  TH1 *hist90 = new TH1F("90",parttype+" seed=0",50,-2.5,2.5);
+  TH1 *hist91 = new TH1F("91",parttype+" seed=1",50,-2.5,2.5);
+  TH1 *hist92 = new TH1F("92",parttype+" seed=2",50,-2.5,2.5);
+  TH1 *hist93 = new TH1F("93",parttype+" seed=3",50,-2.5,2.5);
+  TH1 *hist94 = new TH1F("94",parttype+" seed=4",50,-2.5,2.5);
+  TH1 *hist95 = new TH1F("95",parttype+" seed=5",50,-2.5,2.5);
+  TH1 *hist96 = new TH1F("96",parttype+" seed=6",50,-2.5,2.5);
+  TH1 *hist97 = new TH1F("97",parttype+" seed=7",50,-2.5,2.5);
+  TH1 *hist99 = new TH1F("99",parttype+" all seeed",50,-2.5,2.5);
+
+  
   
   hist1->GetXaxis()->SetTitle("pT (GeV)");
   hist1->GetYaxis()->SetTitle("Events");
@@ -153,16 +169,16 @@ void matcheff(){
   
   while (in.good()){
    
-    int event,simeventid,simtrackid,type,eff,effloose;
+    int event,simeventid,seed,simtrackid,type,eff,effloose;
     
     double pt,eta,phi0,vx,vy,vz,dpt,dphi,deta,dz0;
     
-    in>>event>>simeventid>>simtrackid>>type>>pt>>eta>>phi0>>vx>>vy>>vz>>eff>>effloose
+    in>>event>>simeventid>>seed>>simtrackid>>type>>pt>>eta>>phi0>>vx>>vy>>vz>>eff>>effloose
       >>dpt>>dphi>>deta>>dz0;
     
     //if (eta>1.0) continue;
     if (pt<2.0) continue;
-    //if (pt>3.0) continue;
+    //if (pt>2.5) continue;
     //if (type>0.0) continue;
     //if (pt>3.0) continue;
     //if (pt>10) continue;
@@ -170,16 +186,30 @@ void matcheff(){
     //if (simeventid>0) continue;
     
     //if (fabs(eta)<1.8) continue;
-    
+
     if (abs(type)!=itype) continue;
-    
-    count++;
     
     double phisector=phi0;
     
     while(phisector<0.0) phisector+=sectorphi;
     while(phisector>sectorphi) phisector-=sectorphi;
-    
+
+    if (effloose==1){
+      if (seed==0) hist90->Fill(eta);
+      if (seed==1) hist91->Fill(eta);
+      if (seed==2) hist92->Fill(eta);
+      if (seed==3) hist93->Fill(eta);
+      if (seed==4) hist94->Fill(eta);
+      if (seed==5) hist95->Fill(eta);
+      if (seed==6) hist96->Fill(eta);
+      if (seed==7) hist97->Fill(eta);
+      if (seed==-1) hist99->Fill(eta);
+    }
+
+    if (seed>=0) continue;    
+
+    count++;	
+
     hist7->Fill(phisector);
     hist5->Fill(phi0);
     hist3->Fill(eta);
@@ -221,7 +251,16 @@ void matcheff(){
   hist2->Divide(hist2,hist1,1,1,"B");
   hist6->Divide(hist6,hist5,1,1,"B");
   hist8->Divide(hist8,hist7,1,1,"B");
-  hist4->Divide(hist4,hist3,1,1,"B");
+
+  hist90->Divide(hist90,hist3,1,1,"B");
+  hist91->Divide(hist91,hist3,1,1,"B");
+  hist92->Divide(hist92,hist3,1,1,"B");
+  hist93->Divide(hist93,hist3,1,1,"B");
+  hist94->Divide(hist94,hist3,1,1,"B");
+  hist95->Divide(hist95,hist3,1,1,"B");
+  hist96->Divide(hist96,hist3,1,1,"B");
+  hist97->Divide(hist97,hist3,1,1,"B");
+  hist99->Divide(hist99,hist3,1,1,"B");
   
   hist12->Sumw2();
   hist16->Sumw2();
@@ -240,8 +279,7 @@ void matcheff(){
   hist2->Draw();
   hist12->SetLineColor(kBlue);
   hist12->Draw("same");
-  
-  
+
 
   c1->cd(1);
   hist6->SetMaximum(1.05);
@@ -281,6 +319,47 @@ void matcheff(){
   hist24->Draw();
 
   c2->Print(parttype+"_resolution.pdf");
+
+  c3->cd(1);
+  TLegend* legend = new TLegend(0.45,0.2,0.55,0.45);
+  legend->SetHeader("Seeding");  
+  hist99->SetLineWidth(3);
+  hist99->Draw();
+  legend->AddEntry(hist99,"All","l");
+  hist90->SetLineColor(2);
+  hist90->SetLineWidth(3);
+  hist90->Draw("same");
+  legend->AddEntry(hist90,"L1L2","l");
+  hist91->SetLineColor(3);
+  hist91->SetLineWidth(3);
+  hist91->Draw("same");
+  legend->AddEntry(hist91,"L2L3","l");
+  hist92->SetLineColor(4);
+  hist92->SetLineWidth(3);
+  hist92->Draw("same");
+  legend->AddEntry(hist92,"L3L4","l");
+  hist93->SetLineColor(5);
+  hist93->SetLineWidth(3);
+  hist93->Draw("same");
+  legend->AddEntry(hist93,"L5L6","l");
+  hist94->SetLineColor(6);
+  hist94->SetLineWidth(3);
+  hist94->Draw("same");
+  legend->AddEntry(hist94,"D1D2","l");
+  hist95->SetLineColor(7);
+  hist95->SetLineWidth(3);
+  hist95->Draw("same");
+  legend->AddEntry(hist95,"D3D4","l");
+  hist96->SetLineColor(8);
+  hist96->SetLineWidth(3);
+  hist96->Draw("same");
+  legend->AddEntry(hist96,"L1D1","l");
+  hist97->SetLineColor(9);
+  hist97->SetLineWidth(3);
+  hist97->Draw("same");
+  legend->AddEntry(hist97,"L2D1","l");
+  legend->Draw();
+  c3->Print("SeedingTrackEff.pdf","pdf");
 
   
 }

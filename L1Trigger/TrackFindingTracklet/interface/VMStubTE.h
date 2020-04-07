@@ -74,10 +74,13 @@ public:
     stub+="|";
     stub+=finephi_.str();
     stub+="|";
-    stub+=finerz_.str();
-    stub+="|";
+    if (finerz_.nbits()!=-1) {
+      //we skip r and z position if not set
+      stub+=finerz_.str();
+      stub+="|";
+    }
     stub+=vmbits_.str();
-
+    
     return stub;
     
   }

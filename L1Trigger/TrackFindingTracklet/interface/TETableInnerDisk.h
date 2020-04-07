@@ -68,7 +68,7 @@ public:
       }
     }
     if (writeVMTables) {
-      writeVMTable("VMTableInnerD"+std::to_string(disk1_)+"D"+std::to_string(disk2_)+".txt");
+      writeVMTable("VMTableInnerD"+std::to_string(disk1_)+"D"+std::to_string(disk2_)+".tab");
     }
   }
 

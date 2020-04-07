@@ -26,7 +26,8 @@ public:
       cout << "In "<<name_<<" adding output to "<<memory->getName()
            << " to output "<<output<<endl;
     }
-    if (output=="trackout1"||
+    if (output=="trackout"||
+	output=="trackout1"||
         output=="trackout2"||
         output=="trackout3"||
         output=="trackout4"||
@@ -51,7 +52,8 @@ public:
       cout << "In "<<name_<<" adding input from "<<memory->getName()
            << " to input "<<input<<endl;
     }
-    if (input=="trackin1"||
+    if (input=="trackin"||
+	input=="trackin1"||
         input=="trackin2"||
         input=="trackin3"||
         input=="trackin4"||
@@ -72,7 +74,7 @@ public:
   }
 
   void execute(std::vector<Track*>& outputtracks_) {
-    
+
     inputtracklets_.clear();
     inputtracks_.clear();
 
@@ -117,6 +119,7 @@ public:
           inputtracklets_.push_back(inputtrackfits_[i]->getTrack(j));
 
           std::vector<std::pair<Stub*,L1TStub*>> stublist = inputtrackfits_[i]->getStublist(j);
+
           inputstublists_.push_back(stublist);
 
           std::vector<std::pair<int,int>> stubidslist = inputtrackfits_[i]->getStubidslist(j);
@@ -203,6 +206,7 @@ public:
           } else if (MergeComparison == "CompareBest") {
             std::vector<std::pair<Stub*,L1TStub*>> fullStubslistsTrk1 = inputstublists_[itrk];
             std::vector<std::pair<Stub*,L1TStub*>> fullStubslistsTrk2 = inputstublists_[jtrk];
+
             // Arrays to store the index of the best stub in each region
             int URStubidsTrk1[16];
             int URStubidsTrk2[16];
@@ -255,6 +259,7 @@ public:
 
           // Fill duplicate map
           // !!FIXME!! This is completely unoptimized. Just an educated guess
+
           if (nShareUR >=3) { // For number of shared stub merge condition
 //          if (nURStubTrk1-nShareUR <= 2 || nURStubTrk2-nShareUR <= 2) { // For number of independent stub merge condition
             dupMap[itrk][jtrk] = true;
@@ -489,13 +494,13 @@ private:
     int seedindex = curTracklet->seedIndex();
     // If this stub is a seed stub, set projection=phi, so that res=0
     if ((seedindex == 0 && (Layer == 1 || Layer == 2)) ||
-       (seedindex == 1 && (Layer == 3 || Layer == 4)) ||
-       (seedindex == 2 && (Layer == 5 || Layer == 6)) ||
-       (seedindex == 3 && (abs(Disk) ==  1 || abs(Disk) ==  2)) ||
-       (seedindex == 4 && (abs(Disk) ==  3 || abs(Disk) ==  4)) ||
-       (seedindex == 5 && (Layer == 1 || abs(Disk) ==  1)) ||
-       (seedindex == 6 && (Layer == 2 || abs(Disk) ==  1)) ||
-       (seedindex == 7 && (Layer == 2 || abs(Disk) ==  0)) ||
+       (seedindex == 1 && (Layer == 2 || abs(Disk) ==  0)) ||
+       (seedindex == 2 && (Layer == 3 || Layer == 4)) ||
+       (seedindex == 3 && (Layer == 5 || Layer == 6)) ||
+       (seedindex == 4 && (abs(Disk) ==  1 || abs(Disk) ==  2)) ||
+       (seedindex == 5 && (abs(Disk) ==  3 || abs(Disk) ==  4)) ||
+       (seedindex == 6 && (Layer == 1 || abs(Disk) ==  1)) ||
+       (seedindex == 7 && (Layer == 2 || abs(Disk) ==  1)) ||
        (seedindex == 8 && (Layer == 2 || Layer == 3 || Layer == 4)) ||
        (seedindex == 9 && (Layer == 4 || Layer == 5 || Layer == 6)) ||
        (seedindex == 10 && (Layer == 2 || Layer == 3 || abs(Disk) == 1)) ||

@@ -118,17 +118,44 @@ public:
     
   }
 
+  //Used for a hack below due to MAC OS case sensitiviy problem for files
+  void findAndReplaceAll(std::string & data, std::string toSearch, std::string replaceStr){
+
+    // Get the first occurrence
+    size_t pos = data.find(toSearch);
+    
+    // Repeat till end is reached
+    while( pos != std::string::npos){
+      // Replace this occurrence of Sub String
+      data.replace(pos, toSearch.size(), replaceStr);
+      // Get the next occurrence from the current position
+      pos =data.find(toSearch, pos + replaceStr.size());
+    }
+  }
+  
   void openFile(bool first, std::string filebase){
     
     std::string fname=filebase;
     fname+=getName();
 
+    findAndReplaceAll(fname,"PHIa","PHIaa");
+    findAndReplaceAll(fname,"PHIb","PHIbb");
+    findAndReplaceAll(fname,"PHIc","PHIcc");
+    findAndReplaceAll(fname,"PHId","PHIdd");
+
+    findAndReplaceAll(fname,"PHIx","PHIxx");
+    findAndReplaceAll(fname,"PHIy","PHIyy");
+    findAndReplaceAll(fname,"PHIz","PHIzz");
+    findAndReplaceAll(fname,"PHIw","PHIww");
+
+    
     fname+="_";
     ostringstream oss;
     oss << iSector_+1;
     if (iSector_+1<10) fname+="0";
     fname+=oss.str();
     fname+=".dat";
+
     if (first) {
       bx_ = 0;
       event_ = 1;
@@ -139,7 +166,6 @@ public:
       
     out_ << "BX = "<<(bitset<3>)bx_ << " Event : " << event_ << endl;
 
-    
     bx_++;
     event_++;
     if (bx_>7) bx_=0;

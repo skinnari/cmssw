@@ -156,7 +156,7 @@ public:
     if (iSector_==0&&layer_>0&&writeMCcuts) {
 
       ofstream outphicut;
-      outphicut.open(getName()+"_phicut.txt");
+      outphicut.open(getName()+"_phicut.tab");
       outphicut << "{"<<endl;
       for(unsigned int seedindex=0;seedindex<12;seedindex++){
 	if (seedindex!=0) outphicut<<","<<endl;
@@ -166,7 +166,7 @@ public:
       outphicut.close();
 
       ofstream outzcut;
-      outzcut.open(getName()+"_zcut.txt");
+      outzcut.open(getName()+"_zcut.tab");
       outzcut << "{"<<endl;
       for(unsigned int seedindex=0;seedindex<12;seedindex++){
 	if (seedindex!=0) outzcut<<","<<endl;
@@ -387,7 +387,7 @@ public:
     if (iSector_==0&&disk_>0&&writeMCcuts) {
 
       ofstream outphicut;
-      outphicut.open(getName()+"_PSphicut.txt");
+      outphicut.open(getName()+"_PSphicut.tab");
       outphicut << "{"<<endl;
       for(unsigned int seedindex=0;seedindex<12;seedindex++){
 	if (seedindex!=0) outphicut<<","<<endl;
@@ -396,7 +396,7 @@ public:
       outphicut <<endl<<"};"<<endl;
       outphicut.close();
 
-      outphicut.open(getName()+"_2Sphicut.txt");
+      outphicut.open(getName()+"_2Sphicut.tab");
       outphicut << "{"<<endl;
       for(unsigned int seedindex=0;seedindex<12;seedindex++){
 	if (seedindex!=0) outphicut<<","<<endl;
@@ -406,7 +406,7 @@ public:
       outphicut.close();
 
       ofstream outzcut;
-      outzcut.open(getName()+"_PSrcut.txt");
+      outzcut.open(getName()+"_PSrcut.tab");
       outzcut << "{"<<endl;
       for(unsigned int seedindex=0;seedindex<12;seedindex++){
 	if (seedindex!=0) outzcut<<","<<endl;
@@ -415,7 +415,7 @@ public:
       outzcut <<endl<<"};"<<endl;
       outzcut.close();
 
-      outzcut.open(getName()+"_2Srcut.txt");
+      outzcut.open(getName()+"_2Srcut.tab");
       outzcut << "{"<<endl;
       for(unsigned int seedindex=0;seedindex<12;seedindex++){
 	if (seedindex!=0) outzcut<<","<<endl;
@@ -479,7 +479,8 @@ public:
       allprojs_=tmp;
       return;
     }
-    if (input=="match1in"||
+    if (input=="matchin"||
+	input=="match1in"||
 	input=="match2in"||
 	input=="match3in"||
 	input=="match4in"||
@@ -492,11 +493,12 @@ public:
       matches_.push_back(tmp);
       return;
     }
+    cout << getName()<<" Could not find input "<<input<<endl;
     assert(0);
   }
 
   void execute() {
-    
+
     assert(fullmatches_.size()!=0);
 
     unsigned int countall=0;

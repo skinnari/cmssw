@@ -57,7 +57,7 @@ public:
       if (iSector_==0&&writeVMRTables) {
 
 	ofstream outfinebin;
-	outfinebin.open(getName()+"_finebin.txt");
+	outfinebin.open(getName()+"_finebin.tab");
 	outfinebin << "{"<<endl;
 	for(unsigned int i=0;i<nbins;i++) {
 	  if (i!=0) outfinebin<<","<<endl;
@@ -122,6 +122,26 @@ public:
 	oss1<<(n+1);
 	string ns=oss1.str();	
 	if (
+	    output=="vmstuboutPHIA"+s||
+	    output=="vmstuboutPHIB"+s||
+	    output=="vmstuboutPHIC"+s||
+	    output=="vmstuboutPHID"+s||
+	    output=="vmstuboutPHIE"+s||
+	    output=="vmstuboutPHIF"+s||
+	    output=="vmstuboutPHIG"+s||
+	    output=="vmstuboutPHIH"+s||
+	    output=="vmstuboutPHII"+s||
+	    output=="vmstuboutPHIJ"+s||
+	    output=="vmstuboutPHIK"+s||
+	    output=="vmstuboutPHIL"+s||
+	    output=="vmstuboutPHIX"+s||
+	    output=="vmstuboutPHIY"+s||
+	    output=="vmstuboutPHIZ"+s||
+	    output=="vmstuboutPHIW"+s||
+	    output=="vmstuboutPHIQ"+s||
+	    output=="vmstuboutPHIR"+s||
+	    output=="vmstuboutPHIS"+s||
+	    output=="vmstuboutPHIT"+s||
 	    output=="vmstuboutPHIA"+s+"n"+ns||
 	    output=="vmstuboutPHIB"+s+"n"+ns||
 	    output=="vmstuboutPHIC"+s+"n"+ns||
@@ -307,6 +327,7 @@ public:
 	    }
 	  }
 	  unsigned int layer=stub.first->layer().value();
+	  //First do the extra layers L2L3 seeding
 	  if ((layer==1 || layer== 2) && binlookupextra.value()!=-1 ) {
 	    int iphiRawTmp=iphiRaw/(32/(nallstubslayers[layer]*nvmteextralayers[layer]));
 	    for (unsigned int l=0;l<vmstubsTEExtraPHI_[iphiRawTmp].size();l++){
@@ -349,26 +370,32 @@ public:
 	      }
 	    } else {
 	      int iphiRawTmp=iphiRaw/(32/(nallstubslayers[layer]*nvmtelayers[layer]));
+	      int nfinephi=nfinephibarrelinner;
+	      int bin=-1;
+	      if (layer_==2||layer_==4||layer_==6) {
+		nfinephi=nfinephibarrelouter;
+		bin=binlookup.value()/8;
+		unsigned int tmp=binlookup.value()&7; //three bits in outer layers //FIXME
+		binlookup.set(tmp,3,true,__LINE__,__FILE__);
+	      }
+	      int nphireg=5;
+	      if (layer_==3) nphireg=4;
+	      if (layer_==5) nphireg=4;
+	      VMStubTE tmpstub(stub,
+			       stub.first->iphivmFineBins(nphireg,nfinephi),
+			       stub.first->finer(),
+			       stub.first->bend(),
+			       binlookup, 
+			       stub.first->stubindex());
 	      for (unsigned int l=0;l<vmstubsTEPHI_[iphiRawTmp].size();l++){
 		if (debug1) {
 		  cout << getName()<<" try adding stub to "<<vmstubsTEPHI_[iphiRawTmp][l]->getName()<<endl;
 		}
-		int nfinephi=nfinephibarrelinner;
-		if (layer_==2||layer_==4||layer_==6) {
-		  nfinephi=nfinephibarrelouter;
+		if (bin==-1) {
+		  vmstubsTEPHI_[iphiRawTmp][l]->addVMStub(tmpstub); 
+		} else {
+		  vmstubsTEPHI_[iphiRawTmp][l]->addVMStub(tmpstub,bin); 
 		}
-		int nphireg=5;
-		if (layer_==3) nphireg=4;
-		if (layer_==5) nphireg=4;
-		VMStubTE tmpstub(stub,
-				 stub.first->iphivmFineBins(nphireg,nfinephi),
-				 stub.first->finer(),
-				 stub.first->bend(),
-				 //(binlookup&1023),
-				 binlookup,
-				 stub.first->stubindex());
-		vmstubsTEPHI_[iphiRawTmp][l]->addVMStub(tmpstub); 
-
 		insert=true;
 	      }
 	    }
@@ -464,7 +491,6 @@ public:
 			       stub.first->iphivmFineBins(nphireg,nfinephi),
 			       stub.first->finer(),
 			       stub.first->bend(),
-			       //(binlookup&1023),
 			       binlookup,
 			       stub.first->stubindex());
 	      vmstubsTEPHI_[iphiRaw][l]->addVMStub(tmpstub); 
@@ -474,7 +500,7 @@ public:
 	  }
 
 	  if (!insert) {
-	    cout << getName() << " did not insert stub"<<endl;
+	    cout << getName() << " Warning did not insert stub"<<endl;
 	  }
 	  assert(insert);
 
@@ -754,7 +780,7 @@ public:
 	  if (!insert){
 	    cout << "In "<<getName()<<" did not insert stub from input "<<stubinputs_[j]->getName()<<endl;
 	  }
-	  assert(insert);
+	  //assert(insert);
 
 	}
       }
@@ -892,13 +918,13 @@ public:
     int zbin=(z.value()+(1<<(z.nbits()-1)))>>(z.nbits()-7);
     int rbin=(r.value()+(1<<(r.nbits()-1)))>>(r.nbits()-4);
     switch (layer_){
-    case 2: return FPGAWord(outerTableL2.lookup(zbin,rbin),11,false,__LINE__,__FILE__);
+    case 2: return FPGAWord(outerTableL2.lookup(zbin,rbin),6,true,__LINE__,__FILE__);
       break;
-    case 3: return FPGAWord(outerTableL3.lookup(zbin,rbin),11,false,__LINE__,__FILE__);
+    case 3: return FPGAWord(outerTableL3.lookup(zbin,rbin),6,true,__LINE__,__FILE__);
       break;
-    case 4: return FPGAWord(outerTableL4.lookup(zbin,rbin),11,false,__LINE__,__FILE__);
+    case 4: return FPGAWord(outerTableL4.lookup(zbin,rbin),6,true,__LINE__,__FILE__);
       break;
-    case 6: return FPGAWord(outerTableL6.lookup(zbin,rbin),11,false,__LINE__,__FILE__);
+    case 6: return FPGAWord(outerTableL6.lookup(zbin,rbin),6,true,__LINE__,__FILE__);
       break;
     }
     assert(0);
@@ -929,18 +955,26 @@ public:
     FPGAWord z=stub->z();
     int zbin=(z.value()+(1<<(z.nbits()-1)))>>(z.nbits()-7);
     int rbin=(r.value()+(1<<(r.nbits()-1)))>>(r.nbits()-4);
+
+    unsigned int nbits=11;
+    if (hourglassExtended) nbits=21;
     switch (layer_){
-    case 1: return FPGAWord(innerTableL1.lookup(zbin,rbin),21,false,__LINE__,__FILE__);
+    //FIXME code for layer 1 functionally OK - but need to figure out how to write more cleanl     
+    //Maybe a function?
+    case 1:
+      {int lookup=innerTableL1.lookup(zbin,rbin);
+      if (lookup<0) return FPGAWord(lookup,11,false,__LINE__,__FILE__);
+      return FPGAWord(lookup,10,true,__LINE__,__FILE__);}
       break;
     case 2:
       if (!extended)
-        return FPGAWord(innerTableL2.lookup(zbin,rbin),21,false,__LINE__,__FILE__);
+        return FPGAWord(innerTableL2.lookup(zbin,rbin),11,false,__LINE__,__FILE__);
       else
         return FPGAWord(innerTableL2_extended.lookup(zbin,rbin),21,false,__LINE__,__FILE__);
       break;
-    case 3: return FPGAWord(innerTableL3.lookup(zbin,rbin),21,false,__LINE__,__FILE__);
+    case 3: return FPGAWord(innerTableL3.lookup(zbin,rbin),nbits,false,__LINE__,__FILE__);
       break;
-    case 5: return FPGAWord(innerTableL5.lookup(zbin,rbin),21,false,__LINE__,__FILE__);
+    case 5: return FPGAWord(innerTableL5.lookup(zbin,rbin),nbits,false,__LINE__,__FILE__);
       break;
     }
     assert(0);

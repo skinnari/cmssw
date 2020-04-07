@@ -165,6 +165,11 @@ public:
     assert(deltaz<8);
     valueL2+=(deltaz<<7);
 
+    if (!hourglassExtended) {
+      return valueL2;
+    }
+
+    
     // then pack zbinmin and deltaz for third layer
 
     zbinmin=NBINS*(zminl3+zlength)/(2*zlength);

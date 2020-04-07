@@ -74,12 +74,12 @@ public:
 
     const int nbit=nbits_;
 
-    if(!(nbit>0&&nbit<21)) cout<<"nbit: "<<nbit<<"\n";
+    if(!(nbit>0&&nbit<22)) cout<<"nbit: "<<nbit<<"\n";
     if(nbit == -1)  return "?";
     if(nbit == 0)  return "~";
     
 
-    assert(nbit>0&&nbit<21);
+    assert(nbit>0&&nbit<22);
     
 
 
@@ -105,6 +105,7 @@ public:
     if (nbit==19) oss << (bitset<19>)value_;
     if (nbit==20) oss << (bitset<20>)value_;
     if (nbit==21) oss << (bitset<21>)value_;
+    if (nbit==22) oss << (bitset<22>)value_;
 
     return oss.str();
 

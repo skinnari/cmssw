@@ -313,18 +313,12 @@ if (writeHitEff) {
     TETimer.start();
     for (unsigned int k=0;k<NSector;k++) {
       sectors[k]->executeTE();	
-      if(writemem&&k==writememsect){
-        sectors[k]->writeSP(first);
-      } 
     }
     TETimer.stop();
 
     TEDTimer.start();
     for (unsigned int k=0;k<NSector;k++) {
       sectors[k]->executeTED();	
-      if(writemem&&k==writememsect){
-        sectors[k]->writeSP(first);
-      } 
     }
     TEDTimer.stop();
 
@@ -345,6 +339,13 @@ if (writeHitEff) {
       } 
     }
 
+    for (unsigned int k=0;k<NSector;k++) {
+      if(writemem&&k==writememsect){
+        sectors[k]->writeSP(first);
+      } 
+    }
+
+
     TCTimer.start();
     for (unsigned int k=0;k<NSector;k++) {
       if (writeTC) {
@@ -360,7 +361,7 @@ if (writeHitEff) {
 
     int nTP=GlobalHistTruth::event()->nsimtracks();
     for (int iTP=0;iTP<nTP;iTP++){
-      L1SimTrack simtrk=GlobalHistTruth::event()->simtrack(iTP-1);
+      L1SimTrack simtrk=GlobalHistTruth::event()->simtrack(iTP);//Ryd200330 - used to have iTP-1 - not sure why
       if (simtrk.pt()<2.0) continue;
       if (fabs(simtrk.vz())>15.0) continue;
       if (hypot(simtrk.vx(),simtrk.vy())>0.1) continue;
@@ -420,9 +421,6 @@ if (writeHitEff) {
     MCTimer.start();
     for (unsigned int k=0;k<NSector;k++) {
       sectors[k]->executeMC();
-      if(writemem&&k==writememsect){
-        sectors[k]->writeMC(first);
-      }
     }
     MCTimer.stop();
 
@@ -430,13 +428,15 @@ if (writeHitEff) {
     MPTimer.start();
     for (unsigned int k=0;k<NSector;k++) {
       sectors[k]->executeMP();
+    }
+    MPTimer.stop();
+
+    for (unsigned int k=0;k<NSector;k++) {
       if(writemem&&k==writememsect){
         sectors[k]->writeMC(first);
       }
     }
-    MPTimer.stop();
-
-
+    
 
 
     FTTimer.start();

@@ -124,7 +124,7 @@ public:
   }
 
   void execute() {
-    
+
     unsigned int countall=0;
     unsigned int countpass=0;
     unsigned int nThirdStubs=0;
@@ -440,7 +440,7 @@ public:
       static ofstream out("tripletengine.txt");
       out << getName()<<" "<<countall<<" "<<countpass<<endl;
     }
-      
+
   }
 
   void readTables() {

@@ -130,11 +130,6 @@ private:
   int ichisqrphi_;
   int ichisqrz_;
 
-  double rinv_;
-  double phi0_;
-  double d0_;
-  double z0_;
-  double t_;
   double chisqrphi_;
   double chisqrz_;
 

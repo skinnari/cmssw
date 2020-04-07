@@ -52,7 +52,7 @@ public:
 	char layer='0'+layer_;
 	string fname="METable_L";
 	fname+=layer;
-	fname+=".dat";
+	fname+=".tab";
 	out.open(fname.c_str());
 	out << "{" <<endl;
 	for(unsigned int i=0;i<table_.size();i++){
@@ -248,10 +248,14 @@ public:
 
 	  projfinerz = barrel?proj->finezvm(layer_):proj->finervm(disk_);
 
-	  projrinv=barrel?(16+(proj->fpgarinv().value()>>(proj->fpgarinv().nbits()-5))):proj->getBendIndex(disk_).value();
+	  projrinv=barrel?(16+(((-2)*proj->fpgaphiprojder(layer_).value())>>(proj->fpgaphiprojder(layer_).nbits()-4))):proj->getBendIndex(disk_).value();
 	  assert(projrinv>=0);
+	  if (hourglassExtended&&projrinv==32){ //FIXME - should not need this
+	    //cout << "Warning: projrinv:"<<projrinv<<endl;
+	    projrinv=31;
+	  }
 	  assert(projrinv<32);
-	  
+
 	  isPSseed=proj->PSseed()==1;
 	  
 	  //Calculate fine z position

@@ -15,24 +15,34 @@ inputmemorymodules = []
 outputmemorymodules = []
 processingmodules = []
 
-def printsum(memname,nmem,memwidth,memdepth,nbx,shortmem,longmem,nbits):
-    n18bits=0
-    if (memwidth<=18):
-        n18bits=1;
-    if (memwidth==36):
-        n18bits=2;
-    if memwidth==42:
-        n18bits=3
-    if (memwidth==54):
-        n18bits=3;
-    if (memwidth==122):
-        n18bits=8;
-    if (n18bits==0):
-        print "n18bits is zero!!! Fix code"
+projsize={}
+
+fprojsize = open("TPROJ_Size.dat","r")
+for line in fprojsize :
+    name=line.split()[0]
+    size=int(line.split()[1])
+    print name,size
+    projsize[name]=size
+
+
+def printsum(memname,nmem,numem,nmemslots,memwidth,memdepth,nbx,shortmem,umem,nbits):
+    if nmem==0 and numem==0 :
+        return (shortmem,umem,nbits)
+    #used to count 18 bit memories used by DRAM
+    n18bits=1+(memwidth-1)/18
+    
+    #used to coutn #18k bit BRAMs
+    n18kbits=1+(memwidth-1)/36
+
+    Nbits=memwidth*nmemslots*nbx*1e-3
+
+    if nmemslots==0 :
+        Nbits=nmem*memwidth*memdepth*nbx*1e-3
+    
     dram=1
     bram=1
     if "Input" in memname :
-        bram=0
+        dram=0
     if "All Stubs" in memname :
         dram=0
     if "TE" in memname :
@@ -54,23 +64,23 @@ def printsum(memname,nmem,memwidth,memdepth,nbx,shortmem,longmem,nbits):
     if "Cand. Match" in memname :
         bram=0
     if "Full Match" in memname :
-        bram=0
+        dram=0
     if "Track Fit" in memname :
         bram=0
     if "Clean Track" in memname :
         bram=0
 
+    Nbits*=dram
         
-    print memname,"{:4.0f}".format(nmem),"{:10.0f}".format(memwidth),"{:7.0f}".format(memdepth),"{:5.0f}".format(nbx),"{:14.3f}".format(dram*nmem*memwidth*memdepth*nbx*1e-3),"{:10.0f}".format(bram*nmem*n18bits)
-    nbits+=dram*nmem*memwidth*memdepth*nbx*1e-3
-    if (n18bits==2 or n18bits==4 or n18bits==6 or n18bits==8):
-        longmem+=bram*nmem*n18bits/2
-    if (n18bits==1):
-        shortmem+=bram*nmem;
-    if (n18bits==3):
-        longmem+=bram*nmem;
-        shortmem+=bram*nmem;
-    return (shortmem,longmem,nbits)    
+    print memname,"{:4.0f}".format(nmem),"{:10.0f}".format(memwidth),"{:7.0f}".format(memdepth),"{:5.0f}".format(nbx),"{:14.3f}".format(Nbits),"{:10.0f}".format(bram*nmem*n18kbits),"{:10.0f}".format(numem)
+
+    nbits+=Nbits
+
+    shortmem+=bram*nmem*n18kbits
+
+    umem+=numem
+    
+    return (shortmem,umem,nbits)    
 
 
 def matchin(proc,mem):
@@ -311,10 +321,18 @@ for mem in outputmemorymodules :
         if "CT_" in mem:
             inputmemorymodules.append(mem)
 
+VMR_nmod=0
+TP_nmod=0
+MP_nmod=0
+FT_nmod=0
+PD_nmod=0
+
+
 for proc in processingmodules :
     proc=proc.strip()
     if "VMR_" in proc:
         fp.write("VMRouter: "+proc+"\n")
+        VMR_nmod+=1
     if "VMRTE_" in proc:
         fp.write("VMRouterTE: "+proc+"\n")
     if "VMRME_" in proc:
@@ -330,6 +348,7 @@ for proc in processingmodules :
         fp.write("TrackletCalculator: "+proc+"\n")
     if "TP_" in proc:
         fp.write("TrackletProcessor: "+proc+"\n")
+        TP_nmod+=1
     if "TCD_" in proc:
         fp.write("TrackletCalculatorDisplaced: "+proc+"\n")
     if "PR_" in proc:
@@ -347,39 +366,56 @@ for proc in processingmodules :
         fp.write("DiskMatchCalculator: "+proc+"\n")
     if "MP_" in proc:
         fp.write("MatchProcessor: "+proc+"\n")
+        MP_nmod+=1
     if "MT_" in proc:
         fp.write("MatchTransceiver: "+proc+"\n")
     if "FT_" in proc:
         fp.write("FitTrack: "+proc+"\n")
+        FT_nmod+=1
     if "PD" in proc:
         fp.write("PurgeDuplicate: "+proc+"\n")
+        PD_nmod+=1
 
+
+print "Module Type             #mod"
+print "VMRouter             ","{:4.0f}".format(VMR_nmod)
+print "TrackletProcessor    ","{:4.0f}".format(TP_nmod)
+print "MatchProcessor       ","{:4.0f}".format(MP_nmod)
+print "FitTrack             ","{:4.0f}".format(FT_nmod)
+print "PurgeDuplicate       ","{:4.0f}".format(PD_nmod)
+
+
+        
 fp = open("memorymodules.dat","w")
 
 inputmemcount=[]
 
 shortmem=0
-longmem=0
+umem=0
 
 IL_mem=0
 SL_mem=0
 SD_mem=0
-#AS_mem=0
-AStc_mem=0
-ASmc_mem=0
-VMSTE_mem=0
+AS_mem=0
+VMSTEInner_mem=0
+VMSTEOuter_mem=0
 VMSME_mem=0
 SP_mem=0
 SPD_mem=0
 ST_mem=0
 TPROJ_mem=0
+TPROJ_umem=0
+TPROJ_memslots=0
 TPAR_mem=0
+TPAR_umem=0
 AP_mem=0
+AP_umem=0
 VMPROJ_mem=0
 CM_mem=0
 FM_mem=0
 TF_mem=0
 CT_mem=0
+
 
 for mem in inputmemorymodules :
     count=0
@@ -410,16 +446,13 @@ for mem in inputmemorymodules :
         SD_mem+=1
         found=True
     if "AS_" in mem:
-        if "PHI1" in mem or "PHI2" in mem or "PHI3" in mem or "PHI4" in mem: # for MC
-            fp.write("AllStubs: "+mem+n+" [36]\n")
-            ASmc_mem+=1
-        else:  # for TC
-            fp.write("AllStubs: "+mem+n+" [42]\n")
-            AStc_mem+=1
+        fp.write("AllStubs: "+mem+n+" [42]\n")
+        AS_mem+=1
         found=True
     if "VMSTE_" in mem:
         fp.write("VMStubsTE: "+mem+n+" [18]\n")
-        VMSTE_mem+=1
+        VMSTEInner_mem+=0.5
+        VMSTEOuter_mem+=0.5
         found=True
     if "VMSME_" in mem:
         fp.write("VMStubsME: "+mem+n+" [18]\n")
@@ -439,7 +472,18 @@ for mem in inputmemorymodules :
         found=True
     if "TPROJ_" in mem:
         fp.write("TrackletProjections: "+mem+n+" [54]\n")
+        found=True
+        if mem in projsize :
+            size=projsize[mem]
+            #print mem,size
         TPROJ_mem+=1
+        if size<24 :
+            if size<8 :
+                TPROJ_memslots+=8
+            else:
+                TPROJ_memslots+=24
+        else :
+            TPROJ_umem+=1
         found=True
     if "TPAR_" in mem:
         fp.write("TrackletParameters: "+mem+n+" [56]\n")
@@ -447,7 +491,7 @@ for mem in inputmemorymodules :
         found=True
     if "AP_" in mem:
         fp.write("AllProj: "+mem+n+" [56]\n")
-        AP_mem+=1
+        AP_umem+=1
         found=True
     if "VMPROJ_" in mem:
         fp.write("VMProjections: "+mem+n+" [13]\n")
@@ -472,47 +516,52 @@ for mem in inputmemorymodules :
     if not found :
         print "Did not print memorymodule : ",mem
 
-print "Memory type     #mems  bits wide   depth   #BX   DRAM (kbits)  #18k BRAM"
+print "Memory type           #mems  bits wide   depth   #BX   DRAM (kbits)  #18k BRAM   #UtraRAM"
 
+        
 nbits=0
 
-(shortmem,longmem,nbits)=printsum("Input Link          ",IL_mem,36,48,2,shortmem,longmem,nbits)
+(shortmem,umem,nbits)=printsum("Input Link          ",IL_mem,0,0,36,48,2,shortmem,umem,nbits)
 
-(shortmem,longmem,nbits)=printsum("All Stubs (TC)      ",AStc_mem,42,64,4,shortmem,longmem,nbits)
+(shortmem,umem,nbits)=printsum("All Stubs           ",AS_mem,0,0,36,128,4,shortmem,umem,nbits)
 
-(shortmem,longmem,nbits)=printsum("All Stubs (MC)      ",ASmc_mem,36,64,8,shortmem,longmem,nbits)
+if SP_mem>0 :
+    (shortmem,umem,nbits)=printsum("VM Stubs (TEIn)     ",VMSTEInner_mem,0,0,24,32,2,shortmem,umem,nbits)
 
-(shortmem,longmem,nbits)=printsum("VM Stubs (TE)       ",VMSTE_mem,18,32,2,shortmem,longmem,nbits)
+#if SP_mem==0 :
+#    VMSTEOuter_mem=42*4
+#    VMSME_mem=48*4
 
-(shortmem,longmem,nbits)=printsum("VM Stubs (ME)       ",VMSME_mem,18,32,8,shortmem,longmem,nbits)
+(shortmem,umem,nbits)=printsum("VM Stubs (TEOut)    ",VMSTEOuter_mem,0,0,18,128,2,shortmem,umem,nbits)
 
-(shortmem,longmem,nbits)=printsum("Stub Pair           ",SP_mem,12,16,2,shortmem,longmem,nbits)
+(shortmem,umem,nbits)=printsum("VM Stubs (ME)       ",VMSME_mem,0,0,18,128,8,shortmem,umem,nbits)
+ 
+(shortmem,umem,nbits)=printsum("Stub Pair Displaced ",SPD_mem,0,0,12,16,2,shortmem,umem,nbits)
 
-(shortmem,longmem,nbits)=printsum("Stub Pair Displaced ",SPD_mem,12,16,2,shortmem,longmem,nbits)
+(shortmem,umem,nbits)=printsum("Stub Pair           ",SP_mem,0,0,14,32,2,shortmem,umem,nbits)
 
-(shortmem,longmem,nbits)=printsum("Stub Triplet        ",ST_mem,18,32,2,shortmem,longmem,nbits)
+(shortmem,umem,nbits)=printsum("Stub Triplet        ",ST_mem,0,0,18,32,2,shortmem,umem,nbits)
 
-(shortmem,longmem,nbits)=printsum("TPROJ               ",TPROJ_mem,54,16,2,shortmem,longmem,nbits)
+(shortmem,umem,nbits)=printsum("TPROJ               ",TPROJ_mem,TPROJ_umem,TPROJ_memslots,72,64,2,shortmem,umem,nbits)
 
-(shortmem,longmem,nbits)=printsum("TPAR                ",TPAR_mem,54,64,8,shortmem,longmem,nbits)
+(shortmem,umem,nbits)=printsum("TPAR                ",TPAR_mem,TPAR_umem,0,72,64,8,shortmem,umem,nbits)
 
-(shortmem,longmem,nbits)=printsum("All Projection      ",AP_mem,54,64,8,shortmem,longmem,nbits)
+(shortmem,umem,nbits)=printsum("All Projection      ",AP_mem,AP_umem,0,64,64,4,shortmem,umem,nbits)
 
-(shortmem,longmem,nbits)=printsum("VM Projection       ",VMPROJ_mem,13,16,2,shortmem,longmem,nbits)
+(shortmem,umem,nbits)=printsum("VM Projection       ",VMPROJ_mem,0,0,13,16,2,shortmem,umem,nbits)
 
-(shortmem,longmem,nbits)=printsum("Cand. Match         ",CM_mem,12,32,2,shortmem,longmem,nbits)
+(shortmem,umem,nbits)=printsum("Cand. Match         ",CM_mem,0,0,12,32,2,shortmem,umem,nbits)
 
-(shortmem,longmem,nbits)=printsum("Full Match          ",FM_mem,36,32,2,shortmem,longmem,nbits)
+(shortmem,umem,nbits)=printsum("Full Match          ",FM_mem,0,0,36,32,2,shortmem,umem,nbits)
 
-(shortmem,longmem,nbits)=printsum("Track Fit           ",TF_mem,122,64,2,shortmem,longmem,nbits)
+(shortmem,umem,nbits)=printsum("Track Fit           ",TF_mem,0,0,122,64,2,shortmem,umem,nbits)
 
-(shortmem,longmem,nbits)=printsum("Clean Track         ",CT_mem,122,64,2,shortmem,longmem,nbits)
+(shortmem,umem,nbits)=printsum("Clean Track         ",CT_mem,0,0,122,64,2,shortmem,umem,nbits)
 
-
-print "Number of 18 bit memories : ",shortmem+2*longmem        
-#print "Number of 36 bit memories : ",longmem        
-print "BRAM Megabits required using 18/36 bit memories:",shortmem*0.018+longmem*0.036
-print "DRAM Megabits of memories actually used :",nbits*1e-3
+print "Number of 18 bit memories   :",shortmem
+print "Number of UltraRAM memories :",umem
+#print "BRAM Megabits required using 18/36 bit memories:",shortmem*0.018
+print "DRAM Megabits of memories used (x1.5):",nbits*1.5e-3
 
 fp = open("wires.dat","w")
 
@@ -835,13 +884,24 @@ for memreadprocpair in memreadprocpairs :
 
     fp.write("\n")
 
-fp.write("CT_L1L2 input=> PD.trackout1 output=>\n")
-fp.write("CT_L3L4 input=> PD.trackout2 output=>\n")
-fp.write("CT_L5L6 input=> PD.trackout3 output=>\n")
-fp.write("CT_D1D2 input=> PD.trackout4 output=>\n")
-fp.write("CT_D3D4 input=> PD.trackout5 output=>\n")
-fp.write("CT_L1D1 input=> PD.trackout6 output=>\n")
-fp.write("CT_L2D1 input=> PD.trackout7 output=>\n")
-fp.write("CT_L2L3 input=> PD.trackout8 output=>\n")
-    
+#special case as last processing step
+for line in lines:
+    if "FT_L1L2" in line :
+        fp.write("CT_L1L2 input=> PD.trackout1 output=>\n")
+    if "FT_L3L4" in line :
+        fp.write("CT_L3L4 input=> PD.trackout2 output=>\n")
+    if "FT_L5L6" in line :
+        fp.write("CT_L5L6 input=> PD.trackout3 output=>\n")
+    if "FT_D1D2" in line :
+        fp.write("CT_D1D2 input=> PD.trackout4 output=>\n")
+    if "FT_D3D4" in line :
+        fp.write("CT_D3D4 input=> PD.trackout5 output=>\n")
+    if "FT_L1D1" in line :
+        fp.write("CT_L1D1 input=> PD.trackout6 output=>\n")
+    if "FT_L2D1" in line :
+        fp.write("CT_L2D1 input=> PD.trackout7 output=>\n")
+    if "FT_L2L3" in line :
+        fp.write("CT_L2L3 input=> PD.trackout8 output=>\n")
+
+
 fp.close()

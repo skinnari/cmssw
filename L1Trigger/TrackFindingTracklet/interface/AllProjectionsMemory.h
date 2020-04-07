@@ -63,7 +63,7 @@ public:
 
 void writeAP(bool first) {
 
-  std::string fname="../MemPrints/TrackletProjections/AllProj_";
+  std::string fname="../data/MemPrints/TrackletProjections/AllProj_";
   fname+=getName();
   fname+="_";
   ostringstream oss;

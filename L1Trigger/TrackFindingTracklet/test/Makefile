@@ -5,7 +5,7 @@ default: fpga
 fpga: fpga.o imath.a
 	$(LD) -o $@ $^ $(LDFLAGS) $(LIBS)
 
-fpga.o: ../interface/slhcevent.h ../interface/L1TStub.h ../interface/Constants.h ../interface/Sector.h  ../interface/Stub.h ../interface/FPGAWord.h ../interface/MemoryBase.h ../interface/ProcessBase.h ../interface/VMStubsMEMemory.h ../interface/VMStubsTEMemory.h ../interface/VMStubTE.h ../interface/TrackletProjectionsMemory.h ../interface/InverseTable.h ../interface/TrackletCalculator.h ../interface/TrackletProcessor.h ../interface/TrackletCalculatorDisplaced.h ../interface/MatchCalculator.h ../interface/MatchProcessor.h ../interface/TrackletEngine.h ../interface/TrackletEngineDisplaced.h ../interface/TripletEngine.h ../interface/MatchEngine.h ../interface/FitTrack.h ../interface/ProjectionRouter.h ../interface/InputLinkMemory.h ../plugins/FPGA.icc ../interface/TrackFitMemory.h ../interface/Tracklet.h ../interface/TrackletParametersMemory.h ../interface/Track.h ../interface/AllStubsMemory.h ../interface/StubPairsMemory.h ../interface/StubTripletsMemory.h ../interface/TrackDerTable.h ../interface/FullMatchMemory.h ../interface/TrackDer.h ../interface/VMProjectionsMemory.h ../interface/LayerProjection.h ../interface/LayerResidual.h ../interface/DTC.h ../interface/DTCLink.h ../interface/Util.h ../interface/PurgeDuplicate.h ../interface/CleanTrackMemory.h FPGATree.icc ../interface/TETableOuter.h ../interface/TETableInner.h ../interface/TETableOuterDisk.h ../interface/TETableInnerDisk.h ../interface/TETableInnerOverlap.h ../interface/TETableBase.h ../interface/DiskProjection.h ../interface/DiskResidual.h ../interface/VMRouterPhiCorrTable.h ../interface/CandidateMatchMemory.h ../interface/IMATH_TrackletCalculator.h ../interface/IMATH_TrackletCalculatorDisk.h ../interface/IMATH_TrackletCalculatorOverlap.h ../interface/AllProjectionsMemory.h ../interface/Cabling.h ../interface/VMRouter.h ../interface/StubVariance.h ../interface/imath.h ../plugins/WriteDesign.icc ../plugins/WriteInvTables.icc ../interface/GlobalHistTruth.h ../interface/HistBase.h ../interface/HistImp.h ../interface/TrackPars.h
+fpga.o: ../interface/slhcevent.h ../interface/L1TStub.h ../interface/Constants.h ../interface/Sector.h  ../interface/Stub.h ../interface/FPGAWord.h ../interface/MemoryBase.h ../interface/ProcessBase.h ../interface/VMStubsMEMemory.h ../interface/VMStubsTEMemory.h ../interface/VMStubTE.h ../interface/TrackletProjectionsMemory.h ../interface/InverseTable.h ../interface/TrackletCalculator.h ../interface/TrackletCalculatorBase.h ../interface/TrackletProcessor.h ../interface/TrackletCalculatorDisplaced.h ../interface/MatchCalculator.h ../interface/MatchProcessor.h ../interface/TrackletEngine.h ../interface/TrackletEngineDisplaced.h ../interface/TripletEngine.h ../interface/MatchEngine.h ../interface/FitTrack.h ../interface/ProjectionRouter.h ../interface/InputLinkMemory.h ../plugins/FPGA.icc ../interface/TrackFitMemory.h ../interface/Tracklet.h ../interface/TrackletParametersMemory.h ../interface/Track.h ../interface/AllStubsMemory.h ../interface/StubPairsMemory.h ../interface/StubTripletsMemory.h ../interface/TrackDerTable.h ../interface/FullMatchMemory.h ../interface/TrackDer.h ../interface/VMProjectionsMemory.h ../interface/LayerProjection.h ../interface/LayerResidual.h ../interface/DTC.h ../interface/DTCLink.h ../interface/Util.h ../interface/PurgeDuplicate.h ../interface/CleanTrackMemory.h FPGATree.icc ../interface/TETableOuter.h ../interface/TETableInner.h ../interface/TETableOuterDisk.h ../interface/TETableInnerDisk.h ../interface/TETableInnerOverlap.h ../interface/TETableBase.h ../interface/DiskProjection.h ../interface/DiskResidual.h ../interface/VMRouterPhiCorrTable.h ../interface/CandidateMatchMemory.h ../interface/IMATH_TrackletCalculator.h ../interface/IMATH_TrackletCalculatorDisk.h ../interface/IMATH_TrackletCalculatorOverlap.h ../interface/AllProjectionsMemory.h ../interface/Cabling.h ../interface/VMRouter.h ../interface/StubVariance.h ../interface/imath.h ../plugins/WriteDesign.icc ../plugins/WriteInvTables.icc ../interface/GlobalHistTruth.h ../interface/HistBase.h ../interface/HistImp.h ../interface/TrackPars.h ../interface/CircularBuffer.h ../interface/MatchEngineUnit.h ../interface/ProjectionTemp.h
 
 imath.a: imath.o imath_calculate.o imath_HLS.o imath_Verilog.o
 	$(AR) $(ARFLAGS) $@ $?
@@ -40,6 +40,8 @@ clean:
 	@rm -f ../data/MemPrints/CleanTrack/CleanTrack_CT_*.dat
 	@rm -f ../data/MemPrints/Stubs/DiskStubs_SD*.dat
 	@rm -f ../data/MemPrints/StubPairs/StubPairs_SP_*.dat
+	@rm -f ../data/MemPrints/StubPairs/StubPairs_SPD_*.dat
+	@rm -f ../data/MemPrints/StubPairs/StubTriplets_ST_*.dat
 	@rm -f InvTable_TC_*.dat
 	@rm -f FitDerTable_*.txt
 	@rm -f TEBinTable*.txt
@@ -50,7 +52,21 @@ clean:
 	@rm -f ../data/MemPrints/Matches/CandidateMatches_CM_*.dat
 	@rm -f ../data/MemPrints/TrackletParameters/TrackletParameters_TPAR_*.dat
 	@rm -f layeroccupancy.txt
-	@rm -f VMTable*.txt
+	@rm -f VMTable*.tab
+	@rm -f METable_*.tab
+	@rm -f *_vmbendcut.tab
+	@rm -f *_finebin.tab
+	@rm -f *_phicut.tab
+	@rm -f *_zcut.tab
+	@rm -f *_PSphicut.tab
+	@rm -f *_2Sphicut.tab
+	@rm -f *_PSrcut.tab
+	@rm -f *_2Srcut.tab
+	@rm -f *_PSzcut.tab
+	@rm -f *_2Szcut.tab
+	@rm -f *_ptcut.tab
+	@rm -f *_stubptinnercut.tab
+	@rm -f *_stubptoutercut.tab
 	@rm -f TE_*_*_*.txt
 	@rm -f moduleoccupancy.txt
 	@rm -f trackletcombinations.txt
@@ -121,10 +137,12 @@ clean:
 	@rm -f AutoDict_*.cxx
 	@rm -f AutoDict_*cxx.d
 	@rm -f AutoDict_*cxx.so
-	@rm -f *_drinv.dat
-	@rm -f *_tinv.dat
+	@rm -f *_drinv.tab
 	@rm -f *_drinv.h
+	@rm -f *_tinv.tab
 	@rm -f *_tinv.h
+	@rm -f *_invt.tab
+	@rm -f *_invt.h
 	@rm -f matcheff.txt
 	@rm -f TC_*.v
 	@rm -f TC_*.cpp
