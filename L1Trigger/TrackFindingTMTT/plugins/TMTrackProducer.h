@@ -1,5 +1,5 @@
-#ifndef __TMTRACKPRODUCER_H__
-#define __TMTRACKPRODUCER_H__
+#ifndef L1Trigger_TrackFindingTMTT_TMTrackProducer_h
+#define L1Trigger_TrackFindingTMTT_TMTrackProducer_h
 
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -19,46 +19,43 @@
 
 using namespace std;
 
-namespace TMTT {
+namespace tmtt {
 
-class Settings;
-class Histos;
-class TrackFitGeneric;
+  class Settings;
+  class Histos;
+  class TrackFitGeneric;
 
-class TMTrackProducer : public edm::EDProducer {
+  class TMTrackProducer : public edm::EDProducer {
+  public:
+    explicit TMTrackProducer(const edm::ParameterSet &);
+    ~TMTrackProducer() {}
 
-public:
-  explicit TMTrackProducer(const edm::ParameterSet&);	
-  ~TMTrackProducer(){}
+  private:
+    typedef std::vector<TTTrack<Ref_Phase2TrackerDigi_> > TTTrackCollection;
 
-private:
+    virtual void beginRun(const edm::Run &, const edm::EventSetup &);
+    virtual void produce(edm::Event &, const edm::EventSetup &);
+    virtual void endJob();
 
-  typedef std::vector< TTTrack< Ref_Phase2TrackerDigi_ > > TTTrackCollection;
+  private:
+    edm::EDGetTokenT<DetSetVec> stubInputTag;
+    edm::EDGetTokenT<TrackingParticleCollection> tpInputTag;
+    edm::EDGetTokenT<TTStubAssMap> stubTruthInputTag;
+    edm::EDGetTokenT<TTClusterAssMap> clusterTruthInputTag;
+    edm::EDGetTokenT<reco::GenJetCollection> genJetInputTag_;
 
-  virtual void beginRun(const edm::Run&, const edm::EventSetup&);
-  virtual void produce(edm::Event&, const edm::EventSetup&);
-  virtual void endJob() ;
+    // Configuration parameters
+    Settings *settings_;
+    vector<string> trackFitters_;
+    vector<string> useRZfilter_;
+    bool runRZfilter_;
 
-private:
-  edm::EDGetTokenT<DetSetVec> stubInputTag;
-  edm::EDGetTokenT<TrackingParticleCollection> tpInputTag;
-  edm::EDGetTokenT<TTStubAssMap> stubTruthInputTag;
-  edm::EDGetTokenT<TTClusterAssMap> clusterTruthInputTag;
-  edm::EDGetTokenT<reco::GenJetCollection> genJetInputTag_;
+    Histos *hists_;
+    map<string, TrackFitGeneric *> fitterWorkerMap_;
 
-  // Configuration parameters
-  Settings *settings_;
-  vector<string> trackFitters_;
-  vector<string> useRZfilter_;
-  bool           runRZfilter_;
+    TrackerGeometryInfo trackerGeometryInfo_;
+  };
 
-  Histos   *hists_;
-  map<string, TrackFitGeneric*> fitterWorkerMap_;
-
-  TrackerGeometryInfo              trackerGeometryInfo_;
-};
-
-}
+}  // namespace tmtt
 
 #endif
-

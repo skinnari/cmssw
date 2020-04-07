@@ -2,8 +2,8 @@
 
 ///=== Written by: Davide Cieri (davide.cieri@stfc.ac.uk)
 
-#ifndef __SIMPLELR__
-#define __SIMPLELR__
+#ifndef L1Trigger_TrackFindingTMTT_SimpleLR_h
+#define L1Trigger_TrackFindingTMTT_SimpleLR_h
 
 #include "L1Trigger/TrackFindingTMTT/interface/TrackFitGeneric.h"
 #include "L1Trigger/TrackFindingTMTT/interface/Settings.h"
@@ -15,59 +15,55 @@
 #include <sstream>
 #include <string>
 
-namespace TMTT {
+namespace tmtt {
 
-class SimpleLR : public TrackFitGeneric {
+  class SimpleLR : public TrackFitGeneric {
+  public:
+    SimpleLR(const Settings* settings) : TrackFitGeneric(settings), settings_(settings){};
 
-public:
-	SimpleLR(const Settings* settings) : TrackFitGeneric(settings), settings_(settings) {};
+    virtual ~SimpleLR(){};
 
-	virtual ~SimpleLR() {};
+    virtual void initRun();
 
-	virtual void initRun();
+    L1fittedTrack fit(const L1track3D& l1track3D);
 
-        L1fittedTrack fit(const L1track3D& l1track3D);
+  protected:
+    const Settings* settings_;
 
-protected:
+    float phiSectorWidth_;
+    float phiSectorCentre_;
+    float phiNonantWidth_;
 
-	const Settings* settings_;
+    float phiMult_;
+    float rTMult_;
+    float zMult_;
+    float qOverPtMult_;
+    float phiTMult_;
+    float z0Mult_;
+    float tanLambdaMult_;
+    float numeratorPtMult_;
+    float numeratorZ0Mult_;
+    float numeratorLambdaMult_;
+    float numeratorPhiMult_;
+    float denominatorMult_;
+    float chi2Mult_;
+    float resMult_;
+    float chi2cut_;
+    float invPtToDPhi_;
+    float chosenRofPhi_;
 
-	float phiSectorWidth_;
-	float phiSectorCentre_;
-	float phiNonantWidth_;
+    bool digitize_;
+    unsigned int dividerBitsHelix_;
+    unsigned int dividerBitsHelixZ_;
+    unsigned int dividerBitsChi2_;
+    unsigned int shiftingBitsPhi_;
+    unsigned int shiftingBitsDenRPhi_;
+    unsigned int shiftingBitsDenRZ_;
+    unsigned int shiftingBitsPt_;
+    unsigned int shiftingBitsz0_;
+    unsigned int shiftingBitsLambda_;
+  };
 
-	float phiMult_;
-	float rTMult_;
-	float zMult_;
-	float qOverPtMult_;
-	float phiTMult_;
-	float z0Mult_;
-	float tanLambdaMult_;
-	float numeratorPtMult_;
-	float numeratorZ0Mult_;
-	float numeratorLambdaMult_;
-	float numeratorPhiMult_;
-	float denominatorMult_; 
-	float chi2Mult_;
-	float resMult_;
-	float chi2cut_;
-	float invPtToDPhi_;
-	float chosenRofPhi_;
-
-	bool                 digitize_;
-	unsigned int         dividerBitsHelix_;
-	unsigned int         dividerBitsHelixZ_;
-	unsigned int         dividerBitsChi2_;
-	unsigned int         shiftingBitsPhi_;
-	unsigned int         shiftingBitsDenRPhi_;
-	unsigned int         shiftingBitsDenRZ_;
-	unsigned int 	     shiftingBitsPt_;
-	unsigned int 	     shiftingBitsz0_;
-	unsigned int         shiftingBitsLambda_;
-
-	
-};
-
-}
+}  // namespace tmtt
 
 #endif

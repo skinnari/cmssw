@@ -1,5 +1,5 @@
-#ifndef __STUBWINDOWSUGGEST_H__
-#define __STUBWINDOWSUGGEST_H__
+#ifndef L1Trigger_TrackFindingTMTT_StubWindowsSuggest_h
+#define L1Trigger_TrackFindingTMTT_StubWindowsSuggest_h
 
 #include "L1Trigger/TrackFindingTMTT/interface/Settings.h"
 
@@ -9,11 +9,11 @@ using namespace std;
 
 class TrackerTopology;
 
-namespace TMTT {
+namespace tmtt {
 
-class Stub;
+  class Stub;
 
-/** 
+  /** 
  * ========================================================================================================
  *  This provides recommendations to CMS for the stub window sizes to be used in the FE electronics.
  *  It prints the output as a python configuration file in the form of
@@ -25,46 +25,41 @@ class Stub;
  * ========================================================================================================
  */
 
-class StubWindowSuggest {
+  class StubWindowSuggest {
+  public:
+    // Initialize (for use with TMTT).
+    StubWindowSuggest(const Settings* settings, const TrackerTopology* trackerTopo)
+        : settings_(settings), ptMin_(settings->houghMinPt()), theTrackerTopo_(trackerTopo) {}
 
-public:
-  
-  // Initialize (for use with TMTT).
-  StubWindowSuggest(const Settings* settings, const TrackerTopology*  trackerTopo) :
-    settings_(settings), ptMin_(settings->houghMinPt()), theTrackerTopo_(trackerTopo) {} 
+    // Initialize (for use with HYBRID)
+    StubWindowSuggest(const Settings* settings) : settings_(settings), ptMin_(settings->houghMinPt()) {}
 
-  // Initialize (for use with HYBRID)
-  StubWindowSuggest(const Settings* settings) : settings_(settings), ptMin_(settings->houghMinPt()) {}
+    ~StubWindowSuggest() {}
 
-  ~StubWindowSuggest() {}
+    // Analyse stub window required for this stub.
+    void process(const Stub* stub);
 
-  // Analyse stub window required for this stub.
-  void process(const Stub* stub);
+    // Print results (should be done in endJob();
+    static void printResults();
 
-  // Print results (should be done in endJob();
-  static void printResults();
+  private:
+    // Update stored stub window size with this stub.
+    void updateStoredWindow(const Stub* stub, double bendWind);
 
-private:
+  private:
+    // Configuration parameters.
+    const Settings* settings_;
+    const float ptMin_;
 
-  // Update stored stub window size with this stub.
-  void updateStoredWindow(const Stub* stub, double bendWind);
+    const TrackerTopology* theTrackerTopo_;
 
-private:
+    // Stub window sizes as encoded in L1Trigger/TrackTrigger/interface/TTStubAlgorithm_official.h
+    static thread_local std::vector<double> barrelCut_;
+    static thread_local std::vector<std::vector<double> > ringCut_;
+    static thread_local std::vector<std::vector<double> > tiltedCut_;
+    static thread_local std::vector<double> barrelNTilt_;
+  };
 
-  // Configuration parameters.
-  const Settings* settings_;
-  const float ptMin_;  
-
-  const TrackerTopology*  theTrackerTopo_;
-
-  // Stub window sizes as encoded in L1Trigger/TrackTrigger/interface/TTStubAlgorithm_official.h
-  static std::vector< double >                barrelCut_;
-  static std::vector< std::vector< double > > ringCut_;
-  static std::vector< std::vector< double > > tiltedCut_;
-  static std::vector< double >                barrelNTilt_;
-};
-
-}
+}  // namespace tmtt
 
 #endif
-
