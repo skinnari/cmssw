@@ -19,14 +19,23 @@ public:
     nbits_ = 5;
   }
 
+  TETableOuterDisk(int disk,
+		   int zbits,
+		   int rbits
+		   ) {
+    nbits_ = 5;
+    init(disk,zbits,rbits);
+  }
+
+  
   ~TETableOuterDisk() {
 
   }
 
 
   void init(int disk,
-	    int rbits,
-	    int zbits
+	    int zbits,
+	    int rbits
 	    ) {
 
     disk_=disk;
@@ -76,7 +85,7 @@ public:
   }
 
 
-  int lookup(int rbin, int zbin) {
+  int lookup(int zbin, int rbin) {
 
     int index=rbin*zbins_+zbin;
     return table_[index];

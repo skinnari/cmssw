@@ -7,8 +7,6 @@ import FWCore.Utilities.FileUtils as FileUtils
 import os
 process = cms.Process("SKIM")
 
-GEOMETRY = "D21"
-
  
 ############################################################
 # import standard configurations
@@ -19,30 +17,18 @@ process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
 
-if GEOMETRY == "D10": 
-    print "using geometry " + GEOMETRY + " (flat)"
-    process.load('Configuration.Geometry.GeometryExtended2023D10Reco_cff')
-    process.load('Configuration.Geometry.GeometryExtended2023D10_cff')
-elif GEOMETRY == "D17": 
-    print "using geometry " + GEOMETRY + " (tilted)"
-    process.load('Configuration.Geometry.GeometryExtended2023D17Reco_cff')
-    process.load('Configuration.Geometry.GeometryExtended2023D17_cff')
-elif GEOMETRY == "D21": 
-    print "using geometry " + GEOMETRY + " (tilted)"
-    process.load('Configuration.Geometry.GeometryExtended2023D21Reco_cff')
-    process.load('Configuration.Geometry.GeometryExtended2023D21_cff')
-elif GEOMETRY == "TkOnly": 
-    print "using standalone tilted (T5) tracker geometry" 
-    process.load('L1Trigger.TrackTrigger.TkOnlyTiltedGeom_cff')
-else:
-    print "this is not a valid geometry!!!"
+# D49 geometry (T15 tracker)
+process.load('Configuration.Geometry.GeometryExtended2026D49Reco_cff')
+process.load('Configuration.Geometry.GeometryExtended2026D49_cff')
 
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 
 
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
 
-inputMC = ['file:6BB95FD4-2B38-9245-BBB8-5D76A0E6AB6B.root']
+# using this file:
+# /store/relval/CMSSW_11_1_0_pre1/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/110X_mcRun4_realistic_v2_2026D49noPU-v1/20000/DFF1257E-6DB1-434F-BCC2-64EC6DEFCDAF.root
+inputMC = ['file:TTbar_PU0_D49_GEN-SIM-DIGI-RAW.root']
 process.source = cms.Source("PoolSource", 
                             fileNames = cms.untracked.vstring(*inputMC),
                             inputCommands = cms.untracked.vstring(

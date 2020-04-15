@@ -18,10 +18,14 @@ public:
    
   }
 
-  ~TETableBase() {
+  virtual ~TETableBase() {
 
   }
 
+  virtual int lookup(int, int) {
+    assert(0); //Should never get here - this should be a pure virtual fcn
+  };
+  
 
   void writeVMTable(std::string name, bool positive=true) {
 

@@ -195,13 +195,14 @@ public:
   }
 
 
-  //Returns a number from 0 to 31
+  //Returns a number from 0 to 31 //FIXME should not be used
   unsigned int iphivmRaw() const {
     unsigned int iphivm=(phicorr_.value()>>(phicorr_.nbits()-5));
     assert(iphivm<32);
     return iphivm;
     
   }
+  
 
   FPGAWord iphivmFineBins(int VMbits, int finebits) const {
 
@@ -211,26 +212,6 @@ public:
 
   }
 
-
-  //Returns a number from 0 to 31
-  int iphivmRawPlus() const {
-
-    int iphivm=((phi_.value()+(1<<(phi_.nbits()-7)))>>(phi_.nbits()-5));
-    if (iphivm<0) iphivm=0;
-    if (iphivm>31) iphivm=0;
-    return iphivm;
-    
-  }
-
-  int iphivmRawMinus() const {
-
-    int iphivm=((phi_.value()-(1<<(phi_.nbits()-7)))>>(phi_.nbits()-5));
-    if (iphivm<0) iphivm=0;
-    if (iphivm>31) iphivm=0;
-    return iphivm;
-    
-  }
-  
   std::string str() const {
     
     std::ostringstream oss;
@@ -318,6 +299,7 @@ public:
   FPGAWord alphanew() const { return alphanew_; }
 
 
+  //FIXME should remove these...
   int ir() const { return r_.value(); }
   int iz() const { return z_.value(); }
   int iphi() const { return phi_.value(); }

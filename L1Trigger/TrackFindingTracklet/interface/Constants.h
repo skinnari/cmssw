@@ -390,9 +390,17 @@ static const double zmean[5]={zmeanD1,zmeanD2,zmeanD3,zmeanD4,zmeanD5};
 static const unsigned int nvmte_[3][12]={{4,4,4,4,4,4,2,2,4,4,8,4},
 					 {8,4,8,8,4,4,4,4,8,8,4,4},
 					 {0,0,0,0,0,0,0,0,0,0,4,2}};
+//number of bits for VM regions for TE by inner/outer layer for each seed
+static const unsigned int nbitsvmte[3][12]={{2,2,2,2,2,2,1,1,2,2,3,2},
+					     {3,2,3,3,2,2,2,2,3,3,2,2},
+					     {0,0,0,0,0,0,0,0,0,0,2,1}};
 
 //Number of allstub memories (phi regions) for each of the layers+disks
 static const unsigned int nallstubs_[11]={8,4,4,4,4,4,4,4,4,4,4}; 
+static const unsigned int nbitsallstubs_[11]={3,2,2,2,2,2,2,2,2,2,2}; 
+//Number of vm for ME memories per phi region for each of the layers+disks
+static const unsigned int nvmme[11]={4,8,8,8,8,8,8,4,4,4,4};
+static const unsigned int nbitsvmme[11]={2,3,3,3,3,3,3,2,2,2,2};
 
 
 static const unsigned int nallstubslayers[6]={8,4,4,4,4,4};  // FIXME should retire
@@ -536,6 +544,38 @@ static const bool doKF=false; //false => use chi2 fit (USEHYBRID is not defined)
 //static const std::string RemovalType=""; // Run without duplicate removal
 
 static const bool fakefit=false; //if true, run a dummy fit, producing TTracks directly from output of tracklet pattern reco stage. (Not working for Hybrid)
+
+
+//These are the number of bits used for the fine phi position fo the TE VM stubs by seedindex
+static const unsigned int nfinephi_[3][12]={ {2,2,2,2,2,2,2,2,2,2,2,2},     //inner
+					     {3,3,3,3,3,3,3,3,3,3,3,3},     //outer
+					     {0,0,0,0,0,0,0,0,0,0,3,3} };   //outermost
+
+//These are the number of bits used for the VM regions in the TE by seedindex
+static const unsigned int nphireg_[3][12]={ {5,4,4,4,4,4,4,3,4,4,5,4},     //inner
+					    {5,4,5,5,4,4,4,4,4,4,4,4},    //outer
+					    {0,0,0,0,0,0,0,0,0,0,4,4} };   //outermost
+
+
+static const unsigned int zbitstab[3][12] = { {7,7,7,7,3,3,7,7,0,0,7,0},
+					      {7,7,7,7,3,3,3,3,0,0,7,0},
+					      {0,0,0,0,0,0,0,0,0,0,3,7} };
+
+static const unsigned int rbitstab[3][12] = { {4,4,4,4,8,8,3,3,0,0,4,0},
+					      {4,4,4,4,7,7,7,7,0,0,4,0},
+					      {0,0,0,0,0,0,0,0,0,0,7,4} };
+
+static const unsigned int lutwidthtab[3][12] = { {10,11,11,11,11,11,11,11, 0, 0,11, 0},
+						 { 6, 6, 6, 6,10,10,10,10, 0, 0, 6, 0},
+						 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 6} };
+
+static const unsigned int lutwidthtabextended[3][12] = { {11,11,21,21,21,21,11,11, 0, 0,21, 0},
+							 { 6, 6, 6, 6,10,10,10,10, 0, 0, 6, 0},
+							 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 6} };
+
+
+
+
 
 //projection layers by seed index. For each seeding index (row) the list of layers that
 //we consider projections to

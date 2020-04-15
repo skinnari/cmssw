@@ -303,7 +303,7 @@ public:
   }
 
   //Check if rinv and z0 is good
-  bool goodTrackPars(bool goodrinv, bool goodz0, bool goodTrackPar) {
+  bool goodTrackPars(bool goodrinv, bool goodz0) {
   
     bool success = true;
     if(!goodrinv){
@@ -318,7 +318,6 @@ public:
       }
       success = false;
     }
-    success = success && goodTrackPar;
 
     return success;
   }
@@ -592,8 +591,7 @@ public:
     }
 
     if (!goodTrackPars(ITC->rinv_final.local_passes(),
-		       ITC->z0_final.local_passes(),
-		       ITC->valid_trackpar.passes())) return false;
+		       ITC->z0_final.local_passes())) return false;
 
 
     if (!inSector(iphi0,irinv,phi0approx,rinvapprox)) return false;
@@ -962,8 +960,7 @@ public:
     izproj[2]   = ITC->zL_2_final.get_ival();
 
     if (!goodTrackPars(ITC->rinv_final.local_passes(),
-		       ITC->z0_final.local_passes(),
-		       ITC->valid_trackpar.passes())) return false;
+		       ITC->z0_final.local_passes())) return false;
 
     if (!inSector(iphi0,irinv,phi0approx,rinvapprox)) return false;
 
@@ -1302,8 +1299,7 @@ public:
     irprojdisk[3]   = ITC->rD_3_final.get_ival();
 
     if (!goodTrackPars(ITC->rinv_final.local_passes(),
-		       ITC->z0_final.local_passes(),
-		       ITC->valid_trackpar.passes())) return false;
+		       ITC->z0_final.local_passes())) return false;
 
     
     if (!inSector(iphi0,irinv,phi0approx,rinvapprox)) return false;
