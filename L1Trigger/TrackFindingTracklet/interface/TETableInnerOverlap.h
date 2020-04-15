@@ -19,6 +19,15 @@ public:
     nbits_ = 10;
   }
 
+  TETableInnerOverlap(int layer1,
+		      int disk2,
+		      int zbits,
+		      int rbits
+		      ) {
+    nbits_ = 10;
+    init(layer1,disk2,zbits,rbits);
+  }
+
   ~TETableInnerOverlap() {
 
   }

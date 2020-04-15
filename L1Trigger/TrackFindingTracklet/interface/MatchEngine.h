@@ -214,7 +214,7 @@ public:
 	  projbuffer[writeindextmp]=tmp;
 	}
 	if (savelast) {
-	  std::pair<int,int> tmp(iprojtmp,rzlast+100); //hack to flag that this is second bin
+	  std::pair<int,int> tmp(iprojtmp,rzlast+100); //FIXME hack to flag that this is second bin
 	  if (savefirst) {
 	    projbuffer[writeindextmpplus]=tmp;
 	  } else {
@@ -280,16 +280,19 @@ public:
 	  }
 	}
 
-	//Read stub memory and extract data fields
-	std::pair<Stub*,L1TStub*> stub=vmstubs_->getStubBin(rzbin,istubtmp);
+	//Read vmstub memory and extract data fields
+	//std::pair<Stub*,L1TStub*> stub=vmstubs_->getStubBin(rzbin,istubtmp);
+	VMStubME vmstub=vmstubs_->getVMStubMEBin(rzbin,istubtmp);
 
-	bool isPSmodule=stub.first->isPSmodule();
+	bool isPSmodule=vmstub.isPSmodule();
 	
-	int stubfinerz=barrel?stub.first->finez().value():stub.first->finer().value();
-	
+	int stubfinerz=vmstub.finerz().value();
+	       
 	int nbits=isPSmodule?3:4;
 
-	unsigned int index=(projrinv<<nbits)+stub.first->bend().value();
+	//FIXME - not using finephi
+	
+	unsigned int index=(projrinv<<nbits)+vmstub.bend().value();
 
 	//Check if stub z position consistent
 	int idrz=stubfinerz-projfinerzadj;
@@ -319,7 +322,7 @@ public:
               fout << __FILE__ << ":" << __LINE__ << " " << name_ << "_" << iSector_ << " " << proj->getISeed() << endl;
               fout.close();
             }
-	    candmatches_->addMatch(tmp,stub);
+	    candmatches_->addMatch(tmp,vmstub.stub());
 	    countpass++;
 	  }
 	}

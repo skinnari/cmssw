@@ -111,8 +111,14 @@ public:
 
   }
 
+  //return the nbits starting with the lsb. lsb=0 means the least significant bit
+  unsigned int bits(unsigned int lsb,unsigned int nbit) {
+    assert(lsb+nbit<=(unsigned int)nbits());
+    return (value_>>lsb)&((1<<nbit)-1);
+  }
+  
   int value() const {return value_;}
-  int nbits() const {return nbits_;}
+  int nbits() const {return nbits_;} //FEXME should be unsigned
 
   bool atExtreme() const {
     if (positive_) return (value_==0)||(value_==(1<<nbits_)-1);
@@ -127,7 +133,7 @@ public:
 private:
 
   int value_;
-  int nbits_;
+  int nbits_; //FIXME should be unsigned 
   bool positive_;
   
 };

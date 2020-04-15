@@ -66,26 +66,25 @@ public:
     if (idle()) return;
     if (candmatches_.almostfull()) return;
 
-    std::pair<Stub*,L1TStub*> stub=vmstubsmemory_->getStubBin(slot_,istub_);
+    //std::pair<Stub*,L1TStub*> stub=vmstubsmemory_->getStubBin(slot_,istub_);
+    VMStubME vmstub=vmstubsmemory_->getVMStubMEBin(slot_,istub_);
 
     istub_++;
     if (istub_>=vmstubsmemory_->nStubsBin(slot_)) idle_=true;
     
-    bool isPSmodule=stub.first->isPSmodule();
-	    
-    int stubfinerz=barrel_?stub.first->finez().value():stub.first->finer().value();
-
-    int stubfinephi=stub.first->iphivmFineBins(5,3).value(); //Only correct (and used) in barrel
-
+    bool isPSmodule=vmstub.isPSmodule();
+    int stubfinerz=vmstub.finerz().value();    
+    int stubfinephi=vmstub.finephi().value();
+    
     int deltaphi=stubfinephi-projfinephi_;
 
-    bool dphicut=(abs(deltaphi)<3)||(abs(deltaphi)>5);
+    bool dphicut=(abs(deltaphi)<3)||(abs(deltaphi)>5); //FIXME... ugly
 
     if (!barrel_) dphicut=true;
     
     int nbits=isPSmodule?3:4;
 
-    unsigned int index=(projrinv_<<nbits)+stub.first->bend().value();
+    unsigned int index=(projrinv_<<nbits)+vmstub.bend().value();
 
     //Check if stub z position consistent
     int idrz=stubfinerz-projfinerz_;
@@ -108,7 +107,7 @@ public:
     //Check if stub bend and proj rinv consistent
     if (pass&&dphicut){
       if (barrel_?table_[index]:(isPSmodule?tablePS_[index]:table2S_[index])) {
-	std::pair<Tracklet*,std::pair<Stub*,L1TStub*> > tmp(proj_,stub);
+	std::pair<Tracklet*,std::pair<Stub*,L1TStub*> > tmp(proj_,vmstub.stub());
 	candmatches_.store(tmp);
 
       }

@@ -19,6 +19,14 @@ public:
     nbits_ = 6;
   }
 
+  TETableOuter(int layer,
+	       int zbits,
+	       int rbits
+	       ) {
+    nbits_ = 6;
+    init(layer,zbits,rbits);
+  }
+
   ~TETableOuter() {
 
   }

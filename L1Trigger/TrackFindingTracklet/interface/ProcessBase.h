@@ -77,6 +77,16 @@ public:
 
   }
 
+  unsigned int initLayerDisk(unsigned int pos){
+
+    int layer,disk;
+    initLayerDisk(pos,layer,disk);
+
+    if (disk>0) return 5+disk;
+    return layer-1;
+
+  }
+
   unsigned int getISeed(std::string name){
   
     //assumes here that namme is on the form XX_L1L2_XXX where L1L2 gives iSeed=0

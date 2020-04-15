@@ -19,6 +19,17 @@ public:
     nbits_ = 20;
   }
 
+  TETableInner(int layer1,
+	       int layer2,
+	       int layer3,
+	       int zbits,
+	       int rbits,
+	       bool thirdLayerIsDisk = false
+	       ) {
+    nbits_=20;
+    init(layer1,layer2,layer3,zbits,rbits,thirdLayerIsDisk);
+  }
+  
   ~TETableInner() {
 
   }

@@ -33,19 +33,17 @@ class HybridFit{
 
     void Fit(Tracklet* tracklet, std::vector<std::pair<Stub*,L1TStub*>> &trackstublist){
       if (fakefit){
-        tracklet->setFitPars(
-         	tracklet->rinvapprox(),tracklet->phi0approx(),tracklet->d0approx(),tracklet->tapprox(),tracklet->z0approx(),0.,0.,
-	        tracklet->rinv(),tracklet->phi0(),tracklet->d0(),tracklet->t(),tracklet->z0(),0.,0.,
-          tracklet->fpgarinv().value(),tracklet->fpgaphi0().value(),tracklet->fpgad0().value(),tracklet->fpgat().value(),
-          tracklet->fpgaz0().value(),0,0,0);
+        tracklet->setFitPars(tracklet->rinvapprox(),tracklet->phi0approx(),tracklet->d0approx(),tracklet->tapprox(),tracklet->z0approx(),0.,0.,
+			     tracklet->rinv(),tracklet->phi0(),tracklet->d0(),tracklet->t(),tracklet->z0(),0.,0.,
+			     tracklet->fpgarinv().value(),tracklet->fpgaphi0().value(),tracklet->fpgad0().value(),tracklet->fpgat().value(),tracklet->fpgaz0().value(),0,0,0);
         return;
       }
-
-      std::vector<const tmtt::Stub*> TMTTstubs;
+      
+      std::vector<const TMTT::Stub*> TMTTstubs;
       std::map<unsigned int, L1TStub*> L1StubIndices;
       unsigned int L1stubID = 0;
 
-      static const tmtt::Settings settings;
+      static const TMTT::Settings settings;
 
       int kf_phi_sec=iSector_;
 
@@ -82,7 +80,7 @@ class HybridFit{
         if (printDebugKF) cout <<kfphi<<" "<<kfr<<" "<<kfz<<" "<<kfbend<<" "<<kflayer<<" "<<isBarrel<<" "<<psmodule<<" "<<endl;
 	// For debugging, this should ideally be unique index in stub collection for nonant. But can't access that from here, so use this poor version instead.
         unsigned int uniqueIndex = 1000*L1stubID + L1stubptr->allStubIndex();
-        tmtt::Stub* TMTTstubptr = new tmtt::Stub(kfphi, kfr, kfz, kfbend, kflayer, psmodule, isBarrel, iphi, -alpha, &settings, nullptr, uniqueIndex, kf_phi_sec);
+        TMTT::Stub* TMTTstubptr = new TMTT::Stub(kfphi, kfr, kfz, kfbend, kflayer, psmodule, isBarrel, iphi, -alpha, &settings, nullptr, uniqueIndex, kf_phi_sec);
         TMTTstubs.push_back(TMTTstubptr);
         L1StubIndices[uniqueIndex] = L1stubptr;
         L1stubID++;
@@ -132,7 +130,7 @@ class HybridFit{
 	if (kfzRef > zRefMax) kf_eta_reg = iEtaSec;
       }
 
-      tmtt::L1track3D l1track3d(&settings,TMTTstubs,celllocation,helixrphi,helixrz,kfd0,kf_phi_sec,kf_eta_reg,1,false);
+      TMTT::L1track3D l1track3d(&settings,TMTTstubs,celllocation,helixrphi,helixrz,kfd0,kf_phi_sec,kf_eta_reg,1,false);
       unsigned int seedType = tracklet->getISeed();
       unsigned int numPS = tracklet->PSseed(); // Function PSseed() is out of date!
       l1track3d.setSeedLayerType(seedType);
@@ -142,18 +140,18 @@ class HybridFit{
       static bool firstPrint = true;
 #ifdef USE_HLS
       if (firstPrint) cout << "Will make KFParamsCombHLS for " << nHelixPar_ << " param fit" << endl;
-      static thread_local tmtt::KFParamsCombCallHLS fitterKF(&settings, nHelixPar_, "KFfitterHLS");
+      static thread_local TMTT::KFParamsCombCallHLS fitterKF(&settings, nHelixPar_, "KFfitterHLS");
 #else
       if (firstPrint) cout << "Will make KFParamsComb for " << nHelixPar_ << " param fit"<< endl;
-      static thread_local tmtt::KFParamsComb fitterKF(&settings, nHelixPar_, "KFfitter");
+      static thread_local TMTT::KFParamsComb fitterKF(&settings, nHelixPar_, "KFfitter");
 #endif
       firstPrint = false;
 
       //  cout << "Will call fit" << endl;
 
-      tmtt::L1fittedTrack fittedTrk = fitterKF.fit(l1track3d); 
+      TMTT::L1fittedTrack fittedTrk = fitterKF.fit(l1track3d); 
      
-      tmtt::KFTrackletTrack trk = fittedTrk.returnKFTrackletTrack();
+      TMTT::KFTrackletTrack trk = fittedTrk.returnKFTrackletTrack();
 
       if (printDebugKF) cout << "Done with Kalman fit. Pars: pt = " << trk.pt() << ", 1/2R = " << 3.8*3*trk.qOverPt()/2000 << ", phi0 = " << trk.phi0() << ", eta = " << trk.eta() << ", z0 = " << trk.z0() << ", chi2 = "<<trk.chi2()  << ", accepted = "<< trk.accepted() << endl;
 
@@ -175,9 +173,9 @@ class HybridFit{
 
       if (trk.accepted()) {
 
-        const vector<const tmtt::Stub*>& stubsFromFit = trk.getStubs();
+        const vector<const TMTT::Stub*>& stubsFromFit = trk.getStubs();
         vector<L1TStub*> l1stubsFromFit;
-        for (const tmtt::Stub* s : stubsFromFit) {
+        for (const TMTT::Stub* s : stubsFromFit) {
             unsigned int IDf = s->index();
             L1TStub* l1s = L1StubIndices.at(IDf);
             l1stubsFromFit.push_back(l1s);
@@ -194,7 +192,7 @@ class HybridFit{
 	if (printDebugKF) cout << "FitTrack:KF rejected track"<<endl;
       }
 
-      for (const tmtt::Stub* s : TMTTstubs) {
+      for (const TMTT::Stub* s : TMTTstubs) {
 	delete s;
       }
       
