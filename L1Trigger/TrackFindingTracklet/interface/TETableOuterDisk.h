@@ -8,92 +8,72 @@
 #include <math.h>
 #include <vector>
 
-
 using namespace std;
 
-class TETableOuterDisk:public TETableBase{
-
+class TETableOuterDisk : public TETableBase {
 public:
+  TETableOuterDisk() { nbits_ = 5; }
 
-  TETableOuterDisk() {
+  TETableOuterDisk(int disk, int zbits, int rbits) {
     nbits_ = 5;
+    init(disk, zbits, rbits);
   }
 
-  TETableOuterDisk(int disk,
-		   int zbits,
-		   int rbits
-		   ) {
-    nbits_ = 5;
-    init(disk,zbits,rbits);
-  }
+  ~TETableOuterDisk() {}
 
-  
-  ~TETableOuterDisk() {
+  void init(int disk, int zbits, int rbits) {
+    disk_ = disk;
+    rbits_ = rbits;
+    zbits_ = zbits;
 
-  }
+    rbins_ = (1 << rbits);
+    rmin_ = 0;
+    rmax_ = rmaxdisk;
+    dr_ = rmaxdisk / rbins_;
 
+    zbins_ = (1 << zbits);
+    zmin_ = zmean[disk - 1] - dzmax;
+    zmax_ = zmean[disk - 1] + dzmax;
+    dz_ = 2 * dzmax / zbins_;
 
-  void init(int disk,
-	    int zbits,
-	    int rbits
-	    ) {
+    zmean_ = zmean[disk - 1];
 
-    disk_=disk;
-    rbits_=rbits;
-    zbits_=zbits;
-
-    rbins_=(1<<rbits);
-    rmin_=0;
-    rmax_=rmaxdisk;
-    dr_=rmaxdisk/rbins_;
-
-    zbins_=(1<<zbits);
-    zmin_=zmean[disk-1]-dzmax;
-    zmax_=zmean[disk-1]+dzmax;
-    dz_=2*dzmax/zbins_;
-
-    zmean_=zmean[disk-1];
-
-    for (int irbin=0;irbin<rbins_;irbin++) {
-      for (int izbin=0;izbin<zbins_;izbin++) {
-	int value=getLookupValue(irbin,izbin);
-	table_.push_back(value);
+    for (int irbin = 0; irbin < rbins_; irbin++) {
+      for (int izbin = 0; izbin < zbins_; izbin++) {
+        int value = getLookupValue(irbin, izbin);
+        table_.push_back(value);
       }
     }
     if (writeVMTables) {
-      writeVMTable("VMTableOuterD"+std::to_string(disk_)+".tab");
+      writeVMTable("VMTableOuterD" + std::to_string(disk_) + ".tab");
     }
   }
 
   // negative return means that seed can not be formed
-  int getLookupValue(int irbin, int izbin){
+  int getLookupValue(int irbin, int izbin) {
+    double r = rmin_ + (irbin + 0.5) * dr_;
+    double z = zmin_ + (izbin + 0.5) * dz_;
 
-    double r=rmin_+(irbin+0.5)*dr_;
-    double z=zmin_+(izbin+0.5)*dz_;
+    double rproj = r * zmean_ / z;
 
-    double rproj=r*zmean_/z;
+    int NBINS = NLONGVMBINS * NLONGVMBINS / 2;  //divide by two for + vs - z disks
 
-    int NBINS=NLONGVMBINS*NLONGVMBINS/2;  //divide by two for + vs - z disks
-    
-    int rbin=NBINS*(rproj-rmindiskvm)/(rmaxdiskvm-rmindiskvm);
+    int rbin = NBINS * (rproj - rmindiskvm) / (rmaxdiskvm - rmindiskvm);
 
-    if (rbin<0) rbin=0;
-    if (rbin>=NBINS) rbin=NBINS-1;
+    if (rbin < 0)
+      rbin = 0;
+    if (rbin >= NBINS)
+      rbin = NBINS - 1;
 
     return rbin;
-    
   }
-
 
   int lookup(int zbin, int rbin) {
-
-    int index=rbin*zbins_+zbin;
+    int index = rbin * zbins_ + zbin;
     return table_[index];
-    
   }
-    
-private:
 
+private:
   double zmean_;
 
   double rmin_;
@@ -104,7 +84,7 @@ private:
 
   double dr_;
   double dz_;
-  
+
   int zbits_;
   int rbits_;
 
@@ -112,13 +92,6 @@ private:
   int rbins_;
 
   int disk_;
-  
-  
 };
 
-
-
 #endif
-
-
-
