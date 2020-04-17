@@ -1229,9 +1229,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     
     int nMatch = 0;
     int i_track = -1;
-    int i_loosetrack = -1;
     float i_chi2dof = 99999;
-    float i_loosechi2dof = 99999;
 
     if (matchedTracks.size() > 0) {
 

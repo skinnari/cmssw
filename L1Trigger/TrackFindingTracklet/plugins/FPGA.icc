@@ -1,6 +1,3 @@
-
-    //cout << "Read event:"<<ev.eventnum()<<" Number of stubs="
-    //	 <<ev.nstubs()<<endl;
     
     cleanTimer.start();
     for (unsigned int k=0;k<NSector;k++) {
@@ -48,10 +45,6 @@
     for (int j=0;j<ev.nstubs();j++){
 
       L1TStub stub=ev.stub(j);
-      //if (stub.layer()>999) {
-      //	 cout << "Found stub in disk : "<<stub.module()<<" r= "<<stub.r()
-	// <<" z= "<<stub.z()<<endl;
-      //}
 
       if (debug1) cout << "Stub: layer="<<stub.layer()+1
                        <<" disk="<<stub.disk()  

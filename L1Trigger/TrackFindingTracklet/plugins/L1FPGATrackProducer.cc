@@ -632,7 +632,6 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
 	for (edm::Ptr< TrackingParticle> tpPtr : vecTpPtr) {
 	  if (translateTP.find(tpPtr) != translateTP.end()) {
-	    //cout << "Lookup translateTP : "<<translateTP.at(tpPtr)<<endl;
 	    if (iClus==0) {
 	      assocTPs.push_back( translateTP.at(tpPtr) );
 	    } else {
@@ -881,8 +880,8 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     unsigned int trksector = track->sector();
     unsigned int trkseed = (unsigned int) abs(track->seed());
 
-    aTrack.setPhiSector(trksector); //tracklet phi sector
-    aTrack.setTrackSeedType(trkseed);   //tracklet seed
+    aTrack.setPhiSector(trksector);   //tracklet phi sector
+    aTrack.setTrackSeedType(trkseed); //tracklet seed
 
     vector<L1TStub*> stubptrs = track->stubs();
     vector<L1TStub> stubs;
@@ -899,14 +898,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 	aTrack.addStubRef(it->second);
       }
       else{
-	/*
-	cout << "Could not find stub in stub map"<<endl;
-	cout << "stub:"<<itstubs->layer()<<" "
-	     <<itstubs->ladder()<<" "
-	     <<itstubs->module()<<" "
-	     <<itstubs->iz()<<" "
-	     <<itstubs->iphi()<<endl;
-	*/
+	// could not find stub in stub map
       }
     }
 

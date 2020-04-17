@@ -149,29 +149,29 @@ class HybridFit{
 
       // Call Kalman fit
       tmtt::L1fittedTrack fittedTrk = fitterKF.fit(l1track3d); 
-     
-      tmtt::KFTrackletTrack trk = fittedTrk.returnKFTrackletTrack();
 
-      if (printDebugKF) cout << "Done with Kalman fit. Pars: pt = " << trk.pt() << ", 1/2R = " << 3.8*3*trk.qOverPt()/2000 << ", phi0 = " << trk.phi0() << ", eta = " << trk.eta() << ", z0 = " << trk.z0() << ", chi2 = "<<trk.chi2()  << ", accepted = "<< trk.accepted() << endl;
+      if (fittedTrk.accepted()) {
 
-      // Tracklet wants phi0 with respect to lower edge of sector, not global phi0.
-      double phi0fit=trk.phi0()-iSector_*2*M_PI/NSector+0.5*dphisectorHG;
+	tmtt::KFTrackletTrack trk = fittedTrk.returnKFTrackletTrack();
 
-      if (phi0fit>M_PI) phi0fit-=2*M_PI;
-      if (phi0fit<-M_PI) phi0fit+=2*M_PI;
-
-      double rinvfit=0.01*0.3*settings.getBfield()*trk.qOverPt();
-
-      int irinvfit = rinvfit / krinvpars;
-      int iphi0fit = phi0fit / kphi0pars;
-      int itanlfit = trk.tanLambda() / ktpars;
-      int iz0fit   = trk.z0() / kz0pars;
-      int id0fit   = trk.d0() / kd0pars;
-      int ichi2rphifit = trk.chi2rphi() / 16;
-      int ichi2rzfit = trk.chi2rz() / 16;
-
-      if (trk.accepted()) {
-
+	if (printDebugKF) cout << "Done with Kalman fit. Pars: pt = " << trk.pt() << ", 1/2R = " << 3.8*3*trk.qOverPt()/2000 << ", phi0 = " << trk.phi0() << ", eta = " << trk.eta() << ", z0 = " << trk.z0() << ", chi2 = "<<trk.chi2()  << ", accepted = "<< trk.accepted() << endl;
+	
+	// Tracklet wants phi0 with respect to lower edge of sector, not global phi0.
+	double phi0fit=trk.phi0()-iSector_*2*M_PI/NSector+0.5*dphisectorHG;
+	
+	if (phi0fit>M_PI) phi0fit-=2*M_PI;
+	if (phi0fit<-M_PI) phi0fit+=2*M_PI;
+	
+	double rinvfit=0.01*0.3*settings.getBfield()*trk.qOverPt();
+	
+	int irinvfit = rinvfit / krinvpars;
+	int iphi0fit = phi0fit / kphi0pars;
+	int itanlfit = trk.tanLambda() / ktpars;
+	int iz0fit   = trk.z0() / kz0pars;
+	int id0fit   = trk.d0() / kd0pars;
+	int ichi2rphifit = trk.chi2rphi() / 16;
+	int ichi2rzfit = trk.chi2rz() / 16;
+	
         const vector<const tmtt::Stub*>& stubsFromFit = trk.getStubs();
         vector<L1TStub*> l1stubsFromFit;
         for (const tmtt::Stub* s : stubsFromFit) {
