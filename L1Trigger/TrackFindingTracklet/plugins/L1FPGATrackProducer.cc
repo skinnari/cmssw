@@ -35,8 +35,6 @@
 #include "DataFormats/Common/interface/DetSetVector.h"
 //
 #include "L1Trigger/TrackFindingTracklet/interface/slhcevent.h"
-#include "L1Trigger/TrackFindingTracklet/interface/L1TBarrel.h"
-#include "L1Trigger/TrackFindingTracklet/interface/L1TDisk.h"
 #include "L1Trigger/TrackFindingTracklet/interface/L1TStub.h"
 
 #include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
@@ -105,8 +103,6 @@
 #include "DataFormats/GeometrySurface/interface/BoundPlane.h"
 
 #include "L1Trigger/TrackTrigger/interface/StubPtConsistency.h"
-
-#include "L1Trigger/TrackFindingTracklet/interface/StubKiller.h"
 
 // L1Trk HLS end-of-job bit range checks etc.
 #ifdef USEHYBRID
@@ -192,9 +188,6 @@ private:
   edm::FileInPath DTCLinkLayerDiskFile;
 
   
-  int failscenario_;
-  StubKiller* my_stubkiller;
-
   double phiWindowSF_;
 
   string asciiEventOutName_;
@@ -219,13 +212,9 @@ private:
   edm::InputTag MCTruthStubInputTag;
   edm::InputTag TrackingParticleInputTag;
   edm::InputTag TrackingVertexInputTag;
-  edm::InputTag simTrackSrc_;
-  edm::InputTag simVertexSrc_;
   edm::InputTag ttStubSrc_;
   edm::InputTag bsSrc_;
 
-  const edm::EDGetTokenT< edm::SimTrackContainer > simTrackToken_;
-  const edm::EDGetTokenT< edm::SimVertexContainer > simVertexToken_;
   const edm::EDGetTokenT< edmNew::DetSetVector< TTStub< Ref_Phase2TrackerDigi_ > > > ttStubToken_;
   const edm::EDGetTokenT< reco::BeamSpot > bsToken_;
 
@@ -252,13 +241,9 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig) :
   MCTruthStubInputTag(readMoreMcTruth_ ? config.getParameter<edm::InputTag>("MCTruthStubInputTag") : edm::InputTag()),
   TrackingParticleInputTag(readMoreMcTruth_ ? iConfig.getParameter<edm::InputTag>("TrackingParticleInputTag") : edm::InputTag()),
   TrackingVertexInputTag(readMoreMcTruth_ ? iConfig.getParameter<edm::InputTag>("TrackingVertexInputTag") : edm::InputTag()),
-  simTrackSrc_(config.getParameter<edm::InputTag>("SimTrackSource")),
-  simVertexSrc_(config.getParameter<edm::InputTag>("SimVertexSource")),
   ttStubSrc_(config.getParameter<edm::InputTag>("TTStubSource")),
   bsSrc_(config.getParameter<edm::InputTag>("BeamSpotSource")),
 
-  simTrackToken_(consumes< edm::SimTrackContainer >(simTrackSrc_)),
-  simVertexToken_(consumes< edm::SimVertexContainer >(simVertexSrc_)),
   ttStubToken_(consumes< edmNew::DetSetVector< TTStub< Ref_Phase2TrackerDigi_ > > >(ttStubSrc_)),
   bsToken_(consumes< reco::BeamSpot >(bsSrc_))
 {
@@ -271,13 +256,9 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig) :
 
   produces< std::vector< TTTrack< Ref_Phase2TrackerDigi_ > > >( "Level1TTTracks" ).setBranchAlias("Level1TTTracks");
 
-  failscenario_ = iConfig.getUntrackedParameter<int>("failscenario",0);
-
   phiWindowSF_ = iConfig.getUntrackedParameter<double>("phiWindowSF",1.0);
 
   asciiEventOutName_ = iConfig.getUntrackedParameter<string>("asciiFileName","");
-
-  geometryType_ = iConfig.getUntrackedParameter<string>("trackerGeometryType","");
 
   fitPatternFile = iConfig.getParameter<edm::FileInPath> ("fitPatternFile");
   processingModulesFile = iConfig.getParameter<edm::FileInPath> ("processingModulesFile");
@@ -491,30 +472,6 @@ void L1FPGATrackProducer::endJob()
 // BEGIN JOB
 void L1FPGATrackProducer::beginRun(const edm::Run& run, const edm::EventSetup& iSetup )
 {
-
-  iSetup.get<TrackerTopologyRcd>().get(tTopoHandle);
-  iSetup.get<TrackerDigiGeometryRecord>().get(tGeomHandle);
-
-  const TrackerTopology* const tTopo = tTopoHandle.product();
-  const TrackerGeometry* const theTrackerGeom = tGeomHandle.product();
-
-  // ------------------------------------------------------------------------------------------
-  // check killing stubs for stress test
-
-  int failtype = 0;
-  if (failscenario_ < 0 || failscenario_ > 5) {
-    std::cout << "invalid fail scenario! ignoring input" << std::endl;
-  }
-  else {
-    failtype = failscenario_;
-  }
-
-  my_stubkiller = new StubKiller();
-  my_stubkiller->initialise(failtype, tTopo, theTrackerGeom);
-  
-  // ------------------------------------------------------------------------------------------
-
-
 }
 
 //////////
@@ -522,20 +479,7 @@ void L1FPGATrackProducer::beginRun(const edm::Run& run, const edm::EventSetup& i
 void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
-  bool doMyDebug = false;
-  if (doMyDebug) std::cout << "start in L1FPGATrackProducer::produce()" << std::endl;
-
-  bool isTilted = true;
-  if (geometryType_ == "flat" || geometryType_ == "D10") isTilted = false;
-
-  if (doMyDebug) {
-    if (isTilted) std::cout << "assuming the TILTED barrel geometry!" << std::endl;
-    else std::cout << "assuming the FLAT barrel geometry!" << std::endl;
-  }
-
-
   typedef std::map< L1TStub, edm::Ref< edmNew::DetSetVector< TTStub< Ref_Phase2TrackerDigi_ > >, TTStub< Ref_Phase2TrackerDigi_ >  >, L1TStubCompare > stubMapType;
-
   typedef edm::Ref< edmNew::DetSetVector< TTCluster< Ref_Phase2TrackerDigi_ > >, TTCluster< Ref_Phase2TrackerDigi_ > > TTClusterRef;
 
   /// Prepare output
@@ -576,21 +520,13 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
   GlobalHistTruth::event()=&ev;
 
-  ///////////////////
-  // GET SIMTRACKS //
-  edm::Handle<edm::SimTrackContainer>   simTrackHandle;
-  edm::Handle<edm::SimVertexContainer>  simVtxHandle;
-  iEvent.getByToken( simTrackToken_, simTrackHandle );
-  iEvent.getByToken( simVertexToken_, simVtxHandle );
-
   // tracking particles
   edm::Handle< std::vector< TrackingParticle > > TrackingParticleHandle;
   edm::Handle< std::vector< TrackingVertex > > TrackingVertexHandle;
   if (readMoreMcTruth_) iEvent.getByToken(TrackingParticleToken_, TrackingParticleHandle);
   if (readMoreMcTruth_) iEvent.getByToken(TrackingVertexToken_, TrackingVertexHandle);
 
-
-
+  // tracker topology
   const TrackerTopology* const tTopo = tTopoHandle.product();
   const TrackerGeometry* const theTrackerGeom = tGeomHandle.product();
 
@@ -615,8 +551,6 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   ////////////////////////////////////////////////
   /// LOOP OVER TRACKING PARTICLES & GET SIMTRACKS
 
-  if (doMyDebug) std::cout << "loop over tracking particles" << std::endl;
-
   int this_tp = 0;
   std::vector< TrackingParticle >::const_iterator iterTP;
 
@@ -631,11 +565,9 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     if (MCTruthTTClusterHandle->findTTClusterRefs(tp_ptr).size() < 1) continue;
 
     if (iterTP->g4Tracks().size()==0) {
-      if (doMyDebug) cout << "TP has no g4Track" << endl;
       continue;
     }
 
-    int sim_trackid = ntps;
     int sim_eventid = iterTP->g4Tracks().at(0).eventId().event();
     int sim_type = iterTP->pdgId();
     float sim_pt = iterTP->pt();
@@ -650,18 +582,10 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     if (fabs(vz)>100.0) continue;
     if (hypot(vx,vy)>50.0) continue;
 
-    if (doMyDebug) std::cout << "adding sim track with eventID trackID type pt eta phi = " << sim_eventid << " " << sim_trackid << " "
-			     << sim_type << " " << sim_pt << " " << sim_eta << " " << sim_phi << std::endl;
-
-    ev.addL1SimTrack(sim_eventid, ntps, sim_type, sim_pt, sim_eta, sim_phi,
-		     vx, vy, vz);
+    ev.addL1SimTrack(sim_eventid, ntps, sim_type, sim_pt, sim_eta, sim_phi,vx, vy, vz);
 
     translateTP[tp_ptr]=ntps;
-
-    //cout << "translateTP : "<<ntps<<endl;
-
     ntps++;
-
 
   }//end loop over TPs
 
@@ -671,9 +595,6 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   ////////////////////////////////
   /// COLLECT STUB INFORMATION ///
   ////////////////////////////////
-
-  // loop over stubs
-  if (doMyDebug) std::cout << "loop over stubs" << std::endl;
 
   for (auto gd=theTrackerGeom->dets().begin(); gd != theTrackerGeom->dets().end(); gd++) {
 
@@ -732,15 +653,8 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
       int eventID=-1;
 
       if (readMoreMcTruth_) {
-      edm::Ptr< TrackingParticle > my_tp = MCTruthTTStubHandle->findTrackingParticlePtr(tempStubPtr);
-
-      if (my_tp.isNull()) {
-	if (doMyDebug) cout << "TP is null pointer" << endl;
+	edm::Ptr< TrackingParticle > my_tp = MCTruthTTStubHandle->findTrackingParticlePtr(tempStubPtr);
       }
-      else {
-	if (doMyDebug) cout << "TP is NOT null pointer" << endl;
-      }
-      } // end if (readMoreMcTruth_)
       
       int layer=-999999;
       int ladder=-999999;
@@ -752,7 +666,6 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 	layer  = static_cast<int>(tTopo->layer(detid));
         module = static_cast<int>(tTopo->module(detid));
 	ladder = static_cast<int>(tTopo->tobRod(detid));
-	if (doMyDebug) cout << "layer = " << layer << " vs " << static_cast<int>(tTopo->tobLayer(detid)) << endl;
 
 	// https://github.com/cms-sw/cmssw/tree/master/Geometry/TrackerNumberingBuilder
 	// tobSide = 1: ring- (tilted)
@@ -760,58 +673,50 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 	// tobSide = 3: barrel (flat)
 	int tobSide = static_cast<int>(tTopo->tobSide(detid));
 
-	if (isTilted) {
-	  if (layer==1)
-	    {
-	      if (tobSide==1) {
-		module = static_cast<int>(tTopo->tobRod(detid));
-		ladder = static_cast<int>(tTopo->module(detid));
-	      }
-	      if (tobSide==2) {
-		module = 19+static_cast<int>(tTopo->tobRod(detid));
-		ladder = static_cast<int>(tTopo->module(detid));
-	      }
-	      if (tobSide==3) module = 12+static_cast<int>(tTopo->module(detid));
-	    }
-
-	  if (layer==2)
-	    {
-	      if (tobSide==1) {
-		module = static_cast<int>(tTopo->tobRod(detid));
-		ladder = static_cast<int>(tTopo->module(detid));
-	      }
-	      if (tobSide==2) {
-		module = 23+static_cast<int>(tTopo->tobRod(detid));
-		ladder = static_cast<int>(tTopo->module(detid));
-	      }
-	      if (tobSide==3) module = 12+static_cast<int>(tTopo->module(detid));
-	    }
-
-	  if (layer==3)
-	    {
-	      if (tobSide==1) {
-		module = static_cast<int>(tTopo->tobRod(detid));
-		ladder = static_cast<int>(tTopo->module(detid));
-	      }
-	      if (tobSide==2) {
-		module = 27+static_cast<int>(tTopo->tobRod(detid));
-		ladder = static_cast<int>(tTopo->module(detid));
-	      }
-	      if (tobSide==3) module = 12+static_cast<int>(tTopo->module(detid));
-	    }
-	}//end special stuff for tilted barrel
+	if (layer==1) {
+	  if (tobSide==1) {
+	    module = static_cast<int>(tTopo->tobRod(detid));
+	    ladder = static_cast<int>(tTopo->module(detid));
+	  }
+	  if (tobSide==2) {
+	    module = 19+static_cast<int>(tTopo->tobRod(detid));
+	    ladder = static_cast<int>(tTopo->module(detid));
+	  }
+	  if (tobSide==3) module = 12+static_cast<int>(tTopo->module(detid));
+	}
+	
+	if (layer==2) {
+	  if (tobSide==1) {
+	    module = static_cast<int>(tTopo->tobRod(detid));
+	    ladder = static_cast<int>(tTopo->module(detid));
+	  }
+	  if (tobSide==2) {
+	    module = 23+static_cast<int>(tTopo->tobRod(detid));
+	    ladder = static_cast<int>(tTopo->module(detid));
+	  }
+	  if (tobSide==3) module = 12+static_cast<int>(tTopo->module(detid));
+	}
+	
+	if (layer==3) {
+	  if (tobSide==1) {
+	    module = static_cast<int>(tTopo->tobRod(detid));
+	    ladder = static_cast<int>(tTopo->module(detid));
+	  }
+	  if (tobSide==2) {
+	    module = 27+static_cast<int>(tTopo->tobRod(detid));
+	    ladder = static_cast<int>(tTopo->module(detid));
+	  }
+	  if (tobSide==3) module = 12+static_cast<int>(tTopo->module(detid));
+	}
       }
       else if ( detid.subdetId()==StripSubdetector::TID ) {
 	layer  = 1000+static_cast<int>(tTopo->tidRing(detid));
 	ladder =  static_cast<int>(tTopo->module(detid));
 	module = static_cast<int>(tTopo->tidWheel(detid));
-	if (doMyDebug) cout << "disk = " << layer << " vs ring = " << static_cast<int>(tTopo->tidRing(detid)) << endl;
       }
 
-      if (doMyDebug) std::cout << "... stub with layer module ladder = " << layer << " " << ladder << " " << module << std::endl;
 
       // clusters
-      if (doMyDebug) std::cout << "... getting clusters for that stub" << std::endl;
       std::vector<bool> innerStack;
       std::vector<int> irphi;
       std::vector<int> iz;
@@ -873,7 +778,6 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
       if (posStub_outer.mag() < posStub_inner.mag()) isFlipped = 1;
 
       // -----------------------------------------------------
-
       // correct sign for stubs in negative endcap
       float stub_bend = tempStubPtr->bendFE();
       float stub_pt = -1;
@@ -885,37 +789,22 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
       	strip=irphi[0];
       }
 
-      // ------------------------------------------------------------------------------------------
-      // check killing stubs for stress test
-      
-      const TTStub<Ref_Phase2TrackerDigi_> *mystub = &(*tempStubPtr);
-      bool killthis = my_stubkiller->killStub(mystub);
-      //bool killthis = false;
-      
-      // ------------------------------------------------------------------------------------------
 
-
-      if (tempStubPtr->rawBend() > 100.) {
-	if (doMyDebug) std::cout << "... if FE inefficiencies calculated, this stub is thrown out! " << endl;
-      }
-      else if (killthis) {
-	if (doMyDebug) std::cout << "killing this stub!" << std::endl;
-      }
-      else {
-	if (doMyDebug) std::cout << "... add this stub to the event!" << std::endl;
+      if (tempStubPtr->rawBend() < 100.) {
 	if (ev.addStub(layer,ladder,module,strip,eventID,assocTPs,stub_pt,stub_bend,
 		       posStub.x(),posStub.y(),posStub.z(),
 		       innerStack,irphi,iz,iladder,imodule,isPSmodule,isFlipped)) {
-
+	  
 	  L1TStub lastStub=ev.lastStub();
 	  stubMap[lastStub]=tempStubPtr;
 	}
       }
-
+      else {
+	//if module FE inefficiencies are calculated, this stub was thrown out
+      }
+      
     }
   }
-
-  if (doMyDebug) std::cout << "Will actually do L1 tracking:"<<std::endl;
 
 
   //////////////////////////
@@ -998,15 +887,6 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     vector<L1TStub*> stubptrs = track->stubs();
     vector<L1TStub> stubs;
 
-    if (doMyDebug) {
-      cout << "FPGA Track pt, eta, phi, z0, chi2, nstub, rinv = "
-	   << track->pt() << " " << track->eta() << " " << track->phi0() << " " << track->z0() << " "
-	   << track->chisq() << " " << stubptrs.size() << " " << track->rinv() << endl;
-      cout << "INT FPGA Track irinv, iphi0, iz0, it, ichisq = "
-	   << track->irinv() << " " << track->iphi0() << " " << track->iz0() << " " << track->it()
-	   << " " << track->ichisq() << endl;
-    }
-
     for (unsigned int i=0;i<stubptrs.size();i++){
       stubs.push_back(*(stubptrs[i]));
     }
@@ -1019,13 +899,14 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 	aTrack.addStubRef(it->second);
       }
       else{
+	/*
 	cout << "Could not find stub in stub map"<<endl;
 	cout << "stub:"<<itstubs->layer()<<" "
 	     <<itstubs->ladder()<<" "
 	     <<itstubs->module()<<" "
 	     <<itstubs->iz()<<" "
 	     <<itstubs->iphi()<<endl;
-
+	*/
       }
     }
 
@@ -1033,7 +914,6 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     // pt consistency
     float ptconsistency = StubPtConsistency::getConsistency(aTrack, theTrackerGeom, tTopo,  mMagneticFieldStrength, nHelixPar_);
     aTrack.setStubPtConsistency(ptconsistency);
-
 
     // set TTTrack word
     aTrack.setTrackWordBits();
