@@ -1,24 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-TTTracksFromTracklet = cms.EDProducer("L1TrackProducer",
-                                      SimTrackSource = cms.InputTag("g4SimHits"),
-                                      SimVertexSource = cms.InputTag("g4SimHits"),
-                                      TTStubSource = cms.InputTag("TTStubsFromPhase2TrackerDigis","StubAccepted"),
-                                      readMoreMcTruth = cms.bool(True),
-                                      MCTruthClusterInputTag = cms.InputTag("TTClusterAssociatorFromPixelDigis", "ClusterAccepted"),
-                                      MCTruthStubInputTag = cms.InputTag("TTStubAssociatorFromPixelDigis", "StubAccepted"),
-                                      TrackingParticleInputTag = cms.InputTag("mix", "MergedTrackTruth"),
-                                      TrackingVertexInputTag = cms.InputTag("mix", "MergedTrackTruth"),
-                                      BeamSpotSource = cms.InputTag("offlineBeamSpot"),
-                                      asciiFileName = cms.untracked.string(""),
-                                      failscenario = cms.untracked.int32(0),
-                                      trackerGeometryType  = cms.untracked.string("")  #tilted barrel is assumed, use "flat" if running on flat
-    )
-
 TTTracksFromTrackletEmulation = cms.EDProducer("L1FPGATrackProducer",
-                                               # general L1 tracking inputs
-                                               SimTrackSource = cms.InputTag("g4SimHits"),
-                                               SimVertexSource = cms.InputTag("g4SimHits"),
                                                TTStubSource = cms.InputTag("TTStubsFromPhase2TrackerDigis","StubAccepted"),
                                                readMoreMcTruth = cms.bool(True),
                                                MCTruthClusterInputTag = cms.InputTag("TTClusterAssociatorFromPixelDigis", "ClusterAccepted"),
@@ -27,9 +9,6 @@ TTTracksFromTrackletEmulation = cms.EDProducer("L1FPGATrackProducer",
                                                TrackingVertexInputTag = cms.InputTag("mix", "MergedTrackTruth"),
                                                BeamSpotSource = cms.InputTag("offlineBeamSpot"),
                                                asciiFileName = cms.untracked.string(""),
-                                               failscenario = cms.untracked.int32(0),
-                                               trackerGeometryType  = cms.untracked.string(""),  #tilted barrel is assumed, use "flat" if running on flat
-                                               # specific emulation inputs 
                                                # (if running on CRAB use "../../fitpattern.txt" etc instead)
                                                Extended=cms.untracked.bool(False),
                                                Hnpar=cms.untracked.uint32(4),
@@ -43,9 +22,6 @@ TTTracksFromTrackletEmulation = cms.EDProducer("L1FPGATrackProducer",
     )
 
 TTTracksFromExtendedTrackletEmulation = cms.EDProducer("L1FPGATrackProducer",
-                                               # general L1 tracking inputs
-                                               SimTrackSource = cms.InputTag("g4SimHits"),
-                                               SimVertexSource = cms.InputTag("g4SimHits"),
                                                TTStubSource = cms.InputTag("TTStubsFromPhase2TrackerDigis","StubAccepted"),
                                                readMoreMcTruth = cms.bool(True),
                                                MCTruthClusterInputTag = cms.InputTag("TTClusterAssociatorFromPixelDigis", "ClusterAccepted"),
@@ -54,9 +30,6 @@ TTTracksFromExtendedTrackletEmulation = cms.EDProducer("L1FPGATrackProducer",
                                                TrackingVertexInputTag = cms.InputTag("mix", "MergedTrackTruth"),
                                                BeamSpotSource = cms.InputTag("offlineBeamSpot"),
                                                asciiFileName = cms.untracked.string(""),
-                                               failscenario = cms.untracked.int32(0),
-                                               trackerGeometryType  = cms.untracked.string(""),  #tilted barrel is assumed, use "flat" if running on flat
-                                               # specific emulation inputs 
                                                # (if running on CRAB use "../../fitpattern.txt" etc instead)
                                                Extended=cms.untracked.bool(True),
                                                Hnpar=cms.untracked.uint32(5),
