@@ -47,16 +47,6 @@ public:
       disk_ = 4;
     if (subname == "D5")
       disk_ = 5;
-    //if (subname=="F1") disk_=1;
-    //if (subname=="F2") disk_=2;
-    //if (subname=="F3") disk_=3;
-    //if (subname=="F4") disk_=4;
-    //if (subname=="F5") disk_=5;
-    //if (subname=="B1") disk_=-1;
-    //if (subname=="B2") disk_=-2;
-    //if (subname=="B3") disk_=-3;
-    //if (subname=="B4") disk_=-4;
-    //if (subname=="B5") disk_=-5;
 
     subname = name.substr(11, 2);
     if (subname[0] == '_')
@@ -79,12 +69,6 @@ public:
     }
     assert((layer_ != 0) || (disk_ != 0));
   }
-
-  //void addTracklet(Tracklet* tracklet) {
-  // string tt = tracklet->isBarrel()?" (barrel) ":tracklet->isDisk()?" (disk) ":" (overlap) ";
-  // cout<< " why are we adding a tracklet here?? "<< name_<<tt<<tracklet->addressstr()<<"\n";
-  //  tracklets_.push_back(tracklet);
-  //}
 
   void addProj(Tracklet* tracklet) {
     if (layer_ != 0 && disk_ == 0)

@@ -697,16 +697,12 @@ public:
     unsigned int countall = 0;
     unsigned int countsel = 0;
 
-    //cout << "TrackletCalculatorDisplaced execute "<<getName()<<" "<<stubtriplets_.size()<<endl;
-
     for (unsigned int l = 0; l < stubtriplets_.size(); l++) {
       if (trackletpars_->nTracklets() >= maxtracklet_) {
         cout << "Will break on too many tracklets in " << getName() << endl;
         break;
       }
       for (unsigned int i = 0; i < stubtriplets_[l]->nStubTriplets(); i++) {
-        //if(stubtriplets_.size()>0)
-        //  cout << "TrackletCalculatorDisplaced execute "<<getName()<<" "<<stubtriplets_[l]->getName()<<" "<<stubtriplets_[l]->nStubTriplets()<<" "<<layer_<<endl;
 
         countall++;
 
@@ -984,10 +980,6 @@ public:
 
     assert(outerFPGAStub->isBarrel());
 
-    //assert(layer_==innerFPGAStub->layer().value()+1);
-
-    //assert(layer_==1||layer_==3||layer_==5);
-
     double r1 = innerStub->r();
     double z1 = innerStub->z();
     double phi1 = innerStub->phi();
@@ -1055,7 +1047,7 @@ public:
 
     phi0 -= 0.171;
 
-    //store the approcximate results
+    //store the approximate results
     rinvapprox = rinv;
     phi0approx = phi0;
     d0approx = d0;

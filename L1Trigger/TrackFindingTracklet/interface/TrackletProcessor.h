@@ -515,8 +515,6 @@ public:
 
             int rbinfirst = newbin & 7;
 
-            //cout << "rbinfirst+rdiffmax next "<<rdiffmax<<" "<<rbinfirst+rdiffmax<<" "<<(bin&1)<<endl;
-
             int start = (bin >> 1);
             if (negdisk)
               start += 4;
@@ -571,7 +569,6 @@ public:
                     cout << "Stub pair rejected because of stub pt cut bends : "
                          << Stub::benddecode(innervmstub.bend().value(), innervmstub.isPSmodule()) << " "
                          << Stub::benddecode(outervmstub.bend().value(), outervmstub.isPSmodule())
-                         //<<" FP bend: "<<innerstub.second->bend()<<" "<<outerstub.second->bend()
                          << " pass : " << pttableinner_[phiindex][ptinnerindex] << " "
                          << pttableouter_[phiindex][ptouterindex] << endl;
                   }
@@ -635,12 +632,10 @@ public:
       } else {
         if (outerFPGAStub->isDisk()) {
           //disk+disk seeding
-
           accept = diskSeeding(innerFPGAStub, innerStub, outerFPGAStub, outerStub);
 
         } else if (innerFPGAStub->isDisk()) {
           //layer+disk seeding
-
           accept = overlapSeeding(innerFPGAStub, innerStub, outerFPGAStub, outerStub);
 
         } else {
@@ -683,7 +678,6 @@ public:
   }
 
   void setVMPhiBin() {
-    //cout << "setVMPhiBin"<<innervmstubs_.size()<<" "<<outervmstubs_.size()<<endl;
 
     if (innervmstubs_.size() != outervmstubs_.size())
       return;
@@ -766,7 +760,6 @@ public:
               }
             }
 
-            //cout << "Fill: "<<getName()<<" "<<phiindex<<endl;
             phitable_[phiindex].push_back(rinvmin < rinvcutte);
 
             int nbins1 = 8;
@@ -870,10 +863,6 @@ public:
                   }
                 }
               }
-
-              //if (disk1_==1 && rinvmax>0.013 && rinvmin<0.0057){
-              //  cout << "router rinvmax rinvmin :"<<router[0]<<" "<<rinvmax<<" "<<rinvmin<<endl;
-              //}
 
               phitable_[phiindex].push_back(rinvmin < rinvcutte);
 

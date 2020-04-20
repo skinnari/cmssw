@@ -33,7 +33,6 @@ public:
     r2_ = 0;
     if (name[3] == 'L') {
       layer1_ = name[4] - '0';
-      //z1_=name[12]-'0';
     }
     if (name[3] == 'D') {
       disk1_ = name[4] - '0';
@@ -168,7 +167,6 @@ public:
             }
 
             int ir = ((start & 3) << 3) + rbinfirst;
-            //cout << "start rbinfirst ir : "<<start<<" "<<rbinfirst<<" "<<ir<<" "<<innerstub.second->z()/innerstub.second->r()<<endl;
 
             assert(innerphibits_ != -1);
             assert(outerphibits_ != -1);
@@ -234,10 +232,6 @@ public:
           int start = (bin >> 1);
           int last = start + (bin & 1);
 
-          //if (print) {
-          //  cout << "start last : "<<start<<" "<<last<<endl;
-          //}
-
           if (debug1) {
             cout << "Will look in zbins " << start << " to " << last << endl;
           }
@@ -268,14 +262,6 @@ public:
                 }
                 continue;
               }
-
-              //	      if (print) {
-              //cout << "ibin j "<<ibin<<" "<<j<<endl;
-              //}
-
-              //For debugging
-              //double trinv=rinv(innerstub.second->phi(), outerstub.second->phi(),
-              //		       innerstub.second->r(), outerstub.second->r());
 
               assert(innerphibits_ != -1);
               assert(outerphibits_ != -1);
@@ -312,11 +298,6 @@ public:
                 cout << "pt index: " << ptinnerindex << " " << ptouterindex << endl;
               }
 
-              //cout <<"bendinner "<<bend(rmean[layer1_-1],trinv)<<" "<<0.5*(innerbend.value()-15.0)
-              //	   <<" "<<pttableinner_[ptinnerindex]
-              //   <<"     bendouter "<<bend(rmean[layer1_],trinv)<<" "<<0.5*(outerbend.value()-15.0)
-              //   <<" "<<pttableouter_[ptouterindex]<<endl;
-
               if (!(pttableinner_[ptinnerindex] && pttableouter_[ptouterindex])) {
                 if (debug1) {
                   cout << "Stub pair rejected because of stub pt cut bends : "
@@ -349,8 +330,6 @@ public:
           int bin = newbin / 8;
 
           int rbinfirst = newbin & 7;
-
-          //cout << "rbinfirst+rdiffmax next "<<rdiffmax<<" "<<rbinfirst+rdiffmax<<" "<<(bin&1)<<endl;
 
           int start = (bin >> 1);
           if (negdisk)
@@ -405,7 +384,6 @@ public:
                   cout << "Stub pair rejected because of stub pt cut bends : "
                        << Stub::benddecode(innervmstub.bend().value(), innervmstub.isPSmodule()) << " "
                        << Stub::benddecode(outervmstub.bend().value(), outervmstub.isPSmodule())
-                       // <<" FP bend: "<<innerstub.second->bend()<<" "<<outerstub.second->bend()
                        << " pass : " << pttableinner_[ptinnerindex] << " " << pttableouter_[ptouterindex] << endl;
                 }
                 continue;
@@ -625,9 +603,6 @@ public:
               }
             }
 
-            //if (disk1_==1 && rinvmax>0.013 && rinvmin<0.0057){
-            //  cout << "router rinvmax rinvmin :"<<router[0]<<" "<<rinvmax<<" "<<rinvmin<<endl;
-            //}
 
             phitable_.push_back(rinvmin < rinvcutte);
 
