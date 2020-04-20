@@ -860,14 +860,12 @@ public:
     if (fpgaz.atExtreme())
       return false;
 
-    if (fabs(fpgaz.value() * kz) > zlength)
+    if (std::abs(fpgaz.value() * kz) > zlength)
       return false;
 
     int iphivmRaw = fpgaphi.value() >> (fpgaphi.nbits() - 5);
 
     int iphi = iphivmRaw / (32 / nallstubslayers[layer - 1]);
-
-    //cout << "layer fpgaphi iphivmRaw iphi : "<<layer<<" "<<fpgaphi.value()<<" "<<iphivmRaw<<" "<<iphi<<endl;
 
     if (layer == 1) {
       if (iphi == 0)
@@ -1100,17 +1098,17 @@ public:
     iz0 = z0approx / kz0;
 
     bool success = true;
-    if (fabs(rinvapprox) > rinvcut) {
+    if (std::abs(rinvapprox) > rinvcut) {
       if (debug1)
         cout << "TrackletCalculator::LLL Seeding irinv too large: " << rinvapprox << "(" << irinv << ")\n";
       success = false;
     }
-    if (fabs(z0approx) > 1.8 * z0cut) {
+    if (std::abs(z0approx) > 1.8 * z0cut) {
       if (debug1)
         cout << "Failed tracklet z0 cut " << z0approx << " in layer " << layer_ << endl;
       success = false;
     }
-    if (fabs(d0approx) > maxd0) {
+    if (std::abs(d0approx) > maxd0) {
       if (debug1)
         cout << "Failed tracklet d0 cut " << d0approx << endl;
       success = false;
@@ -1197,7 +1195,7 @@ public:
                          zderapprox[i]);
     }
 
-    if (fabs(it * kt) > 1.0) {
+    if (std::abs(it * kt) > 1.0) {
       for (unsigned int i = 0; i < toZ_.size(); ++i) {
         iphiprojdisk[i] = phiprojdiskapprox[i] / kphiprojdisk;
         irprojdisk[i] = rprojdiskapprox[i] / krprojdisk;
@@ -1431,17 +1429,17 @@ public:
     iz0 = z0approx / kz0;
 
     bool success = true;
-    if (fabs(rinvapprox) > rinvcut) {
+    if (std::abs(rinvapprox) > rinvcut) {
       if (debug1)
         cout << "TrackletCalculator::DDL Seeding irinv too large: " << rinvapprox << "(" << irinv << ")\n";
       success = false;
     }
-    if (fabs(z0approx) > 1.8 * z0cut) {
+    if (std::abs(z0approx) > 1.8 * z0cut) {
       if (debug1)
         cout << "Failed tracklet z0 cut " << z0approx << endl;
       success = false;
     }
-    if (fabs(d0approx) > maxd0) {
+    if (std::abs(d0approx) > maxd0) {
       if (debug1)
         cout << "Failed tracklet d0 cut " << d0approx << endl;
       success = false;
@@ -1523,7 +1521,7 @@ public:
                          zderapprox[i]);
     }
 
-    if (fabs(it * kt) > 1.0) {
+    if (std::abs(it * kt) > 1.0) {
       for (unsigned int i = 0; i < toZ_.size(); ++i) {
         iphiprojdisk[i] = phiprojdiskapprox[i] / kphiprojdisk;
         irprojdisk[i] = rprojdiskapprox[i] / krprojdisk;
@@ -1746,17 +1744,17 @@ public:
     iz0 = z0approx / kz0;
 
     bool success = true;
-    if (fabs(rinvapprox) > rinvcut) {
+    if (std::abs(rinvapprox) > rinvcut) {
       if (debug1)
         cout << "TrackletCalculator:: LLD Seeding irinv too large: " << rinvapprox << "(" << irinv << ")\n";
       success = false;
     }
-    if (fabs(z0approx) > 1.8 * z0cut) {
+    if (std::abs(z0approx) > 1.8 * z0cut) {
       if (debug1)
         cout << "Failed tracklet z0 cut " << z0approx << endl;
       success = false;
     }
-    if (fabs(d0approx) > maxd0) {
+    if (std::abs(d0approx) > maxd0) {
       if (debug1)
         cout << "Failed tracklet d0 cut " << d0approx << endl;
       success = false;
@@ -1837,7 +1835,7 @@ public:
                          zderapprox[i]);
     }
 
-    if (fabs(it * kt) > 1.0) {
+    if (std::abs(it * kt) > 1.0) {
       for (unsigned int i = 0; i < toZ_.size(); ++i) {
         iphiprojdisk[i] = phiprojdiskapprox[i] / kphiprojdisk;
         irprojdisk[i] = rprojdiskapprox[i] / krprojdisk;
@@ -1961,7 +1959,7 @@ public:
       r0 = -r0;
     phiproj = phi0 - asin((rproj * rproj + r0 * r0 - rho * rho) / (2 * rproj * r0));
     double beta = acos((rho * rho + r0 * r0 - rproj * rproj) / (2 * r0 * rho));
-    zproj = z0 + t * fabs(rho * beta);
+    zproj = z0 + t * std::abs(rho * beta);
 
     //not exact, but close
     phider = -0.5 * rinv / sqrt(1 - pow(0.5 * rproj * rinv, 2)) - d0 / (rproj * rproj);
@@ -1985,7 +1983,7 @@ public:
                      double& rder) {
     if (t < 0)
       zproj = -zproj;
-    double rho = fabs(1 / rinv);
+    double rho = std::abs(1 / rinv);
     double beta = (zproj - z0) / (t * rho);
     double phiV = atan2(-y0, -x0);
     double c = rinv > 0 ? -1 : 1;
@@ -2052,8 +2050,8 @@ public:
     double R2 = sqrt(pow(x2 - x0, 2) + pow(y2 - y0, 2));
     double R3 = sqrt(pow(x3 - x0, 2) + pow(y3 - y0, 2));
     //check if the same
-    double eps1 = fabs(R1 / R2 - 1);
-    double eps2 = fabs(R3 / R2 - 1);
+    double eps1 = std::abs(R1 / R2 - 1);
+    double eps2 = std::abs(R3 / R2 - 1);
     if (eps1 > 1e-10 || eps2 > 1e-10)
       cout << "&&&&&&&&&&&& bad circle! " << R1 << "\t" << R2 << "\t" << R3 << "\n";
 
@@ -2098,14 +2096,11 @@ public:
     if (beta3 < -3.1415927)
       beta3 += 6.283185;
 
-    double t12 = (z2 - z1) / fabs(beta2 - beta1) / R1;
+    double t12 = (z2 - z1) / std::abs(beta2 - beta1) / R1;
     double z12 = (z1 * beta2 - z2 * beta1) / (beta2 - beta1);
-    double t13 = (z3 - z1) / fabs(beta3 - beta1) / R1;
+    double t13 = (z3 - z1) / std::abs(beta3 - beta1) / R1;
     double z13 = (z1 * beta3 - z3 * beta1) / (beta3 - beta1);
 
-    // cout<<"::::: "<<sigmaz<<" "<<beta1<<"\t"<<beta2<<"\t"<<beta3<<"\n";
-    // cout<<"::::: "<<t12<<"\t"<<t13<<"\n";
-    // cout<<"::::: "<<z12<<"\t"<<z13<<"\n";
 
     if (take3 > 0) {
       //take 13 (large lever arm)

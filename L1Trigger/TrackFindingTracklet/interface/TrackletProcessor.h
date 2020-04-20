@@ -193,7 +193,7 @@ public:
     if (usephicritapprox) {
       double phicritFactor =
           0.5 * rcrit * TrackletProcessor::ITC_L1L2.rinv_final.get_K() / TrackletProcessor::ITC_L1L2.phi0_final.get_K();
-      if (fabs(phicritFactor - 2.) > 0.25)
+      if (std::abs(phicritFactor - 2.) > 0.25)
         cout << "TrackletProcessor::TrackletProcessor phicrit approximation may be invalid! Please check." << endl;
     }
   }
@@ -760,8 +760,8 @@ public:
                   bendoutermin = abendouter;
                 if (abendouter > bendoutermax)
                   bendoutermax = abendouter;
-                if (fabs(rinv1) < rinvmin) {
-                  rinvmin = fabs(rinv1);
+                if (std::abs(rinv1) < rinvmin) {
+                  rinvmin = std::abs(rinv1);
                 }
               }
             }
@@ -861,11 +861,11 @@ public:
                       bendoutermin = abendouter;
                     if (abendouter > bendoutermax)
                       bendoutermax = abendouter;
-                    if (fabs(rinv1) < rinvmin) {
-                      rinvmin = fabs(rinv1);
+                    if (std::abs(rinv1) < rinvmin) {
+                      rinvmin = std::abs(rinv1);
                     }
-                    if (fabs(rinv1) > rinvmax) {
-                      rinvmax = fabs(rinv1);
+                    if (std::abs(rinv1) > rinvmax) {
+                      rinvmax = std::abs(rinv1);
                     }
                   }
                 }
@@ -961,8 +961,8 @@ public:
                       bendoutermin = abendouter;
                     if (abendouter > bendoutermax)
                       bendoutermax = abendouter;
-                    if (fabs(rinv1) < rinvmin) {
-                      rinvmin = fabs(rinv1);
+                    if (std::abs(rinv1) < rinvmin) {
+                      rinvmin = std::abs(rinv1);
                     }
                   }
                 }

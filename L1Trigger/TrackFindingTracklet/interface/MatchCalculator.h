@@ -531,7 +531,7 @@ public:
 
         if (useapprox) {
           double dphi = Util::phiRange(phi - fpgastub->phiapprox(phimin_, phimax_));
-          assert(fabs(dphi) < 0.001);
+          assert(std::abs(dphi) < 0.001);
           phi = fpgastub->phiapprox(phimin_, phimax_);
           z = fpgastub->zapprox();
           r = fpgastub->rapprox();
@@ -542,7 +542,7 @@ public:
         phi -= phioffset_;
 
         double dr = r - tracklet->rproj(layer_);
-        assert(fabs(dr) < drmax);
+        assert(std::abs(dr) < drmax);
 
         double dphi = Util::phiRange(phi - (tracklet->phiproj(layer_) + dr * tracklet->phiprojder(layer_)));
 
@@ -572,20 +572,20 @@ public:
         if (writeResiduals) {
           static ofstream out("layerresiduals.txt");
 
-          double pt = 0.003 * 3.8 / fabs(tracklet->rinv());
+          double pt = 0.003 * 3.8 / std::abs(tracklet->rinv());
 
           out << layer_ << " " << seedindex << " " << pt << " " << ideltaphi * kphi1 * rmean[layer_ - 1] << " "
               << dphiapprox * rmean[layer_ - 1] << " " << phimatchcut_[seedindex] * kphi1 * rmean[layer_ - 1] << "   "
               << ideltaz * fact_ * kz << " " << dz << " " << zmatchcut_[seedindex] * kz << endl;
         }
 
-        //cout << "Layer "<<layer_<<" phimatch "<<(fabs(ideltaphi)<=phimatchcut_[seedindex])<<" "<<dphi*rmean[layer_-1]*10
-        //     <<"mm zmatch "<<(fabs(ideltaz*fact_)<=zmatchcut_[seedindex])<<endl;
+        //cout << "Layer "<<layer_<<" phimatch "<<(std::abs(ideltaphi)<=phimatchcut_[seedindex])<<" "<<dphi*rmean[layer_-1]*10
+        //     <<"mm zmatch "<<(std::abs(ideltaz*fact_)<=zmatchcut_[seedindex])<<endl;
 
-        bool imatch = (fabs(ideltaphi) <= phimatchcut_[seedindex]) && (fabs(ideltaz * fact_) <= zmatchcut_[seedindex]);
+        bool imatch = (std::abs(ideltaphi) <= phimatchcut_[seedindex]) && (std::abs(ideltaz * fact_) <= zmatchcut_[seedindex]);
 
         //if (!imatch) {
-        //  cout << "Match fail in layer "<<layer_<<" dphi dz : "<< (fabs(ideltaphi)<=phimatchcut_[seedindex])<<" "<<(fabs(ideltaz*fact_)<=zmatchcut_[seedindex])<<" "<<(fabs(ideltaphi)/(phimatchcut_[seedindex]))<<" "<<fabs(ideltaz*fact_)/(zmatchcut_[seedindex])<<endl;
+        //  cout << "Match fail in layer "<<layer_<<" dphi dz : "<< (std::abs(ideltaphi)<=phimatchcut_[seedindex])<<" "<<(std::abs(ideltaz*fact_)<=zmatchcut_[seedindex])<<" "<<(std::abs(ideltaphi)/(phimatchcut_[seedindex]))<<" "<<std::abs(ideltaz*fact_)/(zmatchcut_[seedindex])<<endl;
         //}
 
         if (debug1) {
@@ -594,12 +594,12 @@ public:
                << endl;
         }
 
-        if (fabs(dphi) > 0.2 || fabs(dphiapprox) > 0.2) {
+        if (std::abs(dphi) > 0.2 || std::abs(dphiapprox) > 0.2) {
           cout << "WARNING dphi and/or dphiapprox too large : " << dphi << " " << dphiapprox << endl;
         }
 
-        assert(fabs(dphi) < 0.2);
-        assert(fabs(dphiapprox) < 0.2);
+        assert(std::abs(dphi) < 0.2);
+        assert(std::abs(dphiapprox) < 0.2);
 
         if (imatch) {
           std::pair<Stub*, L1TStub*> tmp(fpgastub, stub);
@@ -736,7 +736,7 @@ public:
 
         if (useapprox) {
           double dphi = Util::phiRange(phi - fpgastub->phiapprox(phimin_, phimax_));
-          assert(fabs(dphi) < 0.001);
+          assert(std::abs(dphi) < 0.001);
           phi = fpgastub->phiapprox(phimin_, phimax_);
           z = fpgastub->zapprox();
           r = fpgastub->rapprox();
@@ -748,10 +748,10 @@ public:
 
         double dz = z - sign * zmean[disk_ - 1];
 
-        if (fabs(dz) > dzmax) {
+        if (std::abs(dz) > dzmax) {
           cout << __FILE__ << ":" << __LINE__ << " " << name_ << "_" << iSector_ << " " << tracklet->getISeed() << endl;
           cout << "stub " << stub->z() << " disk " << disk << " " << dz << endl;
-          assert(fabs(dz) < dzmax);
+          assert(std::abs(dz) < dzmax);
         }
 
         double phiproj = tracklet->phiprojdisk(disk) + dz * tracklet->phiprojderdisk(disk);
@@ -797,20 +797,20 @@ public:
         if (writeResiduals) {
           static ofstream out("diskresiduals.txt");
 
-          double pt = 0.003 * 3.8 / fabs(tracklet->rinv());
+          double pt = 0.003 * 3.8 / std::abs(tracklet->rinv());
 
           out << disk_ << " " << stub->isPSmodule() << " " << tracklet->layer() << " " << abs(tracklet->disk()) << " "
               << pt << " " << ideltaphi * kphiproj123 * stub->r() << " " << drphiapprox << " " << drphicut << " "
               << ideltar * krprojshiftdisk << " " << deltar << " " << drcut << " " << endl;
         }
 
-        bool match = (fabs(drphi) < drphicut) && (fabs(deltar) < drcut);
+        bool match = (std::abs(drphi) < drphicut) && (std::abs(deltar) < drcut);
 
-        bool imatch = (fabs(ideltaphi * irstub) < idrphicut) && (fabs(ideltar) < idrcut);
+        bool imatch = (std::abs(ideltaphi * irstub) < idrphicut) && (std::abs(ideltar) < idrcut);
 
         if (debug1) {
-          cout << "imatch match disk: " << imatch << " " << match << " " << fabs(ideltaphi) << " "
-               << drphicut / (kphiproj123 * stub->r()) << " " << fabs(ideltar) << " " << drcut / krprojshiftdisk
+          cout << "imatch match disk: " << imatch << " " << match << " " << std::abs(ideltaphi) << " "
+               << drphicut / (kphiproj123 * stub->r()) << " " << std::abs(ideltar) << " " << drcut / krprojshiftdisk
                << " r = " << stub->r() << endl;
         }
 
@@ -823,12 +823,12 @@ public:
             cout << "MatchCalculator found match in disk " << getName() << endl;
           }
 
-          if (fabs(dphi) >= 0.25) {
+          if (std::abs(dphi) >= 0.25) {
             cout << "dphi " << dphi << "\n";
             cout << "Seed / ISeed " << tracklet->getISeed() << "\n";
           }
-          assert(fabs(dphi) < 0.25);
-          assert(fabs(dphiapprox) < 0.25);
+          assert(std::abs(dphi) < 0.25);
+          assert(std::abs(dphiapprox) < 0.25);
 
           tracklet->addMatchDisk(disk,
                                  ideltaphi,

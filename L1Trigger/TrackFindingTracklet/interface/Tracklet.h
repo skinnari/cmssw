@@ -1271,7 +1271,7 @@ public:
     double deta = simtrk.eta() - asinh(itfit().value() * ktpars);
     double dphi = Util::phiRange(simtrk.phi() - (iphi0fit().value() * kphi0pars + phioffset));
 
-    bool found = (fabs(deta) < 0.06) && (fabs(dphi) < 0.01);
+    bool found = (std::abs(deta) < 0.06) && (std::abs(dphi) < 0.01);
 
     return found;
   }

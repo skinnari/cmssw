@@ -358,17 +358,17 @@ public:
         der.sett(t);
 
         //integer
-        assert(fabs(iMinvDt[0][2 * j]) < (1 << 23));
-        assert(fabs(iMinvDt[0][2 * j + 1]) < (1 << 23));
-        assert(fabs(iMinvDt[1][2 * j]) < (1 << 23));
-        assert(fabs(iMinvDt[1][2 * j + 1]) < (1 << 23));
-        assert(fabs(iMinvDt[2][2 * j]) < (1 << 19));
-        assert(fabs(iMinvDt[2][2 * j + 1]) < (1 << 19));
-        assert(fabs(iMinvDt[3][2 * j]) < (1 << 19));
-        assert(fabs(iMinvDt[3][2 * j + 1]) < (1 << 19));
+        assert(std::abs(iMinvDt[0][2 * j]) < (1 << 23));
+        assert(std::abs(iMinvDt[0][2 * j + 1]) < (1 << 23));
+        assert(std::abs(iMinvDt[1][2 * j]) < (1 << 23));
+        assert(std::abs(iMinvDt[1][2 * j + 1]) < (1 << 23));
+        assert(std::abs(iMinvDt[2][2 * j]) < (1 << 19));
+        assert(std::abs(iMinvDt[2][2 * j + 1]) < (1 << 19));
+        assert(std::abs(iMinvDt[3][2 * j]) < (1 << 19));
+        assert(std::abs(iMinvDt[3][2 * j + 1]) < (1 << 19));
 
         if (print) {
-          cout << "PRINT i " << i << " " << j << " " << iMinvDt[1][2 * j] << " " << fabs(iMinvDt[1][2 * j]) << endl;
+          cout << "PRINT i " << i << " " << j << " " << iMinvDt[1][2 * j] << " " << std::abs(iMinvDt[1][2 * j]) << endl;
         }
 
         der.setirinvdphi(j, iMinvDt[0][2 * j]);
@@ -1018,10 +1018,10 @@ public:
     double sigmaz2 = 5.0 / sqrt(12.0);
 
     double sigmazpsbarrel = sigmaz;  //This is a bit of a hack - these weights should be properly determined
-    if (fabs(t) > 2.0)
-      sigmazpsbarrel = sigmaz * fabs(t) / 2.0;
-    if (fabs(t) > 3.8)
-      sigmazpsbarrel = sigmaz * fabs(t);
+    if (std::abs(t) > 2.0)
+      sigmazpsbarrel = sigmaz * std::abs(t) / 2.0;
+    if (std::abs(t) > 3.8)
+      sigmazpsbarrel = sigmaz * std::abs(t);
 
     double sigmax2sdisk = 0.009 / sqrt(12.0);
     double sigmaz2sdisk = 5.0 / sqrt(12.0);
@@ -1094,7 +1094,7 @@ public:
       rnew[i + nlayers] = r;
 
       sigma[j] = sigmax2sdisk;
-      if (fabs(alpha[i]) < 1e-10) {
+      if (std::abs(alpha[i]) < 1e-10) {
         sigma[j] = sigmaxpsdisk;
       }
 
@@ -1106,7 +1106,7 @@ public:
 
       j++;
 
-      if (fabs(alpha[i]) < 1e-10) {
+      if (std::abs(alpha[i]) < 1e-10) {
         D[0][j] = drdrinv / sigmazpsdisk;
         D[1][j] = drdphi0 / sigmazpsdisk;
         D[2][j] = drdt / sigmazpsdisk;
@@ -1203,7 +1203,7 @@ public:
 
       //Secondly the disks
       else {
-        if (fabs(alpha[i - nlayers]) < 1e-10) {
+        if (std::abs(alpha[i - nlayers]) < 1e-10) {
           MinvDt[0][2 * i] *= (rnew[i] / sigmaxpsdisk);
           MinvDt[1][2 * i] *= (rnew[i] / sigmaxpsdisk);
           MinvDt[2][2 * i] *= (rnew[i] / sigmaxpsdisk);
@@ -1227,7 +1227,7 @@ public:
         iMinvDt[2][2 * i] = (1 << fittbitshift) * MinvDt[2][2 * i] * kphiproj123 / ktpars;
         iMinvDt[3][2 * i] = (1 << fitz0bitshift) * MinvDt[3][2 * i] * kphiproj123 / kz;
 
-        if (fabs(alpha[i - nlayers]) < 1e-10) {
+        if (std::abs(alpha[i - nlayers]) < 1e-10) {
           MinvDt[0][2 * i + 1] /= sigmazpsdisk;
           MinvDt[1][2 * i + 1] /= sigmazpsdisk;
           MinvDt[2][2 * i + 1] /= sigmazpsdisk;
@@ -1280,13 +1280,13 @@ public:
       disk[i] = false;
     for (unsigned int i = 0; i < nlayers; i++) {
       for (unsigned int j = 0; j < 6; j++) {
-        if (fabs(r[i] - rmean[j]) < drmax)
+        if (std::abs(r[i] - rmean[j]) < drmax)
           layer[j] = true;
       }
     }
     for (unsigned int i = 0; i < ndisks; i++) {
       for (unsigned int j = 0; j < 5; j++) {
-        if (fabs(fabs(z[i]) - zmean[j]) < dzmax) {
+        if (std::abs(std::abs(z[i]) - zmean[j]) < dzmax) {
           disk[j] = true;
           cout << "z zmean ndisks" << z[i] << " " << zmean[j] << " " << ndisks << " " << nlayers << endl;
         }
@@ -1391,7 +1391,7 @@ public:
 
       j++;
 
-      if (fabs(alpha[i]) < 1e-10) {
+      if (std::abs(alpha[i]) < 1e-10) {
         D[0][j] = drdrinv;
         D[1][j] = drdphi0;
         D[2][j] = drdt;
@@ -1492,7 +1492,7 @@ public:
 
       //Secondly the disks
       else {
-        if (fabs(alpha[i - nlayers]) < 1e-10) {
+        if (std::abs(alpha[i - nlayers]) < 1e-10) {
           MinvDt[0][2 * i] *= (rnew[i]);
           MinvDt[1][2 * i] *= (rnew[i]);
           MinvDt[2][2 * i] *= (rnew[i]);
@@ -1517,7 +1517,7 @@ public:
         iMinvDt[3][2 * i] = (1 << fitz0bitshift) * MinvDt[3][2 * i] * kphiproj123 / kz;
 
         /*
-	if (fabs(alpha[i])<1e-10) {
+	if (std::abs(alpha[i])<1e-10) {
 	  MinvDt[0][2*i+1]/=sigmaz;
 	  MinvDt[1][2*i+1]/=sigmaz;
 	  MinvDt[2][2*i+1]/=sigmaz;

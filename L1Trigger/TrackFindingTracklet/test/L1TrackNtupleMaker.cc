@@ -794,7 +794,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
 
         if (myJet.pt() < 30.0)
           continue;
-        if (fabs(myJet.eta()) > 2.5)
+        if (std::abs(myJet.eta()) > 2.5)
           continue;
 
         if (DebugMode)
@@ -1039,7 +1039,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
           float deta = tmp_trk_eta - (v_jets.at(ij)).eta();
           float dphi = tmp_trk_phi - (v_jets.at(ij)).phi();
           while (dphi > 3.14159)
-            dphi = fabs(2 * 3.14159 - dphi);
+            dphi = std::abs(2 * 3.14159 - dphi);
           float dR = sqrt(deta * deta + dphi * dphi);
 
           if (dR < 0.4) {
@@ -1099,7 +1099,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
 
     if (tmp_tp_pt < TP_minPt)
       continue;
-    if (fabs(tmp_tp_eta) > TP_maxEta)
+    if (std::abs(tmp_tp_eta) > TP_maxEta)
       continue;
 
     // ----------------------------------------------------------------------------------------------
@@ -1133,7 +1133,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     float tmp_tp_z0 = tmp_tp_vz + tmp_tp_t * delphi / (2.0 * K);
     // ----------------------------------------------------------------------------------------------
 
-    if (fabs(tmp_tp_z0) > TP_maxZ0)
+    if (std::abs(tmp_tp_z0) > TP_maxZ0)
       continue;
 
     // for pions in ttbar, only consider TPs coming from near the IP!
@@ -1294,9 +1294,9 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
         int match_id = 999;
 
         edm::Ptr<TrackingParticle> my_tp = MCTruthTTTrackHandle->findTrackingParticlePtr(matchedTracks.at(it));
-        dmatch_pt = fabs(my_tp->p4().pt() - tmp_tp_pt);
-        dmatch_eta = fabs(my_tp->p4().eta() - tmp_tp_eta);
-        dmatch_phi = fabs(my_tp->p4().phi() - tmp_tp_phi);
+        dmatch_pt = std::abs(my_tp->p4().pt() - tmp_tp_pt);
+        dmatch_eta = std::abs(my_tp->p4().eta() - tmp_tp_eta);
+        dmatch_phi = std::abs(my_tp->p4().phi() - tmp_tp_phi);
         match_id = my_tp->pdgId();
 
         float tmp_trk_chi2dof = (matchedTracks.at(it)->chi2()) / (2 * tmp_trk_nstub - L1Tk_nPar);
@@ -1433,7 +1433,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
         float deta = tmp_tp_eta - (v_jets.at(ij)).eta();
         float dphi = tmp_tp_phi - (v_jets.at(ij)).phi();
         while (dphi > 3.14159)
-          dphi = fabs(2 * 3.14159 - dphi);
+          dphi = std::abs(2 * 3.14159 - dphi);
         float dR = sqrt(deta * deta + dphi * dphi);
         if (dR < 0.4) {
           tp_InJet = 1;
@@ -1449,7 +1449,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
           deta = tmp_matchtrk_eta - (v_jets.at(ij)).eta();
           dphi = tmp_matchtrk_phi - (v_jets.at(ij)).phi();
           while (dphi > 3.14159)
-            dphi = fabs(2 * 3.14159 - dphi);
+            dphi = std::abs(2 * 3.14159 - dphi);
           dR = sqrt(deta * deta + dphi * dphi);
           if (dR < 0.4) {
             matchtrk_InJet = 1;

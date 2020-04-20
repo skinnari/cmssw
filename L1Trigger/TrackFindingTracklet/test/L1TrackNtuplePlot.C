@@ -1074,7 +1074,7 @@ void L1TrackNtuplePlot(TString type,
           continue;
       }
 
-      if (fabs(trk_eta->at(it)) > TP_maxEta)
+      if (std::abs(trk_eta->at(it)) > TP_maxEta)
         continue;
       if (trk_pt->at(it) < TP_minPt)
         continue;
@@ -1142,7 +1142,7 @@ void L1TrackNtuplePlot(TString type,
 
       for (unsigned int layer = 0; layer < layers.size(); layer++) {
         if (layers.at(layer)) {                                     // if there was a hit at this layer...
-          h_trk_tracklet_hits->Fill(fabs(trk_eta->at(it)), layer);  // ...fill this bin with the layer of the track.
+          h_trk_tracklet_hits->Fill(std::abs(trk_eta->at(it)), layer);  // ...fill this bin with the layer of the track.
         }
       }
     }
@@ -1179,15 +1179,15 @@ void L1TrackNtuplePlot(TString type,
       }
 
       // kinematic cuts
-      if (fabs(tp_dxy->at(it)) > TP_maxDxy)
+      if (std::abs(tp_dxy->at(it)) > TP_maxDxy)
         continue;
-      if (fabs(tp_d0->at(it)) > TP_maxD0)
+      if (std::abs(tp_d0->at(it)) > TP_maxD0)
         continue;
       if (tp_pt->at(it) < 0.2)
         continue;
       if (tp_pt->at(it) > TP_maxPt)
         continue;
-      if (fabs(tp_eta->at(it)) > TP_maxEta)
+      if (std::abs(tp_eta->at(it)) > TP_maxEta)
         continue;
 
       // total track rates
@@ -1222,35 +1222,35 @@ void L1TrackNtuplePlot(TString type,
         h_tp_pt_L->Fill(tp_pt->at(it));
       else
         h_tp_pt_H->Fill(tp_pt->at(it));
-      if (tp_pt->at(it) < 8.0 && fabs(tp_eta->at(it)) < 1.0)
+      if (tp_pt->at(it) < 8.0 && std::abs(tp_eta->at(it)) < 1.0)
         h_tp_pt_LC->Fill(tp_pt->at(it));
 
       if (tp_pt->at(it) > TP_minPt) {
-        if (fabs(tp_eta->at(it)) < 1.0)
+        if (std::abs(tp_eta->at(it)) < 1.0)
           n_all_eta1p0++;
-        else if (fabs(tp_eta->at(it)) < 1.75)
+        else if (std::abs(tp_eta->at(it)) < 1.75)
           n_all_eta1p75++;
         else
           n_all_eta2p5++;
 
-        if (fabs(tp_pt->at(it)) > 2.0)
+        if (std::abs(tp_pt->at(it)) > 2.0)
           n_all_ptg2++;
-        if (fabs(tp_pt->at(it)) > 2.0 && fabs(tp_pt->at(it)) < 8.0)
+        if (std::abs(tp_pt->at(it)) > 2.0 && std::abs(tp_pt->at(it)) < 8.0)
           n_all_pt2to8++;
-        if (fabs(tp_pt->at(it)) > 8.0)
+        if (std::abs(tp_pt->at(it)) > 8.0)
           n_all_ptg8++;
-        if (fabs(tp_pt->at(it)) > 40.0)
+        if (std::abs(tp_pt->at(it)) > 40.0)
           n_all_ptg40++;
 
         h_tp_eta->Fill(tp_eta->at(it));
         h_tp_phi->Fill(tp_phi->at(it));
         h_tp_z0->Fill(tp_z0->at(it));
         h_tp_d0->Fill(tp_d0->at(it));
-        h_tp_absd0->Fill(fabs(tp_d0->at(it)));
-        if (fabs(tp_eta->at(it)) < 2.0)
-          h_tp_absd0_eta2->Fill(fabs(tp_d0->at(it)));
-        if (fabs(tp_eta->at(it)) < 2.0 && tp_pt->at(it) > 3.0)
-          h_tp_absd0_eta2_pt3->Fill(fabs(tp_d0->at(it)));
+        h_tp_absd0->Fill(std::abs(tp_d0->at(it)));
+        if (std::abs(tp_eta->at(it)) < 2.0)
+          h_tp_absd0_eta2->Fill(std::abs(tp_d0->at(it)));
+        if (std::abs(tp_eta->at(it)) < 2.0 && tp_pt->at(it) > 3.0)
+          h_tp_absd0_eta2_pt3->Fill(std::abs(tp_d0->at(it)));
 
         if (tp_pt->at(it) < 3.0)
           h_tp_eta_23->Fill(tp_eta->at(it));
@@ -1325,7 +1325,7 @@ void L1TrackNtuplePlot(TString type,
         h_match_trk_chi2rz_dof->Fill(chi2rzdof);
 
         // central eta
-        if (fabs(tp_eta->at(it)) < 0.8) {
+        if (std::abs(tp_eta->at(it)) < 0.8) {
           if (tp_pt->at(it) < 8.0) {
             h_match_trk_chi2_C_L->Fill(chi2);
             h_match_trk_chi2_dof_C_L->Fill(chi2dof);
@@ -1335,7 +1335,7 @@ void L1TrackNtuplePlot(TString type,
           }
         }
         // intermediate eta
-        else if (fabs(tp_eta->at(it)) < 1.6 && fabs(tp_eta->at(it)) >= 0.8) {
+        else if (std::abs(tp_eta->at(it)) < 1.6 && std::abs(tp_eta->at(it)) >= 0.8) {
           if (tp_pt->at(it) < 8.0) {
             h_match_trk_chi2_I_L->Fill(chi2);
             h_match_trk_chi2_dof_I_L->Fill(chi2dof);
@@ -1345,7 +1345,7 @@ void L1TrackNtuplePlot(TString type,
           }
         }
         // forward eta
-        else if (fabs(tp_eta->at(it)) >= 1.6) {
+        else if (std::abs(tp_eta->at(it)) >= 1.6) {
           if (tp_pt->at(it) < 8.0) {
             h_match_trk_chi2_F_L->Fill(chi2);
             h_match_trk_chi2_dof_F_L->Fill(chi2dof);
@@ -1366,8 +1366,8 @@ void L1TrackNtuplePlot(TString type,
       // use tight quality cut selection?
       /*
       if (matchtrk_nstub->at(it)==4) {
-	if (fabs(matchtrk_eta->at(it))<2.2 && matchtrk_consistency->at(it)>10) continue;
-	else if (fabs(matchtrk_eta->at(it))>2.2 && chi2dof>5.0) continue;
+	if (std::abs(matchtrk_eta->at(it))<2.2 && matchtrk_consistency->at(it)>10) continue;
+	else if (std::abs(matchtrk_eta->at(it))>2.2 && chi2dof>5.0) continue;
       }
       if (matchtrk_pt->at(it)>10.0 && chi2dof>5.0) continue;
       */
@@ -1381,7 +1381,7 @@ void L1TrackNtuplePlot(TString type,
         h_match_tp_pt_L->Fill(tp_pt->at(it));
       else
         h_match_tp_pt_H->Fill(tp_pt->at(it));
-      if (tp_pt->at(it) < 8.0 && fabs(tp_eta->at(it)) < 1.0)
+      if (tp_pt->at(it) < 8.0 && std::abs(tp_eta->at(it)) < 1.0)
         h_match_tp_pt_LC->Fill(tp_pt->at(it));
 
       if (tp_pt->at(it) > TP_minPt) {
@@ -1389,26 +1389,26 @@ void L1TrackNtuplePlot(TString type,
         h_match_tp_phi->Fill(tp_phi->at(it));
         h_match_tp_z0->Fill(tp_z0->at(it));
         h_match_tp_d0->Fill(tp_d0->at(it));
-        h_match_tp_absd0->Fill(fabs(tp_d0->at(it)));
-        if (fabs(tp_eta->at(it)) < 2.0)
-          h_match_tp_absd0_eta2->Fill(fabs(tp_d0->at(it)));
-        if (fabs(tp_eta->at(it)) < 2.0 && tp_pt->at(it) > 3.0)
-          h_match_tp_absd0_eta2_pt3->Fill(fabs(tp_d0->at(it)));
+        h_match_tp_absd0->Fill(std::abs(tp_d0->at(it)));
+        if (std::abs(tp_eta->at(it)) < 2.0)
+          h_match_tp_absd0_eta2->Fill(std::abs(tp_d0->at(it)));
+        if (std::abs(tp_eta->at(it)) < 2.0 && tp_pt->at(it) > 3.0)
+          h_match_tp_absd0_eta2_pt3->Fill(std::abs(tp_d0->at(it)));
 
-        if (fabs(tp_eta->at(it)) < 1.0)
+        if (std::abs(tp_eta->at(it)) < 1.0)
           n_match_eta1p0++;
-        else if (fabs(tp_eta->at(it)) < 1.75)
+        else if (std::abs(tp_eta->at(it)) < 1.75)
           n_match_eta1p75++;
         else
           n_match_eta2p5++;
 
-        if (fabs(tp_pt->at(it)) > 2.0)
+        if (std::abs(tp_pt->at(it)) > 2.0)
           n_match_ptg2++;
-        if (fabs(tp_pt->at(it)) > 2.0 && fabs(tp_pt->at(it)) < 8.0)
+        if (std::abs(tp_pt->at(it)) > 2.0 && std::abs(tp_pt->at(it)) < 8.0)
           n_match_pt2to8++;
-        if (fabs(tp_pt->at(it)) > 8.0)
+        if (std::abs(tp_pt->at(it)) > 8.0)
           n_match_ptg8++;
-        if (fabs(tp_pt->at(it)) > 40.0)
+        if (std::abs(tp_pt->at(it)) > 40.0)
           n_match_ptg40++;
 
         if (tp_pt->at(it) < 3.0)
@@ -1433,11 +1433,11 @@ void L1TrackNtuplePlot(TString type,
 
       // fill nstub histograms
       h_match_trk_nstub->Fill(matchtrk_nstub->at(it));
-      if (fabs(tp_eta->at(it)) < 0.8)
+      if (std::abs(tp_eta->at(it)) < 0.8)
         h_match_trk_nstub_C->Fill(matchtrk_nstub->at(it));
-      else if (fabs(tp_eta->at(it)) < 1.6 && fabs(tp_eta->at(it)) >= 0.8)
+      else if (std::abs(tp_eta->at(it)) < 1.6 && std::abs(tp_eta->at(it)) >= 0.8)
         h_match_trk_nstub_I->Fill(matchtrk_nstub->at(it));
-      else if (fabs(tp_eta->at(it)) >= 1.6)
+      else if (std::abs(tp_eta->at(it)) >= 1.6)
         h_match_trk_nstub_F->Fill(matchtrk_nstub->at(it));
 
       // ----------------------------------------------------------------------------------------------------------------
@@ -1451,44 +1451,44 @@ void L1TrackNtuplePlot(TString type,
       if (matchtrk_d0->at(it) < 999.)
         h_res_d0->Fill(matchtrk_d0->at(it) - tp_d0->at(it));
 
-      if (fabs(tp_eta->at(it)) < 0.8)
+      if (std::abs(tp_eta->at(it)) < 0.8)
         h_res_z0_C->Fill(matchtrk_z0->at(it) - tp_z0->at(it));
-      else if (fabs(tp_eta->at(it)) < 1.6 && fabs(tp_eta->at(it)) >= 0.8)
+      else if (std::abs(tp_eta->at(it)) < 1.6 && std::abs(tp_eta->at(it)) >= 0.8)
         h_res_z0_I->Fill(matchtrk_z0->at(it) - tp_z0->at(it));
-      else if (fabs(tp_eta->at(it)) >= 1.6)
+      else if (std::abs(tp_eta->at(it)) >= 1.6)
         h_res_z0_F->Fill(matchtrk_z0->at(it) - tp_z0->at(it));
 
       if (tp_pt->at(it) < 8.0) {
         h_res_z0_L->Fill(matchtrk_z0->at(it) - tp_z0->at(it));
-        if (fabs(tp_eta->at(it)) < 1.0)
+        if (std::abs(tp_eta->at(it)) < 1.0)
           h_res_z0_C_L->Fill(matchtrk_z0->at(it) - tp_z0->at(it));
         else
           h_res_z0_F_L->Fill(matchtrk_z0->at(it) - tp_z0->at(it));
       } else {
         h_res_z0_H->Fill(matchtrk_z0->at(it) - tp_z0->at(it));
-        if (fabs(tp_eta->at(it)) < 1.0)
+        if (std::abs(tp_eta->at(it)) < 1.0)
           h_res_z0_C_H->Fill(matchtrk_z0->at(it) - tp_z0->at(it));
         else
           h_res_z0_F_H->Fill(matchtrk_z0->at(it) - tp_z0->at(it));
       }
 
       if (matchtrk_d0->at(it) < 999.) {
-        if (fabs(tp_eta->at(it)) < 0.8)
+        if (std::abs(tp_eta->at(it)) < 0.8)
           h_res_d0_C->Fill(matchtrk_d0->at(it) - tp_d0->at(it));
-        else if (fabs(tp_eta->at(it)) < 1.6 && fabs(tp_eta->at(it)) >= 0.8)
+        else if (std::abs(tp_eta->at(it)) < 1.6 && std::abs(tp_eta->at(it)) >= 0.8)
           h_res_d0_I->Fill(matchtrk_d0->at(it) - tp_d0->at(it));
-        else if (fabs(tp_eta->at(it)) >= 1.6)
+        else if (std::abs(tp_eta->at(it)) >= 1.6)
           h_res_d0_F->Fill(matchtrk_d0->at(it) - tp_d0->at(it));
 
         if (tp_pt->at(it) < 8.0) {
           h_res_d0_L->Fill(matchtrk_d0->at(it) - tp_d0->at(it));
-          if (fabs(tp_eta->at(it)) < 1.0)
+          if (std::abs(tp_eta->at(it)) < 1.0)
             h_res_d0_C_L->Fill(matchtrk_d0->at(it) - tp_d0->at(it));
           else
             h_res_d0_F_L->Fill(matchtrk_d0->at(it) - tp_d0->at(it));
         } else {
           h_res_d0_H->Fill(matchtrk_d0->at(it) - tp_d0->at(it));
-          if (fabs(tp_eta->at(it)) < 1.0)
+          if (std::abs(tp_eta->at(it)) < 1.0)
             h_res_d0_C_H->Fill(matchtrk_d0->at(it) - tp_d0->at(it));
           else
             h_res_d0_F_H->Fill(matchtrk_d0->at(it) - tp_d0->at(it));
@@ -1505,23 +1505,23 @@ void L1TrackNtuplePlot(TString type,
           h_resVsPt_phi[im]->Fill(matchtrk_phi->at(it) - tp_phi->at(it));
           h_resVsPt_z0[im]->Fill(matchtrk_z0->at(it) - tp_z0->at(it));
 
-          h_absResVsPt_pt[im]->Fill(fabs(matchtrk_pt->at(it) - tp_pt->at(it)));
-          h_absResVsPt_ptRel[im]->Fill(fabs((matchtrk_pt->at(it) - tp_pt->at(it))) / tp_pt->at(it));
-          h_absResVsPt_z0[im]->Fill(fabs(matchtrk_z0->at(it) - tp_z0->at(it)));
-          h_absResVsPt_phi[im]->Fill(fabs(matchtrk_phi->at(it) - tp_phi->at(it)));
-          h_absResVsPt_eta[im]->Fill(fabs(matchtrk_eta->at(it) - tp_eta->at(it)));
+          h_absResVsPt_pt[im]->Fill(std::abs(matchtrk_pt->at(it) - tp_pt->at(it)));
+          h_absResVsPt_ptRel[im]->Fill(std::abs((matchtrk_pt->at(it) - tp_pt->at(it))) / tp_pt->at(it));
+          h_absResVsPt_z0[im]->Fill(std::abs(matchtrk_z0->at(it) - tp_z0->at(it)));
+          h_absResVsPt_phi[im]->Fill(std::abs(matchtrk_phi->at(it) - tp_phi->at(it)));
+          h_absResVsPt_eta[im]->Fill(std::abs(matchtrk_eta->at(it) - tp_eta->at(it)));
 
-          if (fabs(tp_eta->at(it)) < 0.8) {
+          if (std::abs(tp_eta->at(it)) < 0.8) {
             h_resVsPt_pt_C[im]->Fill(matchtrk_pt->at(it) - tp_pt->at(it));
             h_resVsPt_ptRel_C[im]->Fill((matchtrk_pt->at(it) - tp_pt->at(it)) / tp_pt->at(it));
             h_resVsPt_z0_C[im]->Fill(matchtrk_z0->at(it) - tp_z0->at(it));
             h_resVsPt_phi_C[im]->Fill(matchtrk_phi->at(it) - tp_phi->at(it));
-          } else if (fabs(tp_eta->at(it)) < 1.6 && fabs(tp_eta->at(it)) >= 0.8) {
+          } else if (std::abs(tp_eta->at(it)) < 1.6 && std::abs(tp_eta->at(it)) >= 0.8) {
             h_resVsPt_pt_I[im]->Fill(matchtrk_pt->at(it) - tp_pt->at(it));
             h_resVsPt_ptRel_I[im]->Fill((matchtrk_pt->at(it) - tp_pt->at(it)) / tp_pt->at(it));
             h_resVsPt_z0_I[im]->Fill(matchtrk_z0->at(it) - tp_z0->at(it));
             h_resVsPt_phi_I[im]->Fill(matchtrk_phi->at(it) - tp_phi->at(it));
-          } else if (fabs(tp_eta->at(it)) >= 1.6) {
+          } else if (std::abs(tp_eta->at(it)) >= 1.6) {
             h_resVsPt_pt_F[im]->Fill(matchtrk_pt->at(it) - tp_pt->at(it));
             h_resVsPt_ptRel_F[im]->Fill((matchtrk_pt->at(it) - tp_pt->at(it)) / tp_pt->at(it));
             h_resVsPt_z0_F[im]->Fill(matchtrk_z0->at(it) - tp_z0->at(it));
@@ -1530,36 +1530,35 @@ void L1TrackNtuplePlot(TString type,
 
           if (matchtrk_d0->at(it) < 999) {
             h_resVsPt_d0[im]->Fill(matchtrk_d0->at(it) - tp_d0->at(it));
-            h_absResVsPt_d0[im]->Fill(fabs(matchtrk_d0->at(it) - tp_d0->at(it)));
+            h_absResVsPt_d0[im]->Fill(std::abs(matchtrk_d0->at(it) - tp_d0->at(it)));
           }
         }
       }
 
       for (int im = 4; im < nRANGE_L + 4; im++) {
         if ((tp_pt->at(it) > (float)im * 0.5) && (tp_pt->at(it) <= (float)(im + 1) * 0.5)) {
-          h_absResVsPt_pt_L[im - 4]->Fill(fabs(matchtrk_pt->at(it) - tp_pt->at(it)));
-          h_absResVsPt_ptRel_L[im - 4]->Fill(fabs((matchtrk_pt->at(it) - tp_pt->at(it))) / tp_pt->at(it));
-          h_absResVsPt_z0_L[im - 4]->Fill(fabs(matchtrk_z0->at(it) - tp_z0->at(it)));
-          h_absResVsPt_phi_L[im - 4]->Fill(fabs(matchtrk_phi->at(it) - tp_phi->at(it)));
-          h_absResVsPt_eta_L[im - 4]->Fill(fabs(matchtrk_eta->at(it) - tp_eta->at(it)));
-          h_absResVsPt_d0_L[im - 4]->Fill(fabs(matchtrk_d0->at(it) - tp_d0->at(it)));
+          h_absResVsPt_pt_L[im - 4]->Fill(std::abs(matchtrk_pt->at(it) - tp_pt->at(it)));
+          h_absResVsPt_ptRel_L[im - 4]->Fill(std::abs((matchtrk_pt->at(it) - tp_pt->at(it))) / tp_pt->at(it));
+          h_absResVsPt_z0_L[im - 4]->Fill(std::abs(matchtrk_z0->at(it) - tp_z0->at(it)));
+          h_absResVsPt_phi_L[im - 4]->Fill(std::abs(matchtrk_phi->at(it) - tp_phi->at(it)));
+          h_absResVsPt_eta_L[im - 4]->Fill(std::abs(matchtrk_eta->at(it) - tp_eta->at(it)));
+          h_absResVsPt_d0_L[im - 4]->Fill(std::abs(matchtrk_d0->at(it) - tp_d0->at(it)));
         }
       }
 
       // ----------------------------------------------------------------------------------------------------------------
       // fill resolution vs. eta histograms
       for (int im = 0; im < nETARANGE; im++) {
-        if ((fabs(tp_eta->at(it)) > (float)im * 0.1) && (fabs(tp_eta->at(it)) < (float)(im + 1) * 0.1)) {
-          //if ( (fabs(tp_eta->at(it)) > (float)im*0.2) && (fabs(tp_eta->at(it)) < (float)(im+1)*0.2) ) {
+        if ((std::abs(tp_eta->at(it)) > (float)im * 0.1) && (std::abs(tp_eta->at(it)) < (float)(im + 1) * 0.1)) {
           h_resVsEta_ptRel[im]->Fill((matchtrk_pt->at(it) - tp_pt->at(it)) / tp_pt->at(it));
           h_resVsEta_eta[im]->Fill(matchtrk_eta->at(it) - tp_eta->at(it));
           h_resVsEta_phi[im]->Fill(matchtrk_phi->at(it) - tp_phi->at(it));
           h_resVsEta_z0[im]->Fill(matchtrk_z0->at(it) - tp_z0->at(it));
 
-          h_absResVsEta_ptRel[im]->Fill(fabs((matchtrk_pt->at(it) - tp_pt->at(it))) / tp_pt->at(it));
-          h_absResVsEta_eta[im]->Fill(fabs(matchtrk_eta->at(it) - tp_eta->at(it)));
-          h_absResVsEta_phi[im]->Fill(fabs(matchtrk_phi->at(it) - tp_phi->at(it)));
-          h_absResVsEta_z0[im]->Fill(fabs(matchtrk_z0->at(it) - tp_z0->at(it)));
+          h_absResVsEta_ptRel[im]->Fill(std::abs((matchtrk_pt->at(it) - tp_pt->at(it))) / tp_pt->at(it));
+          h_absResVsEta_eta[im]->Fill(std::abs(matchtrk_eta->at(it) - tp_eta->at(it)));
+          h_absResVsEta_phi[im]->Fill(std::abs(matchtrk_phi->at(it) - tp_phi->at(it)));
+          h_absResVsEta_z0[im]->Fill(std::abs(matchtrk_z0->at(it) - tp_z0->at(it)));
 
           if (tp_pt->at(it) < 8.0) {
             h_resVsEta_ptRel_L[im]->Fill((matchtrk_pt->at(it) - tp_pt->at(it)) / tp_pt->at(it));
@@ -1567,14 +1566,14 @@ void L1TrackNtuplePlot(TString type,
             h_resVsEta_z0_L[im]->Fill(matchtrk_z0->at(it) - tp_z0->at(it));
             h_resVsEta_phi_L[im]->Fill(matchtrk_phi->at(it) - tp_phi->at(it));
 
-            h_absResVsEta_ptRel_L[im]->Fill(fabs((matchtrk_pt->at(it) - tp_pt->at(it))) / tp_pt->at(it));
-            h_absResVsEta_eta_L[im]->Fill(fabs(matchtrk_eta->at(it) - tp_eta->at(it)));
-            h_absResVsEta_phi_L[im]->Fill(fabs(matchtrk_phi->at(it) - tp_phi->at(it)));
-            h_absResVsEta_z0_L[im]->Fill(fabs(matchtrk_z0->at(it) - tp_z0->at(it)));
+            h_absResVsEta_ptRel_L[im]->Fill(std::abs((matchtrk_pt->at(it) - tp_pt->at(it))) / tp_pt->at(it));
+            h_absResVsEta_eta_L[im]->Fill(std::abs(matchtrk_eta->at(it) - tp_eta->at(it)));
+            h_absResVsEta_phi_L[im]->Fill(std::abs(matchtrk_phi->at(it) - tp_phi->at(it)));
+            h_absResVsEta_z0_L[im]->Fill(std::abs(matchtrk_z0->at(it) - tp_z0->at(it)));
 
             if (matchtrk_d0->at(it) < 999) {
               h_resVsEta_d0_L[im]->Fill(matchtrk_d0->at(it) - tp_d0->at(it));
-              h_absResVsEta_d0_L[im]->Fill(fabs(matchtrk_d0->at(it) - tp_d0->at(it)));
+              h_absResVsEta_d0_L[im]->Fill(std::abs(matchtrk_d0->at(it) - tp_d0->at(it)));
             }
           } else {
             h_resVsEta_ptRel_H[im]->Fill((matchtrk_pt->at(it) - tp_pt->at(it)) / tp_pt->at(it));
@@ -1582,20 +1581,20 @@ void L1TrackNtuplePlot(TString type,
             h_resVsEta_z0_H[im]->Fill(matchtrk_z0->at(it) - tp_z0->at(it));
             h_resVsEta_phi_H[im]->Fill(matchtrk_phi->at(it) - tp_phi->at(it));
 
-            h_absResVsEta_ptRel_H[im]->Fill(fabs((matchtrk_pt->at(it) - tp_pt->at(it))) / tp_pt->at(it));
-            h_absResVsEta_eta_H[im]->Fill(fabs(matchtrk_eta->at(it) - tp_eta->at(it)));
-            h_absResVsEta_phi_H[im]->Fill(fabs(matchtrk_phi->at(it) - tp_phi->at(it)));
-            h_absResVsEta_z0_H[im]->Fill(fabs(matchtrk_z0->at(it) - tp_z0->at(it)));
+            h_absResVsEta_ptRel_H[im]->Fill(std::abs((matchtrk_pt->at(it) - tp_pt->at(it))) / tp_pt->at(it));
+            h_absResVsEta_eta_H[im]->Fill(std::abs(matchtrk_eta->at(it) - tp_eta->at(it)));
+            h_absResVsEta_phi_H[im]->Fill(std::abs(matchtrk_phi->at(it) - tp_phi->at(it)));
+            h_absResVsEta_z0_H[im]->Fill(std::abs(matchtrk_z0->at(it) - tp_z0->at(it)));
 
             if (matchtrk_d0->at(it) < 999) {
               h_resVsEta_d0_H[im]->Fill(matchtrk_d0->at(it) - tp_d0->at(it));
-              h_absResVsEta_d0_H[im]->Fill(fabs(matchtrk_d0->at(it) - tp_d0->at(it)));
+              h_absResVsEta_d0_H[im]->Fill(std::abs(matchtrk_d0->at(it) - tp_d0->at(it)));
             }
           }
 
           if (matchtrk_d0->at(it) < 999) {
             h_resVsEta_d0[im]->Fill(matchtrk_d0->at(it) - tp_d0->at(it));
-            h_absResVsEta_d0[im]->Fill(fabs(matchtrk_d0->at(it) - tp_d0->at(it)));
+            h_absResVsEta_d0[im]->Fill(std::abs(matchtrk_d0->at(it) - tp_d0->at(it)));
           }
         }
       }
@@ -1604,8 +1603,8 @@ void L1TrackNtuplePlot(TString type,
       // fill resolution vs. phi histograms
       for (int im = 0; im < nPHIRANGE; im++) {
         if ((tp_phi->at(it) > (float)im * 0.2 - 3.2) && (tp_phi->at(it) < (float)(im + 1) * 0.2 - 3.2)) {
-          h_absResVsPhi_pt[im]->Fill(fabs(matchtrk_pt->at(it) - tp_pt->at(it)));
-          h_absResVsPhi_ptRel[im]->Fill(fabs((matchtrk_pt->at(it) - tp_pt->at(it))) / tp_pt->at(it));
+          h_absResVsPhi_pt[im]->Fill(std::abs(matchtrk_pt->at(it) - tp_pt->at(it)));
+          h_absResVsPhi_ptRel[im]->Fill(std::abs((matchtrk_pt->at(it) - tp_pt->at(it))) / tp_pt->at(it));
         }
       }
 
@@ -3559,45 +3558,45 @@ void L1TrackNtuplePlot(TString type,
 
   float k = (float)n_match_eta1p0;
   float N = (float)n_all_eta1p0;
-  if (fabs(N) > 0)
+  if (std::abs(N) > 0)
     cout << endl
          << "efficiency for |eta| < 1.0 = " << k / N * 100.0 << " +- " << 1.0 / N * sqrt(k * (1.0 - k / N)) * 100.0
          << endl;
   k = (float)n_match_eta1p75;
   N = (float)n_all_eta1p75;
-  if (fabs(N) > 0)
+  if (std::abs(N) > 0)
     cout << "efficiency for 1.0 < |eta| < 1.75 = " << k / N * 100.0 << " +- "
          << 1.0 / N * sqrt(k * (1.0 - k / N)) * 100.0 << endl;
   k = (float)n_match_eta2p5;
   N = (float)n_all_eta2p5;
-  if (fabs(N) > 0)
+  if (std::abs(N) > 0)
     cout << "efficiency for 1.75 < |eta| < " << std::min(TP_maxEta, 2.5f) << " = " << k / N * 100.0 << " +- "
          << 1.0 / N * sqrt(k * (1.0 - k / N)) * 100.0 << endl;
   N = (float)n_all_eta1p0 + n_all_eta1p75 + n_all_eta2p5;
   k = (float)n_match_eta1p0 + n_match_eta1p75 + n_match_eta2p5;
-  if (fabs(N) > 0)
+  if (std::abs(N) > 0)
     cout << "combined efficiency for |eta| < " << std::min(TP_maxEta, 2.5f) << " = " << k / N * 100.0 << " +- "
          << 1.0 / N * sqrt(k * (1.0 - k / N)) * 100.0 << " = " << k << "/" << N << endl
          << endl;
 
   k = (float)n_match_ptg2;
   N = (float)n_all_ptg2;
-  if (fabs(N) > 0)
+  if (std::abs(N) > 0)
     cout << "efficiency for pt > " << std::max(TP_minPt, 2.0f) << " = " << k / N * 100.0 << " +- "
          << 1.0 / N * sqrt(k * (1.0 - k / N)) * 100.0 << endl;
   k = (float)n_match_pt2to8;
   N = (float)n_all_pt2to8;
-  if (fabs(N) > 0)
+  if (std::abs(N) > 0)
     cout << "efficiency for " << std::max(TP_minPt, 2.0f) << " < pt < 8.0 = " << k / N * 100.0 << " +- "
          << 1.0 / N * sqrt(k * (1.0 - k / N)) * 100.0 << endl;
   k = (float)n_match_ptg8;
   N = (float)n_all_ptg8;
-  if (fabs(N) > 0)
+  if (std::abs(N) > 0)
     cout << "efficiency for pt > 8.0 = " << k / N * 100.0 << " +- " << 1.0 / N * sqrt(k * (1.0 - k / N)) * 100.0
          << endl;
   k = (float)n_match_ptg40;
   N = (float)n_all_ptg40;
-  if (fabs(N) > 0)
+  if (std::abs(N) > 0)
     cout << "efficiency for pt > 40.0 = " << k / N * 100.0 << " +- " << 1.0 / N * sqrt(k * (1.0 - k / N)) * 100.0
          << endl
          << endl;

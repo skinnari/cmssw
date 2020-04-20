@@ -76,9 +76,9 @@ public:
     double z1 = zminl1_ + izbin * dz_;
     double z2 = zminl1_ + (izbin + 1) * dz_;
 
-    if (fabs(z1) <= z0cut)
+    if (std::abs(z1) <= z0cut)
       return -1;
-    if (fabs(z2) <= z0cut)
+    if (std::abs(z2) <= z0cut)
       return -1;
 
     double rmaxd2 = -2 * rmaxdisk;

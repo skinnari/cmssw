@@ -23,7 +23,7 @@ public:
 
     //cout << "Initiating projection to layer = "<<projlayer<< " at radius = "<<rproj<<endl;
 
-    if (valid_ && (fabs(iphiresid) > fabs(fpgaphiresid_.value())))
+    if (valid_ && (std::abs(iphiresid) > std::abs(fpgaphiresid_.value())))
       return;
 
     valid_ = true;

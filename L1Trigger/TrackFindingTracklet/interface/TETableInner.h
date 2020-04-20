@@ -86,7 +86,7 @@ public:
     double r2 = rminl1_ + (irbin + 1) * dr_;
 
     if (extra and
-        fabs(0.5 * (z1 + z2)) < 52.0) {  //This seeding combinations should not be for central region of detector
+        std::abs(0.5 * (z1 + z2)) < 52.0) {  //This seeding combinations should not be for central region of detector
       return -1;
     }
 
@@ -192,9 +192,9 @@ public:
 
     int valueD3 = 0;
     if (layer3_ > 0 && thirdLayerIsDisk_) {
-      if (fabs(z1) <= z0cut)
+      if (std::abs(z1) <= z0cut)
         return -1;
-      if (fabs(z2) <= z0cut)
+      if (std::abs(z2) <= z0cut)
         return -1;
 
       double rmaxd3 = -2 * rmaxdisk;

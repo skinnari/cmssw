@@ -336,7 +336,7 @@ public:
     lr_ = (r > 1) ? log2(r) + epsilon : log2(r);
     K_ = K_ * pow(2, lr_);
     if (do_assert)
-      assert(fabs(Knew / K_ - 1) < epsilon);
+      assert(std::abs(Knew / K_ - 1) < epsilon);
 
     if (nbits > 0)
       nbits_ = nbits;
@@ -370,7 +370,7 @@ public:
     lr_ = (r > 1) ? log2(r) + epsilon : log2(r);
     K_ = K_ * pow(2, lr_);
     if (do_assert)
-      assert(fabs(Knew / K_ - 1) < epsilon);
+      assert(std::abs(Knew / K_ - 1) < epsilon);
 
     if (nbits > 0)
       nbits_ = nbits;
@@ -393,7 +393,7 @@ public:
   var_param(std::string name, double fval, int nbits) : var_base(name, 0, 0, 0, 0) {
     op_ = "const";
     nbits_ = nbits;
-    int l = log2(fabs(fval)) + 1.9999999 - nbits;
+    int l = log2(std::abs(fval)) + 1.9999999 - nbits;
     Kmap_["2"] = l;
     K_ = pow(2, l);
     fval_ = fval;
@@ -408,7 +408,7 @@ public:
     else {
       //defining a constant, K should be a power of two
       int l = log2(K);
-      if (fabs(pow(2, l) / K - 1) > 1e-5) {
+      if (std::abs(pow(2, l) / K - 1) > 1e-5) {
         printf("defining unitless constant, yet K is not a power of 2! %g, %g\n", K, pow(2, l));
       }
       Kmap_["2"] = l;
@@ -444,7 +444,7 @@ public:
     else {
       //defining a constant, K should be a power of two
       int l = log2(K);
-      if (fabs(pow(2, l) / K - 1) > 1e-5) {
+      if (std::abs(pow(2, l) / K - 1) > 1e-5) {
         printf("defining unitless constant, yet K is not a power of 2! %g, %g\n", K, pow(2, l));
       }
       Kmap_["2"] = l;
@@ -512,7 +512,7 @@ public:
     double ki1 = p1->get_K() / pow(2, s1);
     double ki2 = p2->get_K() / pow(2, s2);
     //those should be the same
-    if (fabs(ki1 / ki2 - 1.) > 1e-6) {
+    if (std::abs(ki1 / ki2 - 1.) > 1e-6) {
       printf("var_add: bad constants! %f %f for variable %s\n", ki1, ki2, name_.c_str());
       printf(" *********************************************************\n");
       p1->dump_cout();
@@ -599,7 +599,7 @@ public:
     double ki1 = p1->get_K() / pow(2, s1);
     double ki2 = p2->get_K() / pow(2, s2);
     //those should be the same
-    if (fabs(ki1 / ki2 - 1.) > 1e-6) {
+    if (std::abs(ki1 / ki2 - 1.) > 1e-6) {
       printf("var_add: bad constants! %f %f for variable %s\n", ki1, ki2, name_.c_str());
       printf(" *********************************************************\n");
       p1->dump_cout();
@@ -736,7 +736,7 @@ public:
     K_ = p1->get_K();
 
     int s1 = Kmap_["2"];
-    double l = log2(fabs(cF));
+    double l = log2(std::abs(cF));
     if (l > 0)
       l += 0.999999;
     int m = l;
@@ -854,7 +854,7 @@ public:
     double ki1 = k0 / pow(2, s0);
     double ki2 = p3->get_K() / pow(2, s3);
     //those should be the same
-    if (fabs(ki1 / ki2 - 1.) > 1e-6) {
+    if (std::abs(ki1 / ki2 - 1.) > 1e-6) {
       printf("var_DSP_postadd: bad constants! %f %f for variable %s\n", ki1, ki2, name_.c_str());
       printf(" *********************************************************\n");
       p1->dump_cout();

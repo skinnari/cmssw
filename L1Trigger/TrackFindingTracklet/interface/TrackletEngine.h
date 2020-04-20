@@ -515,8 +515,8 @@ public:
                 bendoutermin = abendouter;
               if (abendouter > bendoutermax)
                 bendoutermax = abendouter;
-              if (fabs(rinv1) < rinvmin) {
-                rinvmin = fabs(rinv1);
+              if (std::abs(rinv1) < rinvmin) {
+                rinvmin = std::abs(rinv1);
               }
             }
           }
@@ -615,11 +615,11 @@ public:
                     bendoutermin = abendouter;
                   if (abendouter > bendoutermax)
                     bendoutermax = abendouter;
-                  if (fabs(rinv1) < rinvmin) {
-                    rinvmin = fabs(rinv1);
+                  if (std::abs(rinv1) < rinvmin) {
+                    rinvmin = std::abs(rinv1);
                   }
-                  if (fabs(rinv1) > rinvmax) {
-                    rinvmax = fabs(rinv1);
+                  if (std::abs(rinv1) > rinvmax) {
+                    rinvmax = std::abs(rinv1);
                   }
                 }
               }
@@ -715,8 +715,8 @@ public:
                     bendoutermin = abendouter;
                   if (abendouter > bendoutermax)
                     bendoutermax = abendouter;
-                  if (fabs(rinv1) < rinvmin) {
-                    rinvmin = fabs(rinv1);
+                  if (std::abs(rinv1) < rinvmin) {
+                    rinvmin = std::abs(rinv1);
                   }
                 }
               }

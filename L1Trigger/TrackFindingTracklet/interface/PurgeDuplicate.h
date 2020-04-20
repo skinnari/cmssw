@@ -495,7 +495,7 @@ private:
       assert(0);
     }
     // Calculate residual
-    phires = fabs(stubphi - phiproj);
+    phires = std::abs(stubphi - phiproj);
     return phires;
   }
 

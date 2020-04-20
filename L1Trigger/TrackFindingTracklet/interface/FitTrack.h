@@ -252,7 +252,7 @@ public:
           if (ndisks + nlayers >= 6)
             continue;
           if (tracklet->matchdisk(d)) {
-            if (fabs(tracklet->alphadisk(d)) < 1e-20) {
+            if (std::abs(tracklet->alphadisk(d)) < 1e-20) {
               matches2[2 * (5 - d)] = '1';
               diskmask |= (1 << (2 * (5 - d) + 1));
             } else {
@@ -328,7 +328,7 @@ public:
           if (ndisks + nlayers >= 6)
             continue;
           if (tracklet->matchdisk(d)) {
-            if (fabs(tracklet->alphadisk(d)) < 1e-20) {
+            if (std::abs(tracklet->alphadisk(d)) < 1e-20) {
               matches2[2 * (5 - d1)] = '1';
               diskmask |= (1 << (2 * (5 - d1) + 1));
             } else {
@@ -347,10 +347,10 @@ public:
             }
 
             alpha[ndisks] = tracklet->alphadisk(d);
-            assert(fabs(tracklet->phiresidapproxdisk(d)) < 0.2);
+            assert(std::abs(tracklet->phiresidapproxdisk(d)) < 0.2);
             phiresid[nlayers + ndisks] = tracklet->phiresidapproxdisk(d);
             zresid[nlayers + ndisks] = tracklet->rresidapproxdisk(d);
-            assert(fabs(tracklet->phiresiddisk(d)) < 0.2);
+            assert(std::abs(tracklet->phiresiddisk(d)) < 0.2);
             phiresidexact[nlayers + ndisks] = tracklet->phiresiddisk(d);
             zresidexact[nlayers + ndisks] = tracklet->rresiddisk(d);
             iphiresid[nlayers + ndisks] = tracklet->fpgaphiresiddisk(d).value();
@@ -372,10 +372,10 @@ public:
           if (tracklet->match(l)) {
             matches[l - 1] = '1';
             layermask |= (1 << (6 - l));
-            assert(fabs(tracklet->phiresidapprox(l)) < 0.2);
+            assert(std::abs(tracklet->phiresidapprox(l)) < 0.2);
             phiresid[nlayers] = tracklet->phiresidapprox(l);
             zresid[nlayers] = tracklet->zresidapprox(l);
-            assert(fabs(tracklet->phiresid(l)) < 0.2);
+            assert(std::abs(tracklet->phiresid(l)) < 0.2);
             phiresidexact[nlayers] = tracklet->phiresid(l);
             zresidexact[nlayers] = tracklet->zresid(l);
             iphiresid[nlayers] = tracklet->fpgaphiresid(l).value();
@@ -403,7 +403,7 @@ public:
           if (ndisks + nlayers >= 6)
             continue;
           if (tracklet->matchdisk(d)) {
-            if (fabs(tracklet->alphadisk(d)) < 1e-20) {
+            if (std::abs(tracklet->alphadisk(d)) < 1e-20) {
               matches2[2 * (d1 - 1)] = '1';
               diskmask |= (1 << (2 * (5 - d1) + 1));
               FPGAWord tmp;
@@ -426,10 +426,10 @@ public:
             }
 
             alpha[ndisks] = tracklet->alphadisk(d);
-            assert(fabs(tracklet->phiresidapproxdisk(d)) < 0.2);
+            assert(std::abs(tracklet->phiresidapproxdisk(d)) < 0.2);
             phiresid[nlayers + ndisks] = tracklet->phiresidapproxdisk(d);
             zresid[nlayers + ndisks] = tracklet->rresidapproxdisk(d);
-            assert(fabs(tracklet->phiresiddisk(d)) < 0.2);
+            assert(std::abs(tracklet->phiresiddisk(d)) < 0.2);
             phiresidexact[nlayers + ndisks] = tracklet->phiresiddisk(d);
             zresidexact[nlayers + ndisks] = tracklet->rresiddisk(d);
             iphiresid[nlayers + ndisks] = tracklet->fpgaphiresiddisk(d).value();
@@ -447,11 +447,11 @@ public:
         rinvindex = (1 << nrinvBitsTable) - 1;
 
       int ptbin = 0;
-      if (fabs(rinv) < 0.0057 / 2)
+      if (std::abs(rinv) < 0.0057 / 2)
         ptbin = 1;
-      if (fabs(rinv) < 0.0057 / 4)
+      if (std::abs(rinv) < 0.0057 / 4)
         ptbin = 2;
-      if (fabs(rinv) < 0.0057 / 8)
+      if (std::abs(rinv) < 0.0057 / 8)
         ptbin = 3;
 
       TrackDer* derivatives = derTable.getDerivatives(layermask, diskmask, alphaindex, rinvindex);
@@ -505,7 +505,7 @@ public:
           std::pair<Stub*, L1TStub*> stubptrs = tracklet->stubptrs(layers[i]);
           realrstub[i] = stubptrs.second->r();
           //r[i]=realrstub[i];  //test
-          assert(fabs(realrstub[i] - r[i]) < 5.0);
+          assert(std::abs(realrstub[i] - r[i]) < 5.0);
         }
         rstub[i] = r[i];
       }
@@ -607,11 +607,11 @@ public:
 
         idelta[j] = iphiresid[i];
         delta[j] = phiresid[i];
-        if (fabs(phiresid[i]) > 0.2) {
+        if (std::abs(phiresid[i]) > 0.2) {
           cout << getName() << " WARNING too large phiresid: " << phiresid[i] << " " << phiresidexact[i] << endl;
         }
-        assert(fabs(phiresid[i]) < 1.0);
-        assert(fabs(phiresidexact[i]) < 1.0);
+        assert(std::abs(phiresid[i]) < 1.0);
+        assert(std::abs(phiresidexact[i]) < 1.0);
         deltaexact[j++] = phiresidexact[i];
 
         idelta[j] = izresid[i];
@@ -679,7 +679,7 @@ public:
        double drinvtmp=MinvDt[0][j]*delta[j];
        double idrinvtmp=krinvpars*((iMinvDt[0][j]*idelta[j]+(1<<(fitrinvbitshift-1)))>>fitrinvbitshift);
 
-       if (fabs(drinvtmp-idrinvtmp)>0.000001) {
+       if (std::abs(drinvtmp-idrinvtmp)>0.000001) {
        cout << "WARNING large fp vs. int difference for drinv "<<tracklet->layer()<<" "<<tracklet->disk()<<" "
        <<j<<" "<<drinvtmp<<" "
        <<idrinvtmp<<" "<<drinvtmp-idrinvtmp<<"  "<<delta[j]<<" "<<idelta[j]*kphiproj123<<" "<<iMinvDt[0][j]<<" "<<idelta[j]<<endl;
@@ -689,7 +689,7 @@ public:
        double dz0tmp=MinvDt[3][j]*delta[j];
        double idz0tmp=kz*((iMinvDt[3][j]*idelta[j])>>fitz0bitshift);
 
-       if (fabs(dz0tmp-idz0tmp)>1.0) {
+       if (std::abs(dz0tmp-idz0tmp)>1.0) {
        cout << "WARNING large fp vs. int difference for dz0 "<<tracklet->layer()<<" "<<tracklet->disk()<<" "
        <<j<<" "<<dz0tmp<<" "
        <<idz0tmp<<" "<<dz0tmp-idz0tmp<<"  "<<delta[j]<<" "<<idelta[j]*kz<<endl;

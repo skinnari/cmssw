@@ -110,7 +110,7 @@ public:
         cout << "Error disk z, zmax, zmin: " << z << " " << zmax << " " << zmin << endl;
       }
 
-      int iz = (1 << nzbitsdisk) * ((z - sign * zmean[disk - 1]) / fabs(zmax - zmin));
+      int iz = (1 << nzbitsdisk) * ((z - sign * zmean[disk - 1]) / std::abs(zmax - zmin));
 
       assert(phimaxsec - phiminsec > 0.0);
       if (stubphi < phiminsec - (phimaxsec - phiminsec) / 6.0) {
@@ -140,12 +140,12 @@ public:
       if (!isPSmodule_) {
         for (int i = 0; i < 10; ++i) {
           if (disk <= 2) {
-            if (fabs(r - rDSSinner[i]) < .2) {
+            if (std::abs(r - rDSSinner[i]) < .2) {
               irSS = i;
               break;
             }
           } else {
-            if (fabs(r - rDSSouter[i]) < .2) {
+            if (std::abs(r - rDSSouter[i]) < .2) {
               irSS = i;
               break;
             }
@@ -171,7 +171,7 @@ public:
       disk_.set(sign * disk, 4, false, __LINE__, __FILE__);
 
       double alphanew = stub.alphanew();
-      assert(fabs(alphanew) < 1.0);
+      assert(std::abs(alphanew) < 1.0);
       int ialphanew = alphanew * (1 << (nbitsalpha - 1));
       assert(ialphanew < (1 << (nbitsalpha - 1)));
       assert(ialphanew >= -(1 << (nbitsalpha - 1)));
@@ -340,7 +340,7 @@ public:
   static int bendencode(double bend, bool isPS) {
     int ibend = 2.0 * bend;
 
-    assert(fabs(ibend - 2.0 * bend) < 0.1);
+    assert(std::abs(ibend - 2.0 * bend) < 0.1);
 
     if (isPS) {
       if (ibend == 0 || ibend == 1)

@@ -205,13 +205,8 @@ public:
     rproj = (2.0 / rinv) * sin(tmp);
     phiproj = phi0 - tmp;
 
-    //if (fabs(1.0/rinv)>180.0&&fabs(z0)<15.0) {
-    //  cout << "phiproj phi0 tmp zproj z0 t: "<<phiproj<<" "<<phi0
-    //	   <<" "<<tmp<<" "<<zproj<<" "<<z0<<" "<<t<<endl;
-    //}
-
     if (dumpproj) {
-      if (fabs(zproj + 300.0) < 10.0) {
+      if (std::abs(zproj + 300.0) < 10.0) {
         cout << "DUMPPROJDISK1: "
              << " phi=" << phiproj << " r=" << rproj << endl;
       }
@@ -219,8 +214,6 @@ public:
 
     phider = -rinv / (2 * t);
     rder = cos(tmp) / t;
-
-    //assert(fabs(phider)<0.1);
   }
 
   void addDiskProj(Tracklet* tracklet, int disk) {
@@ -254,7 +247,7 @@ public:
     if (fpgaz.atExtreme())
       return false;
 
-    if (fabs(fpgaz.value() * kz) > zlength)
+    if (std::abs(fpgaz.value() * kz) > zlength)
       return false;
 
     int iphivmRaw = fpgaphi.value() >> (fpgaphi.nbits() - 5);
@@ -659,7 +652,7 @@ public:
     irprojdisk[3] = ITC->rD_3_final.get_ival();
     irprojdisk[4] = ITC->rD_4_final.get_ival();
 
-    if (fabs(it * ITC->t_final.get_K()) > 1.0) {
+    if (std::abs(it * ITC->t_final.get_K()) > 1.0) {
       for (int i = 0; i < 5; ++i) {
         if (iphiprojdisk[i] <= 0)
           continue;

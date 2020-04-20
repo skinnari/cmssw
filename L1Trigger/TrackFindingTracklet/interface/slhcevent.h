@@ -148,7 +148,7 @@ public:
     stub.setiphi(stub.diphi());
     stub.setiz(stub.diz());
 
-    double t = fabs(stub.z()) / stub.r();
+    double t = std::abs(stub.z()) / stub.r();
     double eta = asinh(t);
 
     double fact = 1.0;
@@ -156,10 +156,10 @@ public:
       fact = -1.2;
     fact = 0.0;
 
-    if (((fabs(stub.pt()) > 1.8 * fact) && (fabs(eta) < 2.0)) ||
-        ((fabs(stub.pt()) > 1.4 * fact) && (fabs(eta) > 2.0)) ||
-        ((fabs(stub.pt()) > 1.0 * fact) && (fabs(eta) > 2.3))) {
-      if (fabs(eta) < 2.6) {
+    if (((std::abs(stub.pt()) > 1.8 * fact) && (std::abs(eta) < 2.0)) ||
+        ((std::abs(stub.pt()) > 1.4 * fact) && (std::abs(eta) > 2.0)) ||
+        ((std::abs(stub.pt()) > 1.0 * fact) && (std::abs(eta) > 2.3))) {
+      if (std::abs(eta) < 2.6) {
         stubs_.push_back(stub);
         return true;
       }
@@ -282,7 +282,7 @@ public:
 
       int cbc = strip / 126;
       if (layer > 3 && layer == oldlayer && ladder == oldladder && module == oldmodule && cbc == oldcbc &&
-          fabs(oldz - z) < 1.0) {
+          std::abs(oldz - z) < 1.0) {
         count++;
       } else {
         oldlayer = layer;
@@ -321,7 +321,7 @@ public:
         in >> tmp;
       }
 
-      double t = fabs(stub.z()) / stub.r();
+      double t = std::abs(stub.z()) / stub.r();
       double eta = asinh(t);
 
       double fact = 1.0;
@@ -329,10 +329,10 @@ public:
         fact = -1.2;
       fact = 0.0;
 
-      if (((fabs(stub.pt()) > 1.8 * fact) && (fabs(eta) < 2.0)) ||
-          ((fabs(stub.pt()) > 1.4 * fact) && (fabs(eta) > 2.0)) ||
-          ((fabs(stub.pt()) > 1.0 * fact) && (fabs(eta) > 2.3))) {
-        if (fabs(eta) < 2.6 && count <= 100) {
+      if (((std::abs(stub.pt()) > 1.8 * fact) && (std::abs(eta) < 2.0)) ||
+          ((std::abs(stub.pt()) > 1.4 * fact) && (std::abs(eta) > 2.0)) ||
+          ((std::abs(stub.pt()) > 1.0 * fact) && (std::abs(eta) > 2.3))) {
+        if (std::abs(eta) < 2.6 && count <= 100) {
           stubs_.push_back(stub);
         }
       }

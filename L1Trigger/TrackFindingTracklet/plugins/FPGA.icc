@@ -71,7 +71,7 @@ for (int j = 0; j < ev.nstubs(); j++) {
     double max = 115.0;
     if (stub.layer() == 0)
       max = 70.0;
-    if (fabs(stub.z()) < max)
+    if (std::abs(stub.z()) < max)
       stubcount[stub.layer()][iphi]++;
     unsigned int isector = iphi / 24;
     assert(isector < NSector);
@@ -345,7 +345,7 @@ for (int iTP = 0; iTP < nTP; iTP++) {
   L1SimTrack simtrk = GlobalHistTruth::event()->simtrack(iTP);  //Ryd200330 - used to have iTP-1 - not sure why
   if (simtrk.pt() < 2.0)
     continue;
-  if (fabs(simtrk.vz()) > 15.0)
+  if (std::abs(simtrk.vz()) > 15.0)
     continue;
   if (hypot(simtrk.vx(), simtrk.vy()) > 0.1)
     continue;

@@ -560,7 +560,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
       if (sim_pt < 1.0)
         continue;
-      if (fabs(vz) > 100.0)
+      if (std::abs(vz) > 100.0)
         continue;
       if (hypot(vx, vy) > 50.0)
         continue;
